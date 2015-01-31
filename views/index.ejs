@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
+        <script src="js/index.js" type="text/javascript"></script>
+        <title>lecturus</title>
+    </head>
+    <body >
+        <h1> <%=title %> </h1>
+        <script>
+            var usersArray = [];
+            for (var i=0; i <6 ; i++){
+                usersArray.push(User("email"+i,"name"+i,"organization"+i,i,i,i))
+            }
+            console.log('users to store',usersArray)
+            /*$.post("/users/registerUser", { data : JSON.stringify(usersArray) },
+                 function(temp) { 
+                     console.log("response: "+temp)
+             });
+             $.post("/users/getUser", { data : "email0" },
+                function(temp) {
+                     console.log("response: ", JSON.parse(temp) )
+             });
+             $.get("/users/getUser", { id : "email1" },
+                function(temp) {
+                     console.log("response: ", JSON.parse(temp) )
+             });*/
+        </script>
+    </body>
+</html>

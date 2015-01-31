@@ -1,0 +1,7 @@
+{
+  "name": "lecturus",
+  "description": "shenkar final project",
+  "repository": "https://github.com/avishayhajbi/lecturus",
+  "logo": "http://node-js-sample.herokuapp.com/node.svg",
+  "keywords": ["node", "express", "static", "url", "mysql", "path" ,"fs-extra", "body-parser", "keyword-extractor"]
+}
