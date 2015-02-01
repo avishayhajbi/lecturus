@@ -61,68 +61,68 @@ pool.getConnection(function (err, connection) {
 	}
 	console.log("Create Tables done");
 });
-// 
-// router.get('/users', function (req, res) {
-	// res.render('index',{
-		// title:"Users page sample"
-	// });
-// 
-	// // res.redirect('/'); if i want to exe another function	
-	// //res.send('loading');
-	// //res.render('./views/index.ejs');
-// 	
-// });
-// 
-// router.post("/users/registerUser", function(req, res) {
-    // var data = JSON.parse(req.body.data);
-    // pool.getConnection(function (err, connection) {
-    	// for(var i=0;i<data.length;i++){
-	    	// connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data[i], function (err, result){
-		    	// if (err != null) {
-		    		// console.log("query error "+err);
-		    	// }
-		    	// else if (err == null) {
-		    		// console.log("query done");
-		    	// }
-	    	// });
-    	// }
-    	// res.send("done register user/s")
-    // });
-// });
-// 
-// router.post("/users/getUser", function(req, res) {
-    // var data = req.body.data;
-    // pool.getConnection(function (err, connection) {
-    	// connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
-	    	// if (err != null) {
-	    		// console.log("query error "+err);
-	    		// res.send("error getting user")
-	    	// }
-	    	// else if (err == null) {
-	    		// console.log("query done");
-	    		// res.send(JSON.stringify (result))
-	    	// }
-    	// });
-//     	
-    // });
-// });
-// 
-// router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
-    // var data="";
-    // data = req.query.id;
-    // pool.getConnection(function (err, connection) {
-    	// connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
-	    	// if (err != null) {
-	    		// console.log("query error "+err);
-	    		// res.send("error getting user")
-	    	// }
-	    	// else if (err == null) {
-	    		// console.log("query done");
-	    		// res.send(JSON.stringify (result))
-	    	// }
-    	// });
-//     	
-    // });
-// });
+
+router.get('/users', function (req, res) {
+	res.render('index',{
+		title:"Users page sample"
+	});
+
+	// res.redirect('/'); if i want to exe another function	
+	//res.send('loading');
+	//res.render('./views/index.ejs');
+	
+});
+
+router.post("/users/registerUser", function(req, res) {
+    var data = JSON.parse(req.body.data);
+    pool.getConnection(function (err, connection) {
+    	for(var i=0;i<data.length;i++){
+	    	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data[i], function (err, result){
+		    	if (err != null) {
+		    		console.log("query error "+err);
+		    	}
+		    	else if (err == null) {
+		    		console.log("query done");
+		    	}
+	    	});
+    	}
+    	res.send("done register user/s")
+    });
+});
+
+router.post("/users/getUser", function(req, res) {
+    var data = req.body.data;
+    pool.getConnection(function (err, connection) {
+    	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
+	    	if (err != null) {
+	    		console.log("query error "+err);
+	    		res.send("error getting user")
+	    	}
+	    	else if (err == null) {
+	    		console.log("query done");
+	    		res.send(JSON.stringify (result))
+	    	}
+    	});
+    	
+    });
+});
+
+router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
+    var data="";
+    data = req.query.id;
+    pool.getConnection(function (err, connection) {
+    	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
+	    	if (err != null) {
+	    		console.log("query error "+err);
+	    		res.send("error getting user")
+	    	}
+	    	else if (err == null) {
+	    		console.log("query done");
+	    		res.send(JSON.stringify (result))
+	    	}
+    	});
+    	
+    });
+});
 
 module.exports = router;
