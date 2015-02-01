@@ -64,7 +64,7 @@ pool.getConnection(function (err, connection) {
 	}
 	console.log("Create Tables done");
 });
-/*
+
 router.get('/users', function (req, res) {
 	res.render('index',{
 		title:"Users page sample"
@@ -123,5 +123,5 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
     	
     });
 });
-*/
+
 module.exports = router;
