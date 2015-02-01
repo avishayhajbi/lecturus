@@ -48,15 +48,9 @@ var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOr
 			createUser_groupTable,createUser_organizationTable]; 
 
 
-pg.connect(process.env.DATABASE_URL, function(err, client) {
-  var query = client.query(createUserTable);
 
-  query.on('row', function(row) {
-    console.log(JSON.stringify(row));
-  });
-});
 
-/*
+
 pool.getConnection(function (err, connection) {
 	for(var i=0;i<tables.length;i++){
 		connection.query(tables[i], function (err, result){
@@ -70,7 +64,7 @@ pool.getConnection(function (err, connection) {
 	}
 	console.log("Create Tables done");
 });
-
+/*
 router.get('/users', function (req, res) {
 	res.render('index',{
 		title:"Users page sample"
