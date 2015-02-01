@@ -32,7 +32,7 @@ config ={
     password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
     database: "dail39ouojtvjl",
     port: "5432"
-}
+};
 
 pool = mysql.createPool({
     host: config.host,
