@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname , '/views')));
 
 // middleware to check: 'Passport' -> for users managing
 
-var port = process.env.PORT || 5000;
+var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
 /*
