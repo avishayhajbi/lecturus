@@ -2,7 +2,7 @@
 // var fs = require("fs-extra");
 // var keyword_extractor = require("keyword-extractor");
 var express = require('express');
-//var mysql = require('mysql');
+var mysql = require('mysql');
 var path = require('path');
 //var bodyParser  = require('body-parser');
 var app = express();
