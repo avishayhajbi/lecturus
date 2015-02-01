@@ -1,22 +1,22 @@
 var express = require('express');
 // var url = require('url');
 var mysql = require('mysql');
-// var path = require('path');
+var path = require('path');
 // var fs = require("fs-extra");
-//var bodyParser  = require('body-parser');
+var bodyParser  = require('body-parser');
 // var keyword_extractor = require("keyword-extractor");
 var app = express();
 
-//app.use(express.static((__dirname , '/views'))); //path.join
-//app.use(bodyParser({limit: '50mb'}));
-//app.use(bodyParser.urlencoded({extended: true}));
-//app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname , '/views')));
+app.use(bodyParser({limit: '50mb'}));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 app.set('view engine', 'ejs');
 // middleware to check: 'Passport' -> for users managing
 
 var port = process.env.PORT || 5000;
 app.set('port', port);
-
+/*
 config ={
 	host:"127.0.0.1",
 	user:"root",
@@ -24,22 +24,22 @@ config ={
 	database:"lecturus",
 	listen: port
 }
-/*
+*/
+config ={
+	host: "ec2-54-243-42-236.compute-1.amazonaws.com",
+    user: "ihhupboopjhnqz",
+    password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
+    database: "dail39ouojtvjl",
+    port: "5432"
+}
+
 pool = mysql.createPool({
     host: config.host,
     user: config.user,
     password: config.password,
     database: config.database,
 });
-*/
 
-pool = mysql.createPool({
-    host: "ec2-54-243-42-236.compute-1.amazonaws.com",
-    user: "ihhupboopjhnqz",
-    port: "5432",
-    password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
-    database: "dail39ouojtvjl",
-});
 
 app.listen(app.get('port'), function () {
     console.log('Server running...');
@@ -58,7 +58,7 @@ app.get('/', function (req, res) {
 	//res.render('./views/index.ejs');
 });
 
-app.get('*', function (req, res) {
+app.get('/*', function (req, res) {
 	res.send(405,'page not allowed lecturus')
 });
 // do not forget to exe npm init to creating a config file
