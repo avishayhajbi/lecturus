@@ -1,6 +1,6 @@
 var express = require('express');
 // var url = require('url');
-// var mysql = require('mysql');
+var mysql = require('mysql');
 // var path = require('path');
 // var fs = require("fs-extra");
 //var bodyParser  = require('body-parser');
@@ -11,12 +11,12 @@ var app = express();
 //app.use(bodyParser({limit: '50mb'}));
 //app.use(bodyParser.urlencoded({extended: true}));
 //app.use(bodyParser.json());
-//app.set('view engine', 'ejs');
+app.set('view engine', 'ejs');
 // middleware to check: 'Passport' -> for users managing
 
 var port = process.env.PORT || 5000;
 app.set('port', port);
-/*
+
 config ={
 	host:"127.0.0.1",
 	user:"root",
@@ -24,7 +24,7 @@ config ={
 	database:"lecturus",
 	listen: port
 }
-
+/*
 pool = mysql.createPool({
     host: config.host,
     user: config.user,
@@ -32,6 +32,14 @@ pool = mysql.createPool({
     database: config.database,
 });
 */
+
+pool = mysql.createPool({
+    host: "ec2-54-243-42-236.compute-1.amazonaws.com",
+    user: "ihhupboopjhnqz",
+    port: "5432",
+    password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
+    database: "dail39ouojtvjl",
+});
 
 app.listen(app.get('port'), function () {
     console.log('Server running...');
@@ -46,7 +54,7 @@ app.get('/', function (req, res) {
 		title:"LecturuS"
 	});
 
-	res.send('Hello World');
+	//res.send('Hello World');
 	//res.render('./views/index.ejs');
 });
 
