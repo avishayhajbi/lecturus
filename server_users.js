@@ -47,7 +47,7 @@ var createUser_organizationTable = "CREATE TABLE if not exists `"+config.databas
 var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOrganizationTable,
 			createUser_groupTable,createUser_organizationTable]; 
 
-pg.connect(databaseURL, function(err, client) {
+pg.connect(config.databaseURL, function(err, client) {
 	for(var i=0;i<tables.length;i++){
 		client.query(tables[i], function (err, result){
 	    	if (err != null) {
