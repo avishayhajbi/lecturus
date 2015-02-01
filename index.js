@@ -3,15 +3,15 @@ var express = require('express');
 // var mysql = require('mysql');
 // var path = require('path');
 // var fs = require("fs-extra");
-// var bodyParser  = require('body-parser');
+var bodyParser  = require('body-parser');
 // var keyword_extractor = require("keyword-extractor");
 var app = express();
 
 app.use(express.static((__dirname , '/views'))); //path.join
-// app.use(bodyParser({limit: '50mb'}));
-// app.use(bodyParser.urlencoded({extended: true}));
-// app.use(bodyParser.json());
-// app.set('view engine', 'ejs');
+app.use(bodyParser({limit: '50mb'}));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
+app.set('view engine', 'ejs');
 // middleware to check: 'Passport' -> for users managing
 
 var port = process.env.PORT || 5000;
