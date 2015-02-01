@@ -23,7 +23,7 @@ config ={
 	user:"root",
 	password:"",
 	database:"lecturus",
-	listen: port
+	port: 3306
 }
 */
 config ={
@@ -34,20 +34,21 @@ config ={
     port: "5432"
 }
 
-/*pool = mysql.createPool({
+pool = mysql.createPool({
     host: config.host,
     user: config.user,
     password: config.password,
     database: config.database,
-});*/
+    port: config.port, 
+});
 
 
 app.listen(app.get('port'), function () {
     console.log('Server running...');
 });
 
-//var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
-//app.use(lec_users); 
+var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
+app.use(lec_users); 
 
 app.get('/', function (req, res) {
 	// res.render('index',{
