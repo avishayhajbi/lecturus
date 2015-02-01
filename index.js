@@ -31,7 +31,9 @@ config ={
     user: "ihhupboopjhnqz",
     password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
     database: "dail39ouojtvjl",
-    port: "5432"
+    port: 5432,
+    databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
+    pSQL: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER"
 };
 
 pool = mysql.createPool({
