@@ -24,7 +24,8 @@ config ={
 	password:"",
 	database:"lecturus",
 	port: 3306
-}*/
+}
+*/
 config ={
 	host: "ec2-54-243-42-236.compute-1.amazonaws.com",
     user: "ihhupboopjhnqz",
