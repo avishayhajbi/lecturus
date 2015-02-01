@@ -27,10 +27,10 @@ config ={
 }
 */
 config ={
-	host: "ec2-54-243-42-236.compute-1.amazonaws.com",
-    user: "ihhupboopjhnqz",
-    password: "oJBn8QUP7mIHfzDBhdJcTIWU7q",
-    database: "dail39ouojtvjl",
+	host: "us-cdbr-iron-east-01.cleardb.net",
+    user: "b6b0cb1a9491cd",
+    password: "b7303e31",
+    database: "heroku_1e8a14a4e8e7685",
     port: 5432,
     databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
     Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER"
