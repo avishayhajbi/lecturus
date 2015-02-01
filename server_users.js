@@ -46,17 +46,27 @@ var createUser_organizationTable = "CREATE TABLE if not exists `"+config.databas
 
 var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOrganizationTable,
 			createUser_groupTable,createUser_organizationTable]; 
-/*
-var h_userTable = "";
+			
+var connection;
+function handleDisconnect() {
+    connection = mysql.createConnection(db_config);
+	connection.connect(function(err) {              	// The server is either down
+	    if (err) {                                     // or restarting (takes a while sometimes).
+	        console.log('2. error when connecting to db:', err);
+	        setTimeout(handleDisconnect, 1000); // We introduce a delay before attempting to reconnect,
+	    }                                     	// to avoid a hot loop, and to allow our node script to
+	});
+	connection.on('error', function(err) {
+	    console.log('3. db error', err);
+	    if (err.code === 'PROTOCOL_CONNECTION_LOST') { 	// Connection to the MySQL server is usually
+	        handleDisconnect();                      	// lost due to either server restart, or a
+	    } else {                                      	// connnection idle timeout (the wait_timeout
+	        throw err;                                  // server variable configures this)
+	    }
+	}); 
+}
 
-pg.connect(process.env.DATABASE_URL, function(err, client) {
-  var query = client.query('SELECT * FROM your_table');
-
-  query.on('row', function(row) {
-    console.log(JSON.stringify(row));
-  });
-});
-*/
+handleDisconnect();
 /*
 pool.getConnection(function (err, connection) {
 	for(var i=0;i<tables.length;i++){
