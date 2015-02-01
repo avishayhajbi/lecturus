@@ -12,19 +12,19 @@
             for (var i=0; i <6 ; i++){
                 usersArray.push(User("email"+i,"name"+i,"organization"+i,i,i,i))
             }
-            console.log('users to store',usersArray)
+            console.log('users to register',usersArray)
             
             $.post("/users/registerUser", { data : JSON.stringify(usersArray) },
                  function(temp) { 
-                     console.log("response: "+temp)
+                     console.log("response (register users): "+temp)
              });
              $.post("/users/getUser", { data : "email0" },
                 function(temp) {
-                     console.log("response: ", JSON.parse(temp) )
+                     console.log("response (post): ", JSON.parse(temp) )
              });
              $.get("/users/getUser", { id : "email1" },
                 function(temp) {
-                     console.log("response: ", JSON.parse(temp) )
+                     console.log("response (get): ", JSON.parse(temp) )
              });
              
         </script>
