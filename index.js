@@ -7,7 +7,7 @@ var path = require('path');
 //var bodyParser  = require('body-parser');
 var app = express();
 
-app.use(express.static(path.join(__dirname ,'/views')));
+app.use(express.static((__dirname +'/views')));//path.join
 //app.use(bodyParser({limit: '50mb'}));
 //app.use(bodyParser.urlencoded({extended: true}));
 //app.use(bodyParser.json());
@@ -39,7 +39,7 @@ pool = mysql.createPool({
     user: config.user,
     password: config.password,
     database: config.database,
-    port: config.port, 
+    port: config.port
 });
 
 
