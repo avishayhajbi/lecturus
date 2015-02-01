@@ -6,14 +6,15 @@
         <title>lecturus</title>
     </head>
     <body >
-        <h1> <%=title %> </h1>
+        <h1>ejs page <%=title %> </h1>
         <script>
             var usersArray = [];
             for (var i=0; i <6 ; i++){
                 usersArray.push(User("email"+i,"name"+i,"organization"+i,i,i,i))
             }
             console.log('users to store',usersArray)
-            /*$.post("/users/registerUser", { data : JSON.stringify(usersArray) },
+            /*
+            $.post("/users/registerUser", { data : JSON.stringify(usersArray) },
                  function(temp) { 
                      console.log("response: "+temp)
              });
@@ -24,7 +25,8 @@
              $.get("/users/getUser", { id : "email1" },
                 function(temp) {
                      console.log("response: ", JSON.parse(temp) )
-             });*/
+             });
+             */
         </script>
     </body>
 </html>
