@@ -24,8 +24,8 @@ config ={
 	password:"",
 	database:"lecturus",
 	port: 3306
-}
-*/
+}*/
+
 config ={
 	host: "ec2-54-243-42-236.compute-1.amazonaws.com",
     user: "ihhupboopjhnqz",
@@ -47,17 +47,16 @@ app.listen(app.get('port'), function () {
     console.log('Server running...');
 });
 
-var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
-app.use(lec_users); 
+//var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
+//app.use(lec_users); 
 
 app.get('/', function (req, res) {
-	// res.render('index',{
-		// title:"LecturuS"
-	// });
+	res.render('index',{
+		title:"LecturuS"
+	});
 	
 	//res.end(fs.readFileSync('views/index.html', 'utf8'));
-	res.send('Hello World');
-	//res.render('./views/index.ejs');
+	//res.send('Hello World');
 });
 
 app.get('/*', function (req, res) {
