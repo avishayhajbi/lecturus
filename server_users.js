@@ -48,9 +48,6 @@ var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOr
 			createUser_groupTable,createUser_organizationTable]; 
 
 
-
-
-
 pool.getConnection(function (err, connection) {
 	for(var i=0;i<tables.length;i++){
 		connection.query(tables[i], function (err, result){
