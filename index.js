@@ -50,12 +50,12 @@ app.listen(app.get('port'), function () {
 //app.use(lec_users); 
 
 app.get('/', function (req, res) {
-	res.render('index',{
-		title:"LecturuS"
-	});
+	// res.render('index',{
+		// title:"LecturuS"
+	// });
 	
 	//res.end(fs.readFileSync('views/index.html', 'utf8'));
-	//res.send('Hello World');
+	res.send('Hello World');
 	//res.render('./views/index.ejs');
 });
 
