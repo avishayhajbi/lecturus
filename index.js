@@ -34,13 +34,13 @@ config ={
     port: "5432"
 };
 
-pool = mysql.createPool({
+/*pool = mysql.createPool({
     host: config.host,
     user: config.user,
     password: config.password,
     database: config.database,
     port: config.port
-});
+});*/
 
 
 app.listen(app.get('port'), function () {
