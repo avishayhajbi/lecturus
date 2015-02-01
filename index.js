@@ -47,8 +47,8 @@ app.listen(app.get('port'), function () {
     console.log('Server running...');
 });
 
-//var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
-//app.use(lec_users); 
+var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
+app.use(lec_users); 
 
 app.get('/', function (req, res) {
 	res.render('index',{
