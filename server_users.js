@@ -57,7 +57,7 @@ var userTable = "CREATE TABLE if not exists `"+config.database+"`.`user` ("+
 "PRIMARY KEY (`email`)"+
 ") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
 
-pg.connect(process.env.DATABASE_URL, function(err, client) {
+pg.connect(config.databaseURL, function(err, client) {
   var query = client.query(userTable)
   query.on('row', function(row) {
     console.log(JSON.stringify(row));
