@@ -47,18 +47,7 @@ var createUser_organizationTable = "CREATE TABLE if not exists `"+config.databas
 var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOrganizationTable,
 			createUser_groupTable,createUser_organizationTable]; 
 
-pg.connect(config.databaseURL, function(err, client) {
-	for(var i=0;i<tables.length;i++){
-		client.query(tables[i], function (err, result){
-	    	if (err != null) {
-	    		console.log("new query error "+err);
-    		}
-	    	else if (err == null) {
-	    		console.log("new Create Tables done");
-	    	}
-		});
-	}
-});
+
 pool.getConnection(function (err, connection) {
 	for(var i=0;i<tables.length;i++){
 		connection.query(tables[i], function (err, result){
