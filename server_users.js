@@ -47,7 +47,24 @@ var createUser_organizationTable = "CREATE TABLE if not exists `"+config.databas
 var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOrganizationTable,
 			createUser_groupTable,createUser_organizationTable]; 
 
+var userTable = "CREATE TABLE if not exists `"+config.database+"`.`user` ("+  
+"`email` varchar(45) NOT NULL,"+
+"`name` varchar(45) NOT NULL,"+
+"`organization` varchar(45) NOT NULL,"+
+"`like` int(11) NOT NULL,"+
+"`dislike` int(11) NOT NULL,"+
+"`rate` int(11) NOT NULL,"+
+"PRIMARY KEY (`email`)"+
+") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
 
+pg.connect(process.env.DATABASE_URL, function(err, client) {
+  var query = client.query(userTable)
+  query.on('row', function(row) {
+    console.log(JSON.stringify(row));
+  });
+});
+
+/*
 pool.getConnection(function (err, connection) {
 	for(var i=0;i<tables.length;i++){
 		connection.query(tables[i], function (err, result){
@@ -66,11 +83,7 @@ router.get('/users', function (req, res) {
 	res.render('index',{
 		title:"Users page sample"
 	});
-
 	// res.redirect('/'); if i want to exe another function	
-	//res.send('loading');
-	//res.render('./views/index.ejs');
-	
 });
 
 router.post("/users/registerUser", function(req, res) {
@@ -124,5 +137,5 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
     	
     });
 });
-
+*/
 module.exports = router;
