@@ -11,7 +11,7 @@ app.use(express.static((__dirname , '/views'))); //path.join
 app.use(bodyParser({limit: '50mb'}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
-app.set('view engine', 'ejs');
+//app.set('view engine', 'ejs');
 // middleware to check: 'Passport' -> for users managing
 
 var port = process.env.PORT || 5000;
