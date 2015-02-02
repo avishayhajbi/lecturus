@@ -17,7 +17,7 @@ app.use(bodyParser({limit: '50mb'}));
 var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
-
+/*
 config ={
 	host:"127.0.0.1",
 	user:"root",
@@ -25,7 +25,7 @@ config ={
 	database:"lecturus",
 	port: 3306
 }
-/*
+*/
 config ={
 	host: "us-cdbr-iron-east-01.cleardb.net",
     user: "b6b0cb1a9491cd",
@@ -35,12 +35,20 @@ config ={
     databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
     Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER"
 };
-*/
+
 pool = mysql.createPool(config);
 
 app.listen(app.get('port'), function () {
     console.log('Server running...');
 });
+
+function keepAlive(){
+  pool.getConnection(function(err, connection){
+    if(err) { return; }
+    connection.ping();
+  });
+}
+setInterval(keepAlive, 30000);
 
 var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
