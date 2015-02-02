@@ -49,7 +49,7 @@ function keepAlive(){
     connection.end();
   });
 }
-setInterval(keepAlive, 30000);
+setInterval(keepAlive, 10000);
 
 var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
