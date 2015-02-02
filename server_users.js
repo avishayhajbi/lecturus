@@ -60,6 +60,7 @@ pool.getConnection(function (err, connection) {
 		});
 	}
 	console.log("Create Tables done");
+	
 });
 
 router.get('/users', function (req, res) {
@@ -82,6 +83,7 @@ router.post("/users/registerUser", function(req, res) {
 		    	}
 	    	});
     	}
+    	
     	res.send("done register user/s")
     });
 });
@@ -117,7 +119,6 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
 	    		res.send(JSON.stringify (result))
 	    	}
     	});
-    	
     });
 });
 
