@@ -46,7 +46,7 @@ function keepAlive(){
   pool.getConnection(function(err, connection){
     if(err) { return; }
     connection.ping();
-    //connection.end();
+    connection.end();
   });
 }
 setInterval(keepAlive, 30000);
