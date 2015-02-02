@@ -39,7 +39,7 @@ config ={
 pool = mysql.createPool(config);
 
 app.listen(app.get('port'), function () {
-    console.log('Server running...');
+    console.log('Server running...'+app.get('port'));
 });
 
 function keepAlive(){
