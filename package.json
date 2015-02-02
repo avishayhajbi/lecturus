@@ -8,7 +8,8 @@
   "dependencies": {
     "pg": "4.x",
     "express": "~4.9.x",
-    "mysql": ""
+    "mysql": "",
+    "body-parser":""
   },
   "engines": {
     "node": "0.10.x"
