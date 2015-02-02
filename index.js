@@ -36,7 +36,7 @@ config ={
     Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER"
 };
 
-pool = mysql.createPool(config.databaseURL);
+pool = mysql.createPool(config);
 
 app.listen(app.get('port'), function () {
     console.log('Server running...'+app.get('port'));
