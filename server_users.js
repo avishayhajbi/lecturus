@@ -49,6 +49,7 @@ var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOr
 
 
 pool.getConnection(function (err, connection) {
+	if(err) { console.log(err); return; }
 	for(var i=0;i<tables.length;i++){
 		connection.query(tables[i], function (err, result){
 	    	if (err != null) {
@@ -73,6 +74,7 @@ router.get('/users', function (req, res) {
 router.post("/users/registerUser", function(req, res) {
     var data = JSON.parse(req.body.data);
     pool.getConnection(function (err, connection) {
+    	if(err) { console.log(err); return; }
     	for(var i=0;i<data.length;i++){
 	    	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data[i], function (err, result){
 		    	if (err != null) {
@@ -91,6 +93,7 @@ router.post("/users/registerUser", function(req, res) {
 router.post("/users/getUser", function(req, res) {
     var data = req.body.data;
     pool.getConnection(function (err, connection) {
+    	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
 	    	if (err != null) {
 	    		console.log("query error "+err);
@@ -109,6 +112,7 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
     var data="";
     data = req.query.id;
     pool.getConnection(function (err, connection) {
+    	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
 	    	if (err != null) {
 	    		console.log("query error "+err);
