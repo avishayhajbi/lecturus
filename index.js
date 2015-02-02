@@ -9,8 +9,9 @@ var app = express();
 
 app.use(express.static(path.join(__dirname ,'views')));
 app.use(bodyParser({limit: '50mb'}));
-//app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+
 
 // middleware to check: 'Passport' -> for users managing
 
