@@ -17,15 +17,16 @@ app.use(bodyParser({limit: '50mb'}));
 var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
-/*
+
+if (port == 8080)
 config ={
 	host:"127.0.0.1",
 	user:"root",
 	password:"",
 	database:"lecturus",
 	port: 3306
-}*/
-
+}
+else
 config ={
 	host: "us-cdbr-iron-east-01.cleardb.net",
     user: "b6b0cb1a9491cd",

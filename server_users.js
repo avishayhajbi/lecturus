@@ -74,18 +74,16 @@ router.post("/users/registerUser", function(req, res) {
     var data = JSON.parse(req.body.data);
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
-    	for(var i=0;i<data.length;i++){
-	    	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data[i], function (err, result){
+	    	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data, function (err, result){
 		    	if (err != null) {
-		    		console.log("query error "+err);
+		    		console.log("query error ",err);
+		    		res.send("user "+data.email+" already exist")
 		    	}
 		    	else if (err == null) {
 		    		console.log("query done");
+		    		res.send("done register user "+data.email)
 		    	}
 	    	});
-    	}
-    	
-    	res.send("done register user/s")
     });
 });
 
