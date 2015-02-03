@@ -67,63 +67,8 @@ pool.getConnection(function (err, connection) {
 
 
 router.get('/users', function (req, res) {
-	var usersAPI = [
-		'-- User Table:  User(email,name,organization,like,dislike,rate)',
-		'-- GET updateUser by id recieve data:{email:email} and combines', 
-		'with the params {dislike:NUM,like:NUM,name:"",organization:"", rate:NUM}',
-		'fail return {status:0}',
-		'success return {status:1}',
-		'for example:',
-		// '$.post("/users/updateUser", { data : JSON.stringify({"email":"email" , "name":"usename"}) },',
-  //           'function(temp) {',
-  //              'console.log("updateUser response (get): ", JSON.parse(temp) )',
-  //       '});',
-		'-- GET getUser by id recieve {id:email} ',
-		'if fail return {status:0}',
-		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
-		'for example:',
-		// '$.get("/users/getUser", { id : "email" },',
-  //           'function(temp) {',
-  //               'console.log("response (get): ", JSON.parse(temp)[0] )',
-  //      	'});',
-		'-- POST getUser by id recieve {id:email} ',
-		'if fail return {status:0}',
-		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
-		// 'for example:',
-		// '$.post("/users/getUser", { id : "email" },',
-  //       'function(temp) {',
-  //           'console.log("response (post): ", JSON.parse(temp)[0] )',
-  //    	'});',
-		'-- POST registerUser recieve data:{"email":""} or data:{"email":"", "organization":""} or any other combination',
-		'with {dislike:NUM,like:NUM,name:"",rate:NUM}',
-		'if error occured return status 0',
-		'if user register return status 1 ',
-		'if user exist return status 2 ',
-		'return json {"uid":"","status":0-2,"desc":""}',
-		// 'for example:',
-		// '$.post("/users/registerUser", { data : JSON.stringify ({"email":"email"}) },',
-  //        	'function(temp) { ',
-  //           	'console.log("response (register users): "+temp)',
-  //       '});'
-		'All queries should be like that:',
-		'$.ajax({',
-            'url : "lecturus.herokuapp.com/users/<function name>", //for get you can use <function name>/?param:value',
-            'type : "post",',
-            'dataType : "jsonp",',
-            'jsonpCallback : "lecturusCallback",',
-            'contentType : "application/javascript;charset=utf-8",',
-            'data: {<params>},',
-            'success : function(data) {',
-                'console.log("data", data);',
-            '},',
-            'error :  function(objRequest, errortype) {',
-                    'console.log(errortype)',
-        '}',
-	];
-
-	res.render('index',{
-		title:"Users API",
-		info: usersAPI
+	res.render('users',{
+		title:"Users API "
 	});
 	// res.redirect('/'); if i want to exe another function	
 });
@@ -137,9 +82,7 @@ if user exist return status 2
 return json {"uid":"","status":0-2,"desc":""}
 */
 router.post("/users/registerUser", function(req, res) {
-     console.log(req.body)
-    var data = JSON.parse(req.body);
-    console.log(data)
+    var data = JSON.parse(req.body.data);
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data, function (err, result){
@@ -171,12 +114,12 @@ router.post("/users/registerUser", function(req, res) {
 });
 
 /*
-POST getUser by id recieve {id:email} 
+POST getUser by id recieve {email:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
 router.post("/users/getUser", function(req, res) {
-    var data = req.body.id;
+    var data = req.body.email;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
@@ -196,12 +139,12 @@ router.post("/users/getUser", function(req, res) {
 });
 
 /*
-GET getUser by id recieve {id:email} 
+GET getUser by id recieve {email:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
-router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
-    var data = req.query.id;
+router.get("/users/getUser/:email?", function(req, res) { // :id?/:something?
+    var data = req.query.email;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
