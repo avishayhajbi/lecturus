@@ -137,7 +137,9 @@ if user exist return status 2
 return json {"uid":"","status":0-2,"desc":""}
 */
 router.post("/users/registerUser", function(req, res) {
+     console.log(req.body)
     var data = JSON.parse(req.body);
+    console.log(data)
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data, function (err, result){
