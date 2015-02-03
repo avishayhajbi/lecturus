@@ -59,7 +59,7 @@ app.use(lec_users);
 app.get('/', function (req, res) {
 	res.render('index',{
 		title:"LecturuS index",
-		info:"shenkar final project"
+		info:["shenkar final project",'type /users in the url to display Users API']
 	});
 	
 	//res.end(fs.readFileSync('views/index.html', 'utf8'));

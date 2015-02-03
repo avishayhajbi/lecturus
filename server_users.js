@@ -67,9 +67,49 @@ pool.getConnection(function (err, connection) {
 
 
 router.get('/users', function (req, res) {
+	var usersAPI = [
+		'-- User Table:  User(email,name,organization,like,dislike,rate)',
+		'-- GET updateUser by id recieve data:{email:email} and combines', 
+		'with the params {dislike:NUM,like:NUM,name:"",organization:"", rate:NUM}',
+		'fail return {status:0}',
+		'success return {status:1}',
+		'for example:',
+		'$.post("/users/updateUser", { data : JSON.stringify({"email":"email" , "name":"usename"}) },',
+            'function(temp) {',
+               'console.log("updateUser response (get): ", JSON.parse(temp) )',
+        '});',
+		'-- GET getUser by id recieve {id:email} ',
+		'if fail return {status:0}',
+		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
+		'for example:',
+		'$.get("/users/getUser", { id : "email" },',
+            'function(temp) {',
+                'console.log("response (get): ", JSON.parse(temp)[0] )',
+       	'});',
+		'-- POST getUser by id recieve {id:email} ',
+		'if fail return {status:0}',
+		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
+		'for example:',
+		'$.post("/users/getUser", { id : "email" },',
+        'function(temp) {',
+            'console.log("response (post): ", JSON.parse(temp)[0] )',
+     	'});',
+		'-- POST registerUser recieve data:{"email":""} or data:{"email":"", "organization":""} or any other combination',
+		'with {dislike:NUM,like:NUM,name:"",rate:NUM}',
+		'if error occured return status 0',
+		'if user register return status 1 ',
+		'if user exist return status 2 ',
+		'return json {"uid":"","status":0-2,"desc":""}',
+		'for example:',
+		'$.post("/users/registerUser", { data : JSON.stringify ({"email":"email"}) },',
+         	'function(temp) { ',
+            	'console.log("response (register users): "+temp)',
+        '});'
+	];
+
 	res.render('index',{
 		title:"Users API",
-		info:"users api content"
+		info: usersAPI
 	});
 	// res.redirect('/'); if i want to exe another function	
 });
