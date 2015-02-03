@@ -58,7 +58,8 @@ app.use(lec_users);
 
 app.get('/', function (req, res) {
 	res.render('index',{
-		title:"LecturuS"
+		title:"LecturuS index",
+		info:"shenkar final project"
 	});
 	
 	//res.end(fs.readFileSync('views/index.html', 'utf8'));

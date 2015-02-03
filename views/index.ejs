@@ -6,33 +6,38 @@
         <title>lecturus</title>
     </head>
     <body >
-        <h1>ejs page <%=title %> </h1>
+        <h1> <%=title %> </h1>
+        <section> <%=info %> </section>
         <script>
             var usersArray = [];
             for (var i=0; i <6 ; i++){
-                var u = User("email"+i,"name"+i,"organization"+i,i,i,i);
+                //var u = User("email"+i,"name"+i,"organization"+i,i,i,i);
+                var u = {"email":"email"+i , "organization":"shenkar"}
                 usersArray.push(u)
-                $.post("/users/registerUser", { data : JSON.stringify(u) },
+                /*$.post("/users/registerUser", { data : JSON.stringify (u) },
                  function(temp) { 
                      console.log("response (register users): "+temp)
-                });
+                });*/
             }
             console.log('users to register',usersArray)
             
             /*$.post("/users/registerUser", { data : JSON.stringify(usersArray) },
                  function(temp) { 
                      console.log("response (register users): "+temp)
-            });*/
+            });
             
-             $.post("/users/getUser", { data : "email0" },
+             $.post("/users/getUser", { id : "email0" },
                 function(temp) {
-                     console.log("response (post): ", JSON.parse(temp) )
+                     console.log("response (post): ", JSON.parse(temp)[0] )
              });
              $.get("/users/getUser", { id : "email1" },
                 function(temp) {
-                     console.log("response (get): ", JSON.parse(temp) )
+                     console.log("response (get): ", JSON.parse(temp)[0] )
              });
-             
+             $.post("/users/updateUser", { data : JSON.stringify({"email":"email8" , "name":"avishay"}) },
+                function(temp) {
+                     console.log("updateUser response (get): ", JSON.parse(temp) )
+             });*/
         </script>
     </body>
 </html>
