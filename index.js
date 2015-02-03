@@ -29,13 +29,13 @@ config ={
 else
 config ={
 	host: "us-cdbr-iron-east-01.cleardb.net",
-    user: "b6b0cb1a9491cd",
-    password: "b7303e31",
-    database: "heroku_1e8a14a4e8e7685",
+    user: "b23c6d0f964532",
+    password: "1fc1c4ed ",
+    database: "heroku_f00102faee97288",
     port: 3306,
-    databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
-    Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER",
-    mySql: "mysql://b6b0cb1a9491cd:b7303e31"
+    //databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
+    //Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER",
+    mySql: "mysql://b23c6d0f964532:1fc1c4ed"
 };
 
 pool = mysql.createPool(config);
