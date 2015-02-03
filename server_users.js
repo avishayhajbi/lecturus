@@ -73,7 +73,6 @@ router.get('/users', function (req, res) {
 	// res.redirect('/'); if i want to exe another function	
 });
 
-
 /*
 POST registerUser recieve data:{"email":"" , "organization":""}
 if error occured return status 0
