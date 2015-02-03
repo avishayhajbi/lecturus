@@ -28,13 +28,13 @@ config ={
 }
 else
 config ={
-	host: "us-cdbr-iron-east-01.cleardb.net",
-    user: "b23c6d0f964532",
-    password: "1fc1c4ed ",
-    database: "heroku_f00102faee97288",
+	host: "ec2-184-73-165-193.compute-1.amazonaws.com",
+    user: "pyfekaqvrthvgq",
+    password: "PBcXHR3GCO3WE3pkiycfbNqoFK ",
+    database: "ddsmieiqgh77je",
     port: 3306,
-    //databaseURL: "postgres://ihhupboopjhnqz:oJBn8QUP7mIHfzDBhdJcTIWU7q@ec2-54-243-42-236.compute-1.amazonaws.com:5432/dail39ouojtvjl",
-    //Psql: "heroku pg:psql --app heroku-postgres-fa76e44a HEROKU_POSTGRESQL_SILVER",
+    databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
+    Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
     mySql: "mysql://b23c6d0f964532:1fc1c4ed"
 };
 
@@ -51,7 +51,7 @@ function keepAlive(){
     connection.end();
   });
 }
-setInterval(keepAlive, 10000);
+setInterval(keepAlive, 30000);
 */
 var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
