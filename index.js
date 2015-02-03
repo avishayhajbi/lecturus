@@ -28,10 +28,10 @@ config ={
 }
 else
 config ={
-	host: "ec2-184-73-165-193.compute-1.amazonaws.com",
-    user: "pyfekaqvrthvgq",
-    password: "PBcXHR3GCO3WE3pkiycfbNqoFK ",
-    database: "ddsmieiqgh77je",
+	host: "us-cdbr-iron-east-01.cleardb.net",//"ec2-184-73-165-193.compute-1.amazonaws.com",
+    user: "b23c6d0f964532",//"pyfekaqvrthvgq",
+    password: "1fc1c4ed ",//"PBcXHR3GCO3WE3pkiycfbNqoFK ",
+    database: "heroku_f00102faee97288",//"ddsmieiqgh77je",
     port: 3306,
     databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
     Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
