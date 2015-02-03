@@ -113,12 +113,12 @@ router.post("/users/registerUser", function(req, res) {
 });
 
 /*
-POST getUser by id recieve {email:email} 
+POST getUser by id recieve {id:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
 router.post("/users/getUser", function(req, res) {
-    var data = req.body.email;
+    var data = req.body.id;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
@@ -138,12 +138,12 @@ router.post("/users/getUser", function(req, res) {
 });
 
 /*
-GET getUser by id recieve {email:email} 
+GET getUser by id recieve {id:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
-router.get("/users/getUser/:email?", function(req, res) { // :id?/:something?
-    var data = req.query.email;
+router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
+    var data = req.query.id;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
