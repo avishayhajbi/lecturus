@@ -74,37 +74,51 @@ router.get('/users', function (req, res) {
 		'fail return {status:0}',
 		'success return {status:1}',
 		'for example:',
-		'$.post("/users/updateUser", { data : JSON.stringify({"email":"email" , "name":"usename"}) },',
-            'function(temp) {',
-               'console.log("updateUser response (get): ", JSON.parse(temp) )',
-        '});',
+		// '$.post("/users/updateUser", { data : JSON.stringify({"email":"email" , "name":"usename"}) },',
+  //           'function(temp) {',
+  //              'console.log("updateUser response (get): ", JSON.parse(temp) )',
+  //       '});',
 		'-- GET getUser by id recieve {id:email} ',
 		'if fail return {status:0}',
 		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
 		'for example:',
-		'$.get("/users/getUser", { id : "email" },',
-            'function(temp) {',
-                'console.log("response (get): ", JSON.parse(temp)[0] )',
-       	'});',
+		// '$.get("/users/getUser", { id : "email" },',
+  //           'function(temp) {',
+  //               'console.log("response (get): ", JSON.parse(temp)[0] )',
+  //      	'});',
 		'-- POST getUser by id recieve {id:email} ',
 		'if fail return {status:0}',
 		'if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}',
-		'for example:',
-		'$.post("/users/getUser", { id : "email" },',
-        'function(temp) {',
-            'console.log("response (post): ", JSON.parse(temp)[0] )',
-     	'});',
+		// 'for example:',
+		// '$.post("/users/getUser", { id : "email" },',
+  //       'function(temp) {',
+  //           'console.log("response (post): ", JSON.parse(temp)[0] )',
+  //    	'});',
 		'-- POST registerUser recieve data:{"email":""} or data:{"email":"", "organization":""} or any other combination',
 		'with {dislike:NUM,like:NUM,name:"",rate:NUM}',
 		'if error occured return status 0',
 		'if user register return status 1 ',
 		'if user exist return status 2 ',
 		'return json {"uid":"","status":0-2,"desc":""}',
-		'for example:',
-		'$.post("/users/registerUser", { data : JSON.stringify ({"email":"email"}) },',
-         	'function(temp) { ',
-            	'console.log("response (register users): "+temp)',
-        '});'
+		// 'for example:',
+		// '$.post("/users/registerUser", { data : JSON.stringify ({"email":"email"}) },',
+  //        	'function(temp) { ',
+  //           	'console.log("response (register users): "+temp)',
+  //       '});'
+		'All queries should be like that:',
+		'$.ajax({',
+            'url : "lecturus.herokuapp.com/users/<function name>", //for get you can use <function name>/?param:value',
+            'type : "post",',
+            'dataType : "jsonp",',
+            'jsonpCallback : "lecturusCallback",',
+            'contentType : "application/javascript;charset=utf-8",',
+            'data: {<params>},',
+            'success : function(data) {',
+                'console.log("data", data);',
+            '},',
+            'error :  function(objRequest, errortype) {',
+                    'console.log(errortype)',
+        '}',
 	];
 
 	res.render('index',{
@@ -133,21 +147,21 @@ router.post("/users/registerUser", function(req, res) {
     			r.uid=data.email;
     			r.status=2;
     			r.desc="exist";
-	    		res.send(JSON.stringify(r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
 	    	else if (err == null) {
 	    		console.log("register",data.email);
 	    		r.uid=data.email;
     			r.status=1;
     			r.desc="register";
-	    		res.send(JSON.stringify(r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
 	    	else {
 	    		console.log("query error ",err);
 	    		r.uid=0;
     			r.status=0;
     			r.desc="err";
-	    		res.send(JSON.stringify(r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
     	});
 	    connection.end();
@@ -168,11 +182,11 @@ router.post("/users/getUser", function(req, res) {
 	    	if (err != null) {
 	    		console.log("query getUser (post)  error "+err);
 	    		r.status=0;
-	    		res.send(JSON.stringify (r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
 	    	else if (err == null) {
 	    		console.log("query getUser (post) done");
-	    		res.send(JSON.stringify (result))
+	    		res.send(lecturusCallback(JSON.stringify(res)))
 	    	}
     	});
 	    connection.end();
@@ -193,11 +207,11 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
 	    	if (err != null) {
 	    		console.log("query getUser (get) error "+err);
 	    		r.status=0;
-	    		res.send(JSON.stringify (r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
 	    	else if (err == null) {
 	    		console.log("query getUser (get) done");
-	    		res.send(JSON.stringify (result))
+	    		res.send(lecturusCallback(JSON.stringify(result)))
 	    	}
     	});
     	connection.end();
@@ -219,16 +233,18 @@ router.post("/users/updateUser", function(req, res) {
 	    	if (err != null) {
 	    		console.log("query updateUser error "+err);
 	    		r.status=0;
-	    		res.send(JSON.stringify(r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
 	    	else if (err == null) {
 	    		console.log("query updateUser done");
 	    		r.status=1;
-	    		res.send(JSON.stringify(r))
+	    		res.send(lecturusCallback(JSON.stringify(r)))
 	    	}
     	});
     	connection.end();
     });
 });
-
+function lecturusCallback (obj){
+	return 'lecturusCallback('+obj+');';
+}
 module.exports = router;
