@@ -11,7 +11,11 @@ app.use(express.static(path.join(__dirname ,'views')));
 app.use(bodyParser({limit: '50mb'}));
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
-
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 // middleware to check: 'Passport' -> for users managing
 
 var port = process.env.PORT || 8080;
@@ -56,11 +60,7 @@ setInterval(keepAlive, 30000);
 var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
 
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
+
 /*
 app.get('/', function(req, res, next) {
   // Handle the get for this route

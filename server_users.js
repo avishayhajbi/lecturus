@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-
 var createUserTable = "CREATE TABLE if not exists `"+config.database+"`.`user` ("+  
 "`email` varchar(45) NOT NULL,"+
 "`name` varchar(45) NOT NULL,"+
