@@ -43,7 +43,7 @@ pool = mysql.createPool(config);
 app.listen(app.get('port'), function () {
     console.log('Server running...'+app.get('port'));
 });
-/*
+
 function keepAlive(){
   pool.getConnection(function(err, connection){
     if(err) { return; }
@@ -52,7 +52,7 @@ function keepAlive(){
   });
 }
 setInterval(keepAlive, 30000);
-*/
+
 var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
 
