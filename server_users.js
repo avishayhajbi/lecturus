@@ -73,11 +73,6 @@ router.get('/users', function (req, res) {
 	// res.redirect('/'); if i want to exe another function	
 });
 
-app.post('/', function(req, res, next) {
-	res.header("Access-Control-Allow-Origin", "*"); 
-	next();
-});
-
 /*
 POST registerUser recieve data:{"email":""}
 if error occured return status 0
