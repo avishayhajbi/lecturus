@@ -10,25 +10,52 @@
         <h1> <%=title %> </h1>
        
        <p> var user = {"email":"user_email"} </p>
+
        <section>
-        $.post("/users/registerUser", { data : JSON.stringify (user) },
-        function(temp) { 
-        console.log("registerUsers: "+(temp))
+        <article>
+          POST method registerUser recieve data:JSON.stringify({"email":"userid"})<br>
+          if error occured return status 0<br>
+          if user register return status 1 <br>
+          if user exist return status 2 <br>
+          return {"uid":"","status":0-2,"desc":""}
+        </article>
+        <article>
+          $.post("/users/registerUser", { data : JSON.stringify (user) }, <br>
+          function(temp) { <br>
+          console.log("registerUsers: "+(temp))<br>
+          });
+      </article>
+        
+       </section>
+<br><br>
+       <section>
+        <article>
+          POST method getUser by id recieve {data:userid} <br>
+          if fail return {status:0}<br>
+          if success return user row
+        </article>
+        <article>
+          $.post("/users/getUser", { data : "useremail" },<br>
+            function(temp) {<br>
+                 console.log("getUser: ", (temp) )<br>
+         });
+        </article>
+        
+       <section>
+<br><br>
+       </section>
+       <article>
+        POST method updateUser by id recieve data:JSON.stringify({"email":"userid"}) and can combines with user params<br>
+        fail return {status:0}<br>
+        success return {status:1}
+       </article>
+       <article>
+        $.post("/users/updateUser", { data : JSON.stringify(user) },<br>
+          function(temp) {<br>
+               console.log("updateUser: ", (temp) )<br>
         });
-       </section>
-
-       <section>
-        $.post("/users/getUser", { data : "email3" },
-            function(temp) {
-                 console.log("getUser: ", (temp) )
-         });
-       <section>
-
-       </section>
-       $.post("/users/updateUser", { data : JSON.stringify(user) },
-            function(temp) {
-                 console.log("updateUser: ", (temp) )
-         });
+       </article>
+       
        <section>
 
        </section>

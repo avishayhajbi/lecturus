@@ -73,7 +73,7 @@ app.post('/', function(req, res, next) {
 
 app.get('/', function (req, res) {
 	res.render('index',{
-		title:"LecturuS index"
+		title:"LecturuS"
 	});
 	
 	//res.end(fs.readFileSync('views/index.html', 'utf8'));
