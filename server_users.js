@@ -207,8 +207,8 @@ router.post("/users/updateUser", function(req, res) {
     });
 });
 function lecturusCallback (obj){
-	return 'lecturusCallback('+obj+');';
-	//return obj;
+	//return 'lecturusCallback('+obj+');';
+	return obj;
 }
 
 module.exports = router;
