@@ -73,6 +73,11 @@ router.get('/users', function (req, res) {
 	// res.redirect('/'); if i want to exe another function	
 });
 
+app.post('/', function(req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*"); 
+	next();
+});
+
 /*
 POST registerUser recieve data:{"email":""}
 if error occured return status 0
@@ -81,7 +86,6 @@ if user exist return status 2
 return json {"uid":"","status":0-2,"desc":""}
 */
 router.post("/users/registerUser", function(req, res) {
-	res.header("Access-Control-Allow-Origin", "*");
     var data;
     try{
     	data = JSON.parse(req.body.data);
@@ -125,7 +129,6 @@ if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
 router.post("/users/getUser", function(req, res) {
-	res.header("Access-Control-Allow-Origin", "*");
     var data;
     try{
     	data = req.body.data;
@@ -184,7 +187,6 @@ fail return {status:0}
 success return {status:1}
 */
 router.post("/users/updateUser", function(req, res) {
-	res.header("Access-Control-Allow-Origin", "*");
     var data;
     try{
     	data = JSON.parse(req.body.data);
