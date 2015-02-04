@@ -57,7 +57,6 @@ var lec_users = require('./server_users'); // can use app.use( '/folderName' ,re
 app.use(lec_users); 
 
 app.get('/', function (req, res) {
-	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.render('index',{
 		title:"LecturuS index"
 	});
