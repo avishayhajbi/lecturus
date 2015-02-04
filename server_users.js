@@ -66,8 +66,8 @@ pool.getConnection(function (err, connection) {
 
 
 router.get('/users', function (req, res) {
-	res.render('index',{
-		title:"Users API coming soon"
+	res.render('users',{
+		title:"Users API"
 	});
 	// res.redirect('/'); if i want to exe another function	
 });
