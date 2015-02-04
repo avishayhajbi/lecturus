@@ -9,6 +9,28 @@
     <body >
         <h1> <%=title %> </h1>
        
-       
+       <p> var user = {"email":"user_email"} </p>
+       <section>
+        $.post("/users/registerUser", { data : JSON.stringify (user) },
+        function(temp) { 
+        console.log("registerUsers: "+(temp))
+        });
+       </section>
+
+       <section>
+        $.post("/users/getUser", { data : "email3" },
+            function(temp) {
+                 console.log("getUser: ", (temp) )
+         });
+       <section>
+
+       </section>
+       $.post("/users/updateUser", { data : JSON.stringify(user) },
+            function(temp) {
+                 console.log("updateUser: ", (temp) )
+         });
+       <section>
+
+       </section>
     </body>
 </html>
