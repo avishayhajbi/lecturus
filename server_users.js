@@ -74,14 +74,20 @@ router.get('/users', function (req, res) {
 });
 
 /*
-POST registerUser recieve data:{"email":"" , "organization":""}
+POST registerUser recieve data:{"email":""}
 if error occured return status 0
 if user register return status 1 
 if user exist return status 2 
 return json {"uid":"","status":0-2,"desc":""}
 */
 router.post("/users/registerUser", function(req, res) {
-    var data = JSON.parse(req.body.data);
+    var data;
+    try{
+    	data = JSON.parse(req.body.data);
+    }catch(err){
+    	data={"email":""};
+    }
+    console.log("registerUser -- "+data)
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data, function (err, result){
@@ -113,12 +119,19 @@ router.post("/users/registerUser", function(req, res) {
 });
 
 /*
-POST getUser by id recieve {id:email} 
+POST getUser by id recieve {data:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 */
 router.post("/users/getUser", function(req, res) {
-    var data = req.body.id;
+    var data;
+    try{
+    	data = req.body.data;
+    }catch(err){
+    	data="";
+    }
+    console.log('getUser body',req.body)
+    console.log("getUser -- "+data)
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
     	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
@@ -130,7 +143,7 @@ router.post("/users/getUser", function(req, res) {
 	    	}
 	    	else if (err == null) {
 	    		console.log("query getUser (post) done");
-	    		res.send(lecturusCallback(JSON.stringify(res)))
+	    		res.send(lecturusCallback(JSON.stringify(result)))
 	    	}
     	});
 	    connection.end();
@@ -138,11 +151,11 @@ router.post("/users/getUser", function(req, res) {
 });
 
 /*
-GET getUser by id recieve {id:email} 
+GET getUser by id recieve {email:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
-*/
-router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
+
+router.get("/users/getUser/:email?", function(req, res) { // :id?/:something?
     var data = req.query.id;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
@@ -161,6 +174,7 @@ router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
     	connection.end();
     });
 });
+*/
 
 /*
 GET updateUser by id recieve data:{email:email} and combines with the params {dislike:NUM,like:NUM,name:"",organization:"", rate:NUM}
@@ -168,7 +182,12 @@ fail return {status:0}
 success return {status:1}
 */
 router.post("/users/updateUser", function(req, res) {
-    var data = JSON.parse(req.body.data);
+    var data;
+    try{
+    	data = JSON.parse(req.body.data);
+    }catch(err){
+    	data={}
+    }
     console.log(data)
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
@@ -190,5 +209,7 @@ router.post("/users/updateUser", function(req, res) {
 });
 function lecturusCallback (obj){
 	return 'lecturusCallback('+obj+');';
+	//return obj;
 }
+
 module.exports = router;

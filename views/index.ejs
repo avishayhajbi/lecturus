@@ -14,30 +14,39 @@
                 //var u = User("email"+i,"name"+i,"organization"+i,i,i,i);
                 var u = {"email":"email"+i , "organization":"shenkar"}
                 usersArray.push(u)
-                /*$.post("/users/registerUser", { data : JSON.stringify (u) },
-                 function(temp) { 
-                     console.log("response (register users): "+temp)
-                });*/
+                
             }
-            console.log('users to register',usersArray)
+            console.log('shenkar lecturus')
+            //console.log('users to register',usersArray)
             
-            /*$.post("/users/registerUser", { data : JSON.stringify(usersArray) },
-                 function(temp) { 
-                     console.log("response (register users): "+temp)
-            });
-            
-             $.post("/users/getUser", { id : "email0" },
-                function(temp) {
-                     console.log("response (post): ", JSON.parse(temp)[0] )
-             });
-             $.get("/users/getUser", { id : "email1" },
-                function(temp) {
-                     console.log("response (get): ", JSON.parse(temp)[0] )
-             });
-             $.post("/users/updateUser", { data : JSON.stringify({"email":"email8" , "name":"avishay"}) },
-                function(temp) {
-                     console.log("updateUser response (get): ", JSON.parse(temp) )
-             });*/
+            //var user =  {"email":"avishay"}
+            // $.ajax({
+            //     url : "/users/getUser",
+            //     type : 'post',
+            //     dataType : 'jsonp',
+            //     jsonpCallback : 'lecturusCallback',
+            //     contentType : "application/javascript;charset=utf-8",
+            //     data: {data:"email3"},
+            //     success : function(data) {
+            //         console.log("data", data);
+            //     },
+            //     error :  function(objRequest, errortype) {
+            //             console.log('error',errortype)
+            //     }
+            // });
+            // $.post("/users/registerUser", { data : JSON.stringify (user) },
+            //      function(temp) { 
+            //          console.log("registerUsers: "+(temp))
+            // });
+            //  $.post("/users/getUser", { data : "email3" },
+            //     function(temp) {
+            //          console.log("getUser: ", (temp) )
+            //  });
+            //  $.post("/users/updateUser", { data : JSON.stringify(user) },
+            //     function(temp) {
+            //          console.log("updateUser: ", (temp) )
+            //  });
+
         </script>
     </body>
 </html>
