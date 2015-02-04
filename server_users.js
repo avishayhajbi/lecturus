@@ -151,11 +151,11 @@ router.post("/users/getUser", function(req, res) {
 });
 
 /*
-GET getUser by id recieve {email:email} 
+GET getUser by id recieve {id:email} 
 if fail return {status:0}
 if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
 
-router.get("/users/getUser/:email?", function(req, res) { // :id?/:something?
+router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
     var data = req.query.id;
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
