@@ -1,5 +1,3 @@
-// var url = require('url');
-// var fs = require("fs-extra");
 // var keyword_extractor = require("keyword-extractor");
 var express = require('express');
 var mysql = require('mysql');
@@ -57,9 +55,10 @@ function keepAlive(){
 }
 setInterval(keepAlive, 30000);
 
-var lec_users = require('./server_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
+var lec_users = require('./s_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
-
+var session = require('./s_session'); // can use app.use( '/folderName' ,require('lecturus_users'));
+app.use(session); 
 
 /*
 app.get('/', function(req, res, next) {
@@ -75,10 +74,9 @@ app.get('/', function (req, res) {
 	res.render('index',{
 		title:"LecturuS"
 	});
-	
-	//res.end(fs.readFileSync('views/index.html', 'utf8'));
-	//res.send('Hello World');
 });
+
+
 
 app.get('/*', function (req, res) {
 	res.send(405,'page not allowed lecturus')
