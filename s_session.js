@@ -18,16 +18,39 @@ router.get('/session', function (req, res) {
 });
 
 /*
+recieve session parameters and create the session
+return status 0 if the session already exist
+return status 1 if the session created
+*/
+router.post('/session/createSession', function (req, res) {
+  var date= new Date().getTime();
+  try{
+    data = JSON.parse(req.body.data);
+  }catch(err){ }
+  var info={};
+  if (fs.existsSync("./"+date)) {
+    info.status = 0;
+    info.desc = "exist";
+  }
+  else {
+    fs.mkdirSync("./"+date);
+    info.status = 1;
+    info.desc = "created";
+  }
+  info.timestamp = date;
+  res.send(JSON.stringify(info));
+});
+
+/*
 get session id and audio file
-and create the folder if not exist
 */
 router.post("/session/uploadAudio", function(req, res ) {
   var form = new multiparty.Form();
   form.parse(req, function(err, fields, files) {
       //fldname="./"+fields['sessionId'][0];
-      //checkAndCreateSessionDirectoryIfNotExist(fldname);
   });
   console.log("recieving audio.. locate in "+fldname)
+  
   var data = new Buffer('');
 	req.on('data', function(chunk) {
 	    data = Buffer.concat([data, chunk]);
@@ -83,7 +106,9 @@ function merge() {
         merge();        
     });
 }
-
+/*
+get image by id
+*/
 router.get('/session/getImage', function (req, res) {
   //var recId = "./"+req.query.recordId+"/fullAudio.mp3";
   var recId = fldname+"/fullAudio.mp3";
@@ -98,6 +123,9 @@ router.get('/session/getImage', function (req, res) {
   }
 });
 
+/*
+get session id and audio file
+*/
 router.get('/session/getAudio', function (req, res) {
   //var recId = "./"+req.query.recordId+"/fullAudio.mp3";
   var recId = fldname+"/fullAudio.mp3";
@@ -115,10 +143,9 @@ router.get('/session/getAudio', function (req, res) {
 
 /*
 get session id and image file
-and create the folder if not exist
 */
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
-  console.log("recieving image.. locate in "+fldname)
+  console.log(req.body)
    
   fs.readFile(req.files.data.path, function (err, data) {
     fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
@@ -126,7 +153,17 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
     });
   });
   // res.send("done upload image "+new Date())
-   
+});
+
+router.post("/session/uploadAudio2",multipartMiddleware, function(req, res ) {
+  console.log(req.body)
+
+  fs.readFile(req.files.data.path, function (err, data) {
+    fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
+        res.send("done upload audio "+new Date())
+    });
+  });
+  // res.send("done upload image "+new Date())
 });
 
 function checkAndCreateSessionDirectoryIfNotExist(dirName){
@@ -134,10 +171,7 @@ function checkAndCreateSessionDirectoryIfNotExist(dirName){
   if (fs.existsSync(dirName)) {
       // Do something
   }
-  else
-    mkdirp(dirName, function(err) { 
-         //path was created unless there was error
-    });
+  else fs.mkdirSync(dirName);
   
 }
 module.exports = router;
