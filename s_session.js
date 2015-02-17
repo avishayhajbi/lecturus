@@ -9,7 +9,10 @@ var router = express.Router();
 var path = require('path');
 
 var files, clips = [], stream, currentfile, dhh;
-var fldname="./temp";
+var _public='./';
+var fldname=_public+"temp";
+
+checkAndCreateSessionDirectoryIfNotExist(fldname);
 
 router.get('/session', function (req, res) {
 	res.render('session',{
@@ -21,6 +24,7 @@ router.get('/session', function (req, res) {
 recieve session parameters and create the session
 return status 0 if the session already exist
 return status 1 if the session created
+return timestamp to use it as session id
 */
 router.post('/session/createSession', function (req, res) {
   var date= new Date().getTime();
@@ -28,12 +32,12 @@ router.post('/session/createSession', function (req, res) {
     data = JSON.parse(req.body.data);
   }catch(err){ }
   var info={};
-  if (fs.existsSync("./"+date)) {
+  if (fs.existsSync(_public+date)) {
     info.status = 0;
     info.desc = "exist";
   }
   else {
-    fs.mkdirSync("./"+date);
+    fs.mkdirSync(_public+date);
     info.status = 1;
     info.desc = "created";
   }
@@ -42,12 +46,13 @@ router.post('/session/createSession', function (req, res) {
 });
 
 /*
-get session id and audio file
+get session id and audio file named data
+{data: file.mp3, sessionId:sessionid}
 */
-router.post("/session/uploadAudio", function(req, res ) {
+/*router.post("/session/uploadAudio2", function(req, res ) {
   var form = new multiparty.Form();
   form.parse(req, function(err, fields, files) {
-      //fldname="./"+fields['sessionId'][0];
+      fldname="./"+fields['sessionId'][0];
   });
   console.log("recieving audio.. locate in "+fldname)
   
@@ -58,28 +63,29 @@ router.post("/session/uploadAudio", function(req, res ) {
 	req.on('end', function() {
       req.rawBody = data;
 	    fs.writeFile(fldname+"/"+new Date().getTime()+'.mp3', data, 'binary', function(err){
-        	if (err) throw err;
-        	console.log('Wrote out song');
+        	if (err) res.send({"status":0,"desc":"fail"})
+        	else {
+            console.log('Wrote out song');
+            res.send({"status":1,"desc":"success"})
+          }
     	});
 	});
-  res.send("done upload audio "+new Date())
-   
-});
+});*/
 
 /*
-get session id to fetch the relevant directory
+get session id to know the relevant directory
 */
-router.get("/session/mergeAudios", function(req, res) {
-  //fldname = "./"+req.query.sessionId;
-  
+router.get("/session/mergeAudios/:sessionId?", function(req, res) {
+  fldname = _public+req.query.sessionId;
   files = fs.readdirSync(fldname),
   dhh = fs.createWriteStream(fldname+'/fullAudio.mp3');
   // fs.renameSync(currentname, newname);
 
   // create an array with filenames (time)
   files.forEach(function (file) {
-      if (file.indexOf(".mp3")!= -1)
+      if (file.indexOf(".mp3")!= -1 && file.indexOf("fullAudio") == -1){
        clips.push(file.substring(0, file.length-4));  
+     }
   });
 
   // Sort
@@ -89,7 +95,7 @@ router.get("/session/mergeAudios", function(req, res) {
 
   merge();
 
-  res.send("done merge audios "+new Date())
+  res.send(JSON.stringify({"status":1,"desc":"success"}))
 });
 
 // recursive function
@@ -106,72 +112,100 @@ function merge() {
         merge();        
     });
 }
-/*
-get image by id
-*/
-router.get('/session/getImage', function (req, res) {
-  //var recId = "./"+req.query.recordId+"/fullAudio.mp3";
-  var recId = fldname+"/fullAudio.mp3";
-  try{
-   //try this 
-    var img = fs.readFileSync(fldname+"/1423402381793.jpg");
-    res.writeHead(200, {'Content-Type': 'image/jpg' });
-    res.end(img, 'binary');
 
+/*
+get session id and image file
+{data: file.jpg, sessionId:sessionid}
+return status 1 if success and 0 if fail
+*/
+router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
+  fldname = _public+req.body.sessionId;
+  fs.readFile(req.files.data.path, function (err, data) {
+    if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"})); 
+    else fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
+        if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
+        res.send(JSON.stringify({"status":1,"desc":"success"}))
+    });
+  });
+});
+
+/*
+get session id and audio file
+{data: file.mp3, sessionId:sessionid}
+return status 1 if success and 0 if fail
+*/
+router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
+  fldname = _public+req.body.sessionId;
+  fs.readFile(req.files.data.path, function (err, data) {
+    if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
+    else fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
+        if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
+        res.send(JSON.stringify({"status":1,"desc":"success"}))
+    });
+  });
+});
+
+/*
+get image by session id
+return audio file or status 0 (fail)
+*/
+router.get('/session/getImages/:sessionId?', function (req, res) {
+  fldname = _public+req.query.sessionId;
+  try{
+    var images =[]
+    files = fs.readdirSync(fldname),
+    files.forEach(function (file) {
+        if (file.indexOf(".jpg")!= -1)
+         images.push(fs.readFileSync(fldname+"/"+file));  
+       
+    });
+
+    //res.writeHead(200, {'Content-Type': 'image/jpg' });
+    //res.end(images[0], 'binary');
+    res.send(JSON.stringify({"data":images}));
+   
   }catch(err){
-    res.send("problem while searching"); 
+    res.send(JSON.stringify({"status":0,"desc":"fail"})); 
   }
 });
 
 /*
 get session id and audio file
+return audio file of status 0 (fail)
 */
-router.get('/session/getAudio', function (req, res) {
-  //var recId = "./"+req.query.recordId+"/fullAudio.mp3";
+router.get('/session/getAudio/:sessionId?', function (req, res) {
+  fldname = _public+req.query.sessionId;
   var recId = fldname+"/fullAudio.mp3";
+  
   try{
-     
     var stat = fs.statSync(recId);
     res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
     var readStream = fs.createReadStream(recId);
-    readStream.pipe(res);
 
+    /*var data='';
+    readStream.on('data', function(chunk) {
+      data+=chunk;
+    });
+     
+    readStream.on('end', function() {
+       res.send(data)
+    });*/
+    readStream.on('open', function () {
+      readStream.pipe(res);
+    });
+    readStream.on('error', function(err) {
+      res.end({"status":0,"desc":"failed while transfering"});
+    });
   }catch(err){
-    res.send("problem while searching"); 
+    res.send(JSON.stringify({"status":0,"desc":"fail"}));
   }
-});
-
-/*
-get session id and image file
-*/
-router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
-  console.log(req.body)
-   
-  fs.readFile(req.files.data.path, function (err, data) {
-    fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
-        res.send("done upload image "+new Date())
-    });
-  });
-  // res.send("done upload image "+new Date())
-});
-
-router.post("/session/uploadAudio2",multipartMiddleware, function(req, res ) {
-  console.log(req.body)
-
-  fs.readFile(req.files.data.path, function (err, data) {
-    fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
-        res.send("done upload audio "+new Date())
-    });
-  });
-  // res.send("done upload image "+new Date())
 });
 
 function checkAndCreateSessionDirectoryIfNotExist(dirName){
   //check if directory exist else create
   if (fs.existsSync(dirName)) {
-      // Do something
   }
   else fs.mkdirSync(dirName);
-  
 }
+
 module.exports = router;
