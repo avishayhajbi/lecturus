@@ -12,7 +12,7 @@ var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 var fldname=_public+"temp";
 
-checkAndCreateSessionDirectoryIfNotExist(fldname);
+//checkAndCreateSessionDirectoryIfNotExist(fldname);
 
 router.get('/session', function (req, res) {
 	res.render('session',{
@@ -121,7 +121,7 @@ return status 1 if success and 0 if fail
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
   fs.readFile(req.files.data.path, function (err, data) {
-    if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"})); 
+    if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
         if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
@@ -136,7 +136,7 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  fs.readFile(req.files.data.path, function (err, data) {
+  fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
         if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
