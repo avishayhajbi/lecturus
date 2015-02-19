@@ -238,16 +238,14 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
     }
     var r ={
         videos:{
-            [ 
-                {
+            
                     title:"title",
                     owner:"avishay",
                     participants:["ofir","vidran"],
                     length:15895,
                     id:"temp"
                 }
-            ]
-        }
+            
     }
    res.send(lecturusCallback(JSON.stringify(r)))
 });

@@ -183,7 +183,7 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
   try{
     var stat = fs.statSync(fldname+vid);
     res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
-    var readStream = fs.createReadStream(recId);
+    var readStream = fs.createReadStream(fldname+vid);
 
     /*var data='';
     readStream.on('data', function(chunk) {
@@ -224,71 +224,72 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   var recId = "levi.mp3";
   var recId2 = "left.mp3";
 
-  var imgId = "1.mp3";
-  var imgId2 = "2.mp3";
+  var imgId = "1.jpg";
+  var imgId2 = "2.jpg";
 
   try{
    var temp = {
-  "videoId": "temp",
-  "title": "אוטומטים שיעור 1.3.14",
-  "uploadBy": "iofirag@gmail.com",
-  "praticipant": [
-    {
-      "user": "vandervidi@gmail.com",
-      "user": "avishayhajbi@gmail.com"
-    }
-  ],
-  "totalSecondLength": 405,
-  "audio": [
-    {
-      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId,
-      "length": 211,
-      "startSecond": 0
-    }, {
-      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId2,
-      "length": 194,
-      "startSecond": 212
-    }
-  ],
-  "elements": {
-    "6": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
-      "text": "this is subtitles 6"
-    },
-    "24": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
-    },
+    "videoId": "temp",
+    "title": "אוטומטים שיעור 1.3.14",
+    "uploadBy": "iofirag@gmail.com",
+    "praticipant": [
+      {
+        "user": "vandervidi@gmail.com",
+        "user": "avishayhajbi@gmail.com"
+      }
+    ],
+    "totalSecondLength": 405,
+    "audio": [
+      {
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId,
+        "length": 211,
+        "startSecond": 0
+      }, {
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId2,
+        "length": 194,
+        "startSecond": 212
+      }
+    ],
+    "elements": {
+      "6": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+        "text": "this is subtitles 6"
+      },
+      "24": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+      },
 
-    "210": {
-      "text": "audio-1 end"
-    },
+      "210": {
+        "text": "audio-1 end"
+      },
 
-    "220": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
-      "text": "this is titles 220"
-    },
+      "220": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+        "text": "this is titles 220"
+      },
 
-    "379": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
-      "text": "this is titles 379"
-    },
-    "380": {
-      "text": "this is titles 380"
-    },
-    "381": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
-      "text": "this is titles 381"
-    },
-    "382": {
-      "text": "this is titles 382"
-    },
-    "383": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
-      "text": "this is titles 383"
+      "379": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+        "text": "this is titles 379"
+      },
+      "380": {
+        "text": "this is titles 380"
+      },
+      "381": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+        "text": "this is titles 381"
+      },
+      "382": {
+        "text": "this is titles 382"
+      },
+      "383": {
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+        "text": "this is titles 383"
+      }
     }
+     
   }
-   res.send(JSON.stringify(temp));
-}
+  res.send(JSON.stringify(temp));
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"}));
   }
