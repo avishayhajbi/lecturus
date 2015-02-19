@@ -151,7 +151,7 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
 get image by session id
 return audio file or status 0 (fail)
 */
-router.get('/session/getImages/:sessionId?:imageId?', function (req, res) {
+router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
   
   fldname = _public+req.query.sessionId;
   var iid = "/"+req.query.imageId;
@@ -177,7 +177,7 @@ router.get('/session/getImages/:sessionId?:imageId?', function (req, res) {
 get session id and audio file
 return audio file of status 0 (fail)
 */
-router.get('/session/getAudios/:sessionId?:videoId?', function (req, res) {
+router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
   fldname = _public+req.query.sessionId;
   var vid = "/"+req.query.videoId;
   try{
