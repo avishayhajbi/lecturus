@@ -162,9 +162,9 @@ router.get('/session/getImages/:sessionId?', function (req, res) {
        
     });
 
-    //res.writeHead(200, {'Content-Type': 'image/jpg' });
-    //res.end(images[0], 'binary');
-    res.send(JSON.stringify({"data":images}));
+    res.writeHead(200, {'Content-Type': 'image/jpg' });
+    res.end(images[0], 'binary');
+   
    
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"})); 
@@ -182,7 +182,7 @@ router.get('/session/getAudio/:sessionId?', function (req, res) {
 
   var imgId = fldname+"/1.mp3";
   var imgId2 = fldname+"/2.mp3";
-  
+
   try{
     var stat = fs.statSync(recId);
     res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
