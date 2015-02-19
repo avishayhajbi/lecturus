@@ -228,4 +228,27 @@ router.get("/users/getCourses", function(req, res) {
    res.send(lecturusCallback(JSON.stringify(r)))
 });
 
+router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
+    var data;
+    try{
+        data.email = req.query.email;
+        data.courseName = req.query.courseName;
+    }catch(err){
+        data={}
+    }
+    var r ={
+        videos:{
+            [ 
+                {
+                    title:"title",
+                    owner:"avishay",
+                    participants:["ofir","vidran"],
+                    length:15895,
+                    id:"temp"
+                }
+            ]
+        }
+    }
+   res.send(lecturusCallback(JSON.stringify(r)))
+});
 module.exports = router;

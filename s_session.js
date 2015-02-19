@@ -151,19 +151,21 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
 get image by session id
 return audio file or status 0 (fail)
 */
-router.get('/session/getImages/:sessionId?', function (req, res) {
+router.get('/session/getImages/:sessionId?:imageId?', function (req, res) {
+  
   fldname = _public+req.query.sessionId;
+  var iid = "/"+req.query.imageId;
   try{
-    var images =[]
-    files = fs.readdirSync(fldname),
-    files.forEach(function (file) {
-        if (file.indexOf(".jpg")!= -1)
-         images.push(fs.readFileSync(fldname+"/"+file));  
+    //var images =[]
+    //files = fs.readdirSync(fldname),
+    //files.forEach(function (file) {
+        //if (file.indexOf(".jpg")!= -1)
+         //images.push(fs.readFileSync(fldname+"/"+file));  
        
-    });
+   // });
 
     res.writeHead(200, {'Content-Type': 'image/jpg' });
-    res.end(images[0], 'binary');
+    res.end(fs.readFileSync(fldname+iid), 'binary');
    
    
   }catch(err){
@@ -175,16 +177,11 @@ router.get('/session/getImages/:sessionId?', function (req, res) {
 get session id and audio file
 return audio file of status 0 (fail)
 */
-router.get('/session/getAudio/:sessionId?', function (req, res) {
+router.get('/session/getAudios/:sessionId?:videoId?', function (req, res) {
   fldname = _public+req.query.sessionId;
-  var recId = fldname+"/levi.mp3";
-  var recId2 = fldname+"/left.mp3";
-
-  var imgId = fldname+"/1.mp3";
-  var imgId2 = fldname+"/2.mp3";
-
+  var vid = "/"+req.query.videoId;
   try{
-    var stat = fs.statSync(recId);
+    var stat = fs.statSync(fldname+vid);
     res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
     var readStream = fs.createReadStream(recId);
 
@@ -216,6 +213,82 @@ router.get('/session/getAudio/:sessionId?', function (req, res) {
     readStream.on('error', function(err) {
       res.end({"status":0,"desc":"failed while transfering"});
     });
+  }catch(err){
+    res.send(JSON.stringify({"status":0,"desc":"fail"}));
+  }
+});
+
+router.get('/session/getVideoId/:videoId?', function (req, res) {
+  fldname = _public+req.query.videoId;
+  
+  var recId = "levi.mp3";
+  var recId2 = "left.mp3";
+
+  var imgId = "1.mp3";
+  var imgId2 = "2.mp3";
+
+  try{
+   var temp = {
+  "videoId": "temp",
+  "title": "אוטומטים שיעור 1.3.14",
+  "uploadBy": "iofirag@gmail.com",
+  "praticipant": [
+    {
+      "user": "vandervidi@gmail.com",
+      "user": "avishayhajbi@gmail.com"
+    }
+  ],
+  "totalSecondLength": 405,
+  "audio": [
+    {
+      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId,
+      "length": 211,
+      "startSecond": 0
+    }, {
+      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId="+recId2,
+      "length": 194,
+      "startSecond": 212
+    }
+  ],
+  "elements": {
+    "6": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+      "text": "this is subtitles 6"
+    },
+    "24": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+    },
+
+    "210": {
+      "text": "audio-1 end"
+    },
+
+    "220": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+      "text": "this is titles 220"
+    },
+
+    "379": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+      "text": "this is titles 379"
+    },
+    "380": {
+      "text": "this is titles 380"
+    },
+    "381": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+      "text": "this is titles 381"
+    },
+    "382": {
+      "text": "this is titles 382"
+    },
+    "383": {
+      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+      "text": "this is titles 383"
+    }
+  }
+   res.send(JSON.stringify(temp));
+}
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"}));
   }
