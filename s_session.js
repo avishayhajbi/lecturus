@@ -177,7 +177,11 @@ return audio file of status 0 (fail)
 */
 router.get('/session/getAudio/:sessionId?', function (req, res) {
   fldname = _public+req.query.sessionId;
-  var recId = fldname+"/fullAudio.mp3";
+  var recId = fldname+"/levi.mp3";
+  var recId2 = fldname+"/left.mp3";
+
+  var imgId = fldname+"/1.mp3";
+  var imgId2 = fldname+"/2.mp3";
   
   try{
     var stat = fs.statSync(recId);

@@ -206,6 +206,11 @@ router.post("/users/updateUser", function(req, res) {
     });
 });
 
+function lecturusCallback (obj){
+	//return 'lecturusCallback('+obj+');';
+	return obj;
+}
+
 // static functions 
 router.get("/users/getCourses", function(req, res) {
     var data;
@@ -222,10 +227,5 @@ router.get("/users/getCourses", function(req, res) {
     }
    res.send(lecturusCallback(JSON.stringify(r)))
 });
-
-function lecturusCallback (obj){
-	//return 'lecturusCallback('+obj+');';
-	return obj;
-}
 
 module.exports = router;
