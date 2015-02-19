@@ -205,6 +205,24 @@ router.post("/users/updateUser", function(req, res) {
     	connection.end();
     });
 });
+
+// static functions 
+router.get("/users/getCourses", function(req, res) {
+    var data;
+    try{
+    	data = JSON.parse(req.body.data);
+    }catch(err){
+    	data={}
+    }
+    var r ={
+    	courses:{
+    		math:["linearit","hedva"],
+    		economi:["micro","macro"]
+    	}
+    }
+   res.send(lecturusCallback(JSON.stringify(r)))
+});
+
 function lecturusCallback (obj){
 	//return 'lecturusCallback('+obj+');';
 	return obj;

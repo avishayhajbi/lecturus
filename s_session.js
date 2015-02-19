@@ -12,7 +12,7 @@ var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 var fldname=_public+"temp";
 
-//checkAndCreateSessionDirectoryIfNotExist(fldname);
+//checkAndCreateSessionDirectory(fldname);
 
 router.get('/session', function (req, res) {
 	res.render('session',{
@@ -34,11 +34,13 @@ router.post('/session/createSession', function (req, res) {
   var info={};
   if (fs.existsSync(_public+date)) {
     info.status = 0;
+    info.session = date;
     info.desc = "exist";
   }
   else {
     fs.mkdirSync(_public+date);
     info.status = 1;
+    info.session = date;
     info.desc = "created";
   }
   info.timestamp = date;
@@ -190,6 +192,20 @@ router.get('/session/getAudio/:sessionId?', function (req, res) {
     readStream.on('end', function() {
        res.send(data)
     });*/
+
+    /*
+    var readStream = fs.createReadStream('play.js', {'bufferSize': 1024});
+    readStream.setEncoding('utf8');
+    readStream.on('data', function (data) {
+        console.log(activeRequests);
+        res.write(data);
+    });
+    readStream.on('end', function () {
+        res.end();
+        console.log('end');
+        //activeRequests--;
+    });
+    */
     readStream.on('open', function () {
       readStream.pipe(res);
     });
@@ -201,7 +217,7 @@ router.get('/session/getAudio/:sessionId?', function (req, res) {
   }
 });
 
-function checkAndCreateSessionDirectoryIfNotExist(dirName){
+function checkAndCreateSessionDirectory(dirName){
   //check if directory exist else create
   if (fs.existsSync(dirName)) {
   }
