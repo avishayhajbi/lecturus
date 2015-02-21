@@ -156,13 +156,6 @@ router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
   fldname = _public+req.query.sessionId;
   var iid = "/"+req.query.imageId;
   try{
-    //var images =[]
-    //files = fs.readdirSync(fldname),
-    //files.forEach(function (file) {
-        //if (file.indexOf(".jpg")!= -1)
-         //images.push(fs.readFileSync(fldname+"/"+file));  
-       
-   // });
 
     res.writeHead(200, {'Content-Type': 'image/jpg' });
     res.end(fs.readFileSync(fldname+iid), 'binary');
@@ -183,36 +176,37 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
   try{
     var stat = fs.statSync(fldname+vid);
     res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
-    var readStream = fs.createReadStream(fldname+vid);
+    
+   var options = { 
+      flags: 'r',
+      encoding: null,
+      fd: null,
+      mode: 0666,
+      bufferSize: 64*1024,
+      start: 0, 
+      end: stat.size
+    }
+    var readStream = fs.createReadStream(fldname+vid, options);
+    //readStream.setEncoding('utf8');
 
-    /*var data='';
-    readStream.on('data', function(chunk) {
-      data+=chunk;
-    });
-     
-    readStream.on('end', function() {
-       res.send(data)
+    /*var temp=[];
+    readStream.on('data', function(data) {
+      temp+=data;
+      res.write(data);
     });*/
-
-    /*
-    var readStream = fs.createReadStream('play.js', {'bufferSize': 1024});
-    readStream.setEncoding('utf8');
-    readStream.on('data', function (data) {
-        console.log(activeRequests);
-        res.write(data);
-    });
-    readStream.on('end', function () {
-        res.end();
-        console.log('end');
-        //activeRequests--;
-    });
-    */
+    
     readStream.on('open', function () {
       readStream.pipe(res);
     });
+
+    readStream.on('end', function() {
+       res.end();
+    });
+
     readStream.on('error', function(err) {
       res.end({"status":0,"desc":"failed while transfering"});
     });
+
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"}));
   }
@@ -220,7 +214,14 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
 
 router.get('/session/getVideoId/:videoId?', function (req, res) {
   fldname = _public+req.query.videoId;
-  
+  /*
+  var images =[]
+  files = fs.readdirSync(fldname),
+  files.forEach(function (file) {
+      if (file.indexOf(".jpg")!= -1)
+      images.push(fs.readFileSync(fldname+"/"+file));  
+  });
+  */
   var recId = "levi.mp3";
   var recId2 = "left.mp3";
 

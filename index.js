@@ -71,7 +71,6 @@ app.post('/', function(req, res, next) {
  // Handle the post for this route
 });*/
 
-
 app.get('/', function (req, res) {
   res.render('index',{
 		title:"LecturuS"

@@ -212,10 +212,10 @@ function lecturusCallback (obj){
 }
 
 // static functions 
-router.get("/users/getCourses", function(req, res) {
+router.get("/users/getCourses:email?", function(req, res) {
     var data;
     try{
-    	data = JSON.parse(req.body.data);
+    	data.email = req.query.email;
     }catch(err){
     	data={}
     }
@@ -238,14 +238,12 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
     }
     var r ={
         videos:{
-            
-                    title:"title",
-                    owner:"avishay",
-                    participants:["ofir","vidran"],
-                    length:15895,
-                    id:"temp"
-                }
-            
+            title:"title",
+            owner:"avishay",
+            participants:["ofir","vidran"],
+            length:15895,
+            id:"temp"
+        }
     }
    res.send(lecturusCallback(JSON.stringify(r)))
 });
