@@ -122,7 +122,9 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  fs.readFile(req.files.data.path, function (err, data) {
+  console.log(req.body.sessionId)
+  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
+  else fs.readFile(req.files.data.path, function (err, data) {
     if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
         if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
@@ -138,7 +140,9 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
+  console.log(req.body.sessionId)
+  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
+  else fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
         if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
