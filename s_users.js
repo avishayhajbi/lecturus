@@ -238,7 +238,7 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
     }
     var r ={
         videos:{
-            title:"title",
+            title:"אוטומטים ושפות ופרמאליות",
             owner:"avishay",
             participants:["ofir","vidran"],
             length:15895,
