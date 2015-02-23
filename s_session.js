@@ -191,7 +191,6 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
       end: stat.size
     }
     var readStream = fs.createReadStream(fldname+vid, options);
-    //readStream.setEncoding('utf8');
 
     /*var temp=[];
     readStream.on('data', function(data) {
@@ -200,7 +199,7 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
     });*/
     
     readStream.on('open', function () {
-      readStream.pipe(res);
+      readStream.pipe(res,'binary');
     });
 
     readStream.on('end', function() {
