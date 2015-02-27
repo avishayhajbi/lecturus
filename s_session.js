@@ -8,6 +8,7 @@ var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
 
+
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 var fldname=_public+"temp";
@@ -179,7 +180,15 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
   var vid = "/"+req.query.videoId;
   try{
     var stat = fs.statSync(fldname+vid);
-    res.writeHead(200, {'Content-Type': 'audio/mpeg','Content-Length': stat.size });
+    //https://groups.google.com/forum/#!topic/nodejs/gzng3IJcBX8
+    var headerOptions = {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': stat.size,
+      'Content-Range': "bytes " + 0 + "-" + stat.size + "/" + stat.size, 
+      "Accept-Ranges": "bytes"
+    }
+    
+    res.writeHead(200, headerOptions );
     
    var options = { 
       flags: 'r',
@@ -192,8 +201,8 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
     }
     var readStream = fs.createReadStream(fldname+vid, options);
 
-    /*var temp=[];
-    readStream.on('data', function(data) {
+    var temp=[];
+    /*readStream.on('data', function(data) {
       temp+=data;
       res.write(data);
     });*/

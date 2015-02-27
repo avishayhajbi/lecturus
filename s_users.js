@@ -1,69 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-var createUserTable = "CREATE TABLE if not exists `"+config.database+"`.`user` ("+  
-"`email` varchar(45) NOT NULL,"+
-"`fname` varchar(45) NOT NULL,"+
-"`lname` varchar(45) NOT NULL,"+
-"`image` varchar(100) NOT NULL,"+
-"`organizationId` int(11) NOT NULL,"+
-"PRIMARY KEY (`email`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-
-var createGroupTable = "CREATE TABLE if not exists `"+config.database+"`.`group` ("+  
-"`groupId` int(11) NOT NULL AUTO_INCREMENT,"+
-"`name` varchar(45) NOT NULL,"+
-"`date` date NOT NULL,"+
-"PRIMARY KEY (`groupId`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-  
-var createUser_contactsTable = "CREATE TABLE if not exists `"+config.database+"`.`user_contacts` ("+  
-"`email` varchar(45) NOT NULL,"+
-"`friendId` varchar(45) NOT NULL,"+
-"PRIMARY KEY (`email`,`friendId`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-
-var createOrganizationTable = "CREATE TABLE if not exists `"+config.database+"`.`organization` ("+	  
-"`organizationId` int(11) NOT NULL AUTO_INCREMENT,"+
-"`name` varchar(45) NOT NULL,"+
-"PRIMARY KEY (`organizationId`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-  
-var createUser_groupTable = "CREATE TABLE if not exists `"+config.database+"`.`user_group` ("+	  
-"`groupId` INT NOT NULL,"+
-"`email` VARCHAR(45) NOT NULL,"+
-"PRIMARY KEY (`groupId`, `email`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-  
-var createUser_organizationTable = "CREATE TABLE if not exists `"+config.database+"`.`user_organization` ("+	  
-"`organizationId` int(11) NOT NULL,"+
-"`email` varchar(45) NOT NULL,"+
-"PRIMARY KEY (`organizationId`,`email`)"+
-") ENGINE=InnoDB DEFAULT CHARSET=latin1;";
-
-var tables = [createUserTable,createGroupTable,createUser_contactsTable,createOrganizationTable,
-			createUser_groupTable,createUser_organizationTable]; 
-
-/*
-create user tables when the app starts
-*/
-pool.getConnection(function (err, connection) {
-	if(err) { console.log(err); return; }
-	for(var i=0;i<tables.length;i++){
-		connection.query(tables[i], function (err, result){
-	    	if (err != null) {
-	    		console.log("query error "+err);
-    		}
-	    	else if (err == null) {
-	    		//console.log("Create Tables done");
-	    	}
-		});
-		connection.end();
-	}
-	console.log("Create Tables done");
-});
-
-
 router.get('/users', function (req, res) {
 	res.render('users',{
 		title:"Users API"
