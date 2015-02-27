@@ -3,12 +3,14 @@ var express = require('express');
 var mysql = require('mysql');
 var path = require('path');
 var bodyParser  = require('body-parser');
+var fs = require("fs-extra");
 var app = express();
 
 app.use(express.static(path.join(__dirname ,'views')));
 app.use(bodyParser({limit: '50mb'}));
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
+
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -43,7 +45,7 @@ config ={
 pool = mysql.createPool(config);
 
 app.listen(app.get('port'), function () {
-    console.log('Server running...'+app.get('port'));
+    console.log('LecturuS Server running...'+app.get('port'));
 });
 
 function keepAlive(){
@@ -69,15 +71,24 @@ app.post('/', function(req, res, next) {
  // Handle the post for this route
 });*/
 
-
 app.get('/', function (req, res) {
-	res.render('index',{
+  res.render('index',{
 		title:"LecturuS"
 	});
 });
-
-
-
+/*
+app.get('/1423623392192', function (req, res) {
+    res.writeHead(200, {'Content-Type': 'image/jpg' });
+    var temp = './1423623392192/1423624346816.jpg';
+    var rs = fs.createReadStream(temp);
+    var buff;
+    rs.once('readable', function() {
+        buff = rs.read(); //Read first 8 bytes only once
+        //res.end("<img src='"+buff.toString()+"' >");
+    });
+    res.end("<img src="+temp+" >");
+});
+*/
 app.get('/*', function (req, res) {
 	res.send(405,'page not allowed lecturus')
 });
