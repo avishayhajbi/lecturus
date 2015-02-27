@@ -80,14 +80,15 @@ get session id to know the relevant directory
 */
 router.get("/session/mergeAudios/:sessionId?", function(req, res) {
   fldname = _public+req.query.sessionId;
+  var mergedRecName='fullAudio.mp3';
   files = fs.readdirSync(fldname),
-  dhh = fs.createWriteStream(fldname+'/fullAudio.mp3');
+  dhh = fs.createWriteStream(fldname+'/'+mergedRecName);
   // fs.renameSync(currentname, newname);
 
   // create an array with filenames (time)
   files.forEach(function (file) {
-      if (file.indexOf(".mp3")!= -1 && file.indexOf("fullAudio") == -1){
-       clips.push(file.substring(0, file.length-4));  
+      if (file.indexOf(".mp3")!= -1 && file.indexOf(mergedRecName) == -1){
+        clips.push(file.substring(0, file.length-4));  
      }
   });
 
