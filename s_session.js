@@ -162,8 +162,10 @@ router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
   fldname = _public+req.query.sessionId;
   var iid = "/"+req.query.imageId;
   try{
-
-    res.writeHead(200, {'Content-Type': 'image/jpg' });
+    var headerOptions = {
+      'Content-Type': 'image/jpg'
+    }
+    res.writeHead(200, headerOptions);
     res.end(fs.readFileSync(fldname+iid), 'binary');
    
    
