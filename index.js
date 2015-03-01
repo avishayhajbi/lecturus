@@ -33,13 +33,13 @@ if (port == 8080)
 else
   config ={
   	host: "us-cdbr-iron-east-01.cleardb.net",
-      user: "b23c6d0f964532",
-      password: "1fc1c4ed",
-      database: "heroku_f00102faee97288",
-      port: 3306,
-      databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
-      Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
-      mySql: "mysql://b23c6d0f964532:1fc1c4ed"
+    user: "b23c6d0f964532",
+    password: "1fc1c4ed",
+    database: "heroku_f00102faee97288",
+    port: 3306,
+    databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
+    Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
+    mySql: "mysql://b23c6d0f964532:1fc1c4ed"
   }
 
 pool = mysql.createPool(config);
