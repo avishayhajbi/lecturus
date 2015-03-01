@@ -48,33 +48,6 @@ router.post('/session/createSession', function (req, res) {
 });
 
 /*
-get session id and audio file named data
-{data: file.mp3, sessionId:sessionid}
-*/
-/*router.post("/session/uploadAudio2", function(req, res ) {
-  var form = new multiparty.Form();
-  form.parse(req, function(err, fields, files) {
-      fldname="./"+fields['sessionId'][0];
-  });
-  console.log("recieving audio.. locate in "+fldname)
-  
-  var data = new Buffer('');
-	req.on('data', function(chunk) {
-	    data = Buffer.concat([data, chunk]);
-	});
-	req.on('end', function() {
-      req.rawBody = data;
-	    fs.writeFile(fldname+"/"+new Date().getTime()+'.mp3', data, 'binary', function(err){
-        	if (err) res.send({"status":0,"desc":"fail"})
-        	else {
-            console.log('Wrote out song');
-            res.send({"status":1,"desc":"success"})
-          }
-    	});
-	});
-});*/
-
-/*
 get session id to know the relevant directory
 */
 router.get("/session/mergeAudios/:sessionId?", function(req, res) {
@@ -324,3 +297,31 @@ function checkAndCreateSessionDirectory(dirName){
 }
 
 module.exports = router;
+
+
+/*
+get session id and audio file named data
+{data: file.mp3, sessionId:sessionid}
+*/
+/*router.post("/session/uploadAudio2", function(req, res ) {
+  var form = new multiparty.Form();
+  form.parse(req, function(err, fields, files) {
+      fldname="./"+fields['sessionId'][0];
+  });
+  console.log("recieving audio.. locate in "+fldname)
+  
+  var data = new Buffer('');
+  req.on('data', function(chunk) {
+      data = Buffer.concat([data, chunk]);
+  });
+  req.on('end', function() {
+      req.rawBody = data;
+      fs.writeFile(fldname+"/"+new Date().getTime()+'.mp3', data, 'binary', function(err){
+          if (err) res.send({"status":0,"desc":"fail"})
+          else {
+            console.log('Wrote out song');
+            res.send({"status":1,"desc":"success"})
+          }
+      });
+  });
+});*/
