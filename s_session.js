@@ -324,7 +324,7 @@ function checkAndCreateSessionDirectory(dirName){
 }
 
 
-//test clouds
+//test cloud upload
 var cloudinary = require('cloudinary');
 cloudinary.config({ 
   cloud_name: 'hqnsaplme', 
