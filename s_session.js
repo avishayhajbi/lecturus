@@ -100,13 +100,14 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  var sessionid = req.body.sessionId;
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqid = new Date().getTime()+userip;
   
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
   else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
   else fs.readFile(req.files.data.path, function (err, data) {
     if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
-    else fs.writeFile(fldname+"/"+sessionid+".jpg", data, function (err) {
+    else fs.writeFile(fldname+"/"+uniqid+".jpg", data, function (err) {
         if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
@@ -120,13 +121,14 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  var sessionid = req.body.sessionId;
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqid = new Date().getTime()+userip;
 
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session error"}));
   else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
   else fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
-    else fs.writeFile(fldname+"/"+sessionid+".mp3", data, function (err) {
+    else fs.writeFile(fldname+"/"+uniqid+".mp3", data, function (err) {
         if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
@@ -307,11 +309,13 @@ TEST::
 get session id and audio file named data
 {data: file.mp3, sessionId:sessionid}
 */
-/*
+
 router.post("/session/uploadAudio2", function(req, res ) {
   var form = new multiparty.Form();
-  var sessionid='noName';
-  
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqid = new Date().getTime()+userip;
+
+  var count=0;
   var data = new Buffer('');
   req.on('data', function(chunk) {
       data = Buffer.concat([data, chunk]);
@@ -319,21 +323,25 @@ router.post("/session/uploadAudio2", function(req, res ) {
 
   form.parse(req, function(err, fields, files) {
       fldname=_public+fields['sessionId'][0];
-      sessionid=fields['sessionId'][0];
-      
+      callback();
   });
 
   req.on('end', function() {
       req.rawBody = data;
-      fs.writeFile(fldname+"/"+sessionid+'.mp3', data, 'binary', function(err){
+      callback();
+  });
+
+  var callback = function(){
+    if (count++ == 1)
+    fs.writeFile(fldname+"/"+uniqid+'.mp3', data, 'binary', function(err){
           if (err) res.send({"status":0,"desc":"fail"})
           else {
             console.log('Wrote out song');
             res.send({"status":1,"desc":"success"})
           }
       });
-  });
+  }
 });
-*/
+
 
 module.exports = router;
