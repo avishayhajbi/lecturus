@@ -103,6 +103,7 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   var sessionid = req.body.sessionId;
   
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
+  else if (!req.files.data.path) res.send(JSON.stringify({"status":0,"desc":"path error"}));
   else fs.readFile(req.files.data.path, function (err, data) {
     if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+sessionid+".jpg", data, function (err) {
@@ -121,7 +122,8 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
   var sessionid = req.body.sessionId;
 
-  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
+  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session error"}));
+  else if (!req.files.data.path) res.send(JSON.stringify({"status":0,"desc":"path error"}));
   else fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+sessionid+".mp3", data, function (err) {
