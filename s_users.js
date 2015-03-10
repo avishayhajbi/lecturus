@@ -157,6 +157,7 @@ router.get("/users/getCourses:email?", function(req, res) {
     	data={}
     }
     var r ={
+        status:1,
     	courses:{
     		math:["linearit","hedva"],
     		economi:["micro","macro"]
@@ -174,6 +175,7 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
         data={}
     }
     var r ={
+        status:1,
         videos:{
             title:"אוטומטים ושפות ופרמאליות",
             owner:"avishay",

@@ -16,31 +16,32 @@ var fldname=_public+"temp";
 
 router.get('/session', function (req, res) {
 	res.render('session',{
-    title:"Session"
+    title:"Session API"
   });
 });
 
 /*
 recieve session parameters and create the session
-return status 0 if the session already exist
+return status 0 if the failed to create session
 return status 1 if the session created
 return timestamp to use it as session id
 */
 router.post('/session/createSession', function (req, res) {
   var date= new Date().getTime();
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
   try{
     data = JSON.parse(req.body.data);
   }catch(err){ }
   var info={};
-  if (fs.existsSync(_public+date)) {
+  if (fs.existsSync(_public+date+userip)) {
     info.status = 0;
-    info.session = date;
-    info.desc = "exist";
+    info.session = date+userip;
+    info.desc = "failed";
   }
   else {
-    fs.mkdirSync(_public+date);
+    //fs.mkdirSync(_public+date);
     info.status = 1;
-    info.session = date;
+    info.session = date+userip;
     info.desc = "created";
   }
   info.timestamp = date;
@@ -99,11 +100,12 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  console.log(req.body.sessionId)
+  var sessionid = req.body.sessionId;
+  
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
   else fs.readFile(req.files.data.path, function (err, data) {
     if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
-    else fs.writeFile(fldname+"/"+new Date().getTime()+".jpg", data, function (err) {
+    else fs.writeFile(fldname+"/"+sessionid+".jpg", data, function (err) {
         if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
@@ -117,11 +119,12 @@ return status 1 if success and 0 if fail
 */
 router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   fldname = _public+req.body.sessionId;
-  console.log(req.body.sessionId)
+  var sessionid = req.body.sessionId;
+
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
   else fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
-    else fs.writeFile(fldname+"/"+new Date().getTime()+".mp3", data, function (err) {
+    else fs.writeFile(fldname+"/"+sessionid+".mp3", data, function (err) {
         if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
@@ -283,6 +286,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
     }
      
   }
+  temp.status=1;
   res.send(JSON.stringify(temp));
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"}));
@@ -296,27 +300,30 @@ function checkAndCreateSessionDirectory(dirName){
   else fs.mkdirSync(dirName);
 }
 
-module.exports = router;
-
-
 /*
+TEST::
 get session id and audio file named data
 {data: file.mp3, sessionId:sessionid}
 */
-/*router.post("/session/uploadAudio2", function(req, res ) {
+/*
+router.post("/session/uploadAudio2", function(req, res ) {
   var form = new multiparty.Form();
-  form.parse(req, function(err, fields, files) {
-      fldname="./"+fields['sessionId'][0];
-  });
-  console.log("recieving audio.. locate in "+fldname)
+  var sessionid='noName';
   
   var data = new Buffer('');
   req.on('data', function(chunk) {
       data = Buffer.concat([data, chunk]);
   });
+
+  form.parse(req, function(err, fields, files) {
+      fldname=_public+fields['sessionId'][0];
+      sessionid=fields['sessionId'][0];
+      
+  });
+
   req.on('end', function() {
       req.rawBody = data;
-      fs.writeFile(fldname+"/"+new Date().getTime()+'.mp3', data, 'binary', function(err){
+      fs.writeFile(fldname+"/"+sessionid+'.mp3', data, 'binary', function(err){
           if (err) res.send({"status":0,"desc":"fail"})
           else {
             console.log('Wrote out song');
@@ -324,4 +331,7 @@ get session id and audio file named data
           }
       });
   });
-});*/
+});
+*/
+
+module.exports = router;
