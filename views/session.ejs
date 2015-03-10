@@ -89,6 +89,31 @@
 		});
 	</article>
 </section>
-
+<br><br>
+<section>
+		<article>
+			TEST::
+			POST method uploadAudio2 recieve sessionId:sessionid and data:file<br>
+			if error occured return status 0<br>
+			if file saved return status 1 <br>
+			return {"status":'',"desc":""}
+		</article>
+		<article>
+			$.ajax({<br>
+                url : "http://lecturus.herokuapp.com/session/uploadAudio2",<br>
+                type : 'post',<br>
+                data: {data:'thefile',sessionId:''}, //you can use form through js<br>
+                cache: false,<br>
+                contentType: false,<br>
+                processData: false,<br>
+                success : function(data) {<br>
+                    console.log("data", data);<br>
+                },<br>
+                error :  function(objRequest, errortype) {<br>
+                        console.log('error',errortype)<br>
+                }<br>
+            });
+	</article>
+</section>
 </body>
 </html>
