@@ -27,7 +27,7 @@
 
 <section>
 		<article>
-			POST method uploadImage recieve sessionId:sessionid and data:file<br>
+			POST method uploadImage recieve sessionId:sessionid and data:file <br>
 			if error occured return status 0<br>
 			if file saved return status 1 <br>
 			return {"status":'',"desc":""}
@@ -36,7 +36,7 @@
 			$.ajax({<br>
                 url : "http://lecturus.herokuapp.com/session/uploadImage",<br>
                 type : 'post',<br>
-                data: {data:'thefile',sessionId:''},<br>
+                data: {data:'thefile',sessionId:''}, //you can use js through js <br>
                 cache: false,<br>
                 contentType: false,<br>
                 processData: false,<br>
@@ -61,7 +61,7 @@
 			$.ajax({<br>
                 url : "http://lecturus.herokuapp.com/session/uploadAudio",<br>
                 type : 'post',<br>
-                data: {data:'thefile',sessionId:''},<br>
+                data: {data:'thefile',sessionId:''}, //you can use js through js<br>
                 cache: false,<br>
                 contentType: false,<br>
                 processData: false,<br>
