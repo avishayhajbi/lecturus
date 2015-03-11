@@ -1,4 +1,3 @@
-// var keyword_extractor = require("keyword-extractor");
 var express = require('express');
 var mysql = require('mysql');
 var path = require('path');

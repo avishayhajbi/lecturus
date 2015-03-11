@@ -1,4 +1,3 @@
-//var FormData = require('form-data');
 var multiparty = require('multiparty');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
