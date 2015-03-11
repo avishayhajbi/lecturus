@@ -1,0 +1,97 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files (x86)\\nodejs\\\\node.exe',
+1 verbose cli   'C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'install',
+1 verbose cli   'kloudless-node' ]
+2 info using npm@1.4.28
+3 info using node@v0.10.32
+4 verbose node symlink C:\Program Files (x86)\nodejs\\node.exe
+5 warn package.json fs@0.0.2 fs is also the name of a node core module.
+6 warn package.json fs@0.0.2 No description
+7 warn package.json fs@0.0.2 No repository field.
+8 warn package.json fs@0.0.2 No README data
+9 warn package.json multipart@0.1.5 No repository field.
+10 warn package.json multipart@0.1.5 No README data
+11 warn package.json util@0.10.3 util is also the name of a node core module.
+12 warn package.json assert@1.3.0 assert is also the name of a node core module.
+13 warn package.json url@0.10.2 url is also the name of a node core module.
+14 verbose readDependencies using package.json deps
+15 verbose cache add [ 'kloudless-node', null ]
+16 verbose cache add name=undefined spec="kloudless-node" args=["kloudless-node",null]
+17 verbose parsed url { protocol: null,
+17 verbose parsed url   slashes: null,
+17 verbose parsed url   auth: null,
+17 verbose parsed url   host: null,
+17 verbose parsed url   port: null,
+17 verbose parsed url   hostname: null,
+17 verbose parsed url   hash: null,
+17 verbose parsed url   search: null,
+17 verbose parsed url   query: null,
+17 verbose parsed url   pathname: 'kloudless-node',
+17 verbose parsed url   path: 'kloudless-node',
+17 verbose parsed url   href: 'kloudless-node' }
+18 silly lockFile 98ed226f-kloudless-node kloudless-node
+19 verbose lock kloudless-node C:\Users\Avishay\AppData\Roaming\npm-cache\98ed226f-kloudless-node.lock
+20 silly lockFile 98ed226f-kloudless-node kloudless-node
+21 silly lockFile 98ed226f-kloudless-node kloudless-node
+22 verbose addNamed [ 'kloudless-node', '' ]
+23 verbose addNamed [ null, '*' ]
+24 silly lockFile bfd91185-kloudless-node kloudless-node@
+25 verbose lock kloudless-node@ C:\Users\Avishay\AppData\Roaming\npm-cache\bfd91185-kloudless-node.lock
+26 silly addNameRange { name: 'kloudless-node', range: '*', hasData: false }
+27 verbose request where is /kloudless-node
+28 verbose request registry https://registry.npmjs.org/
+29 verbose request id f4b63813b540771d
+30 verbose url raw /kloudless-node
+31 verbose url resolving [ 'https://registry.npmjs.org/', './kloudless-node' ]
+32 verbose url resolved https://registry.npmjs.org/kloudless-node
+33 verbose request where is https://registry.npmjs.org/kloudless-node
+34 info trying registry request attempt 1 at 04:34:01
+35 http GET https://registry.npmjs.org/kloudless-node
+36 http 404 https://registry.npmjs.org/kloudless-node
+37 verbose headers { date: 'Wed, 11 Mar 2015 02:34:06 GMT',
+37 verbose headers   server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+37 verbose headers   'content-type': 'application/json',
+37 verbose headers   'cache-control': 'max-age=0',
+37 verbose headers   'content-length': '52',
+37 verbose headers   'accept-ranges': 'bytes',
+37 verbose headers   via: '1.1 varnish',
+37 verbose headers   age: '0',
+37 verbose headers   'x-served-by': 'cache-lhr6324-LHR',
+37 verbose headers   'x-cache': 'MISS',
+37 verbose headers   'x-cache-hits': '0',
+37 verbose headers   'x-timer': 'S1426041246.531604,VS0,VE90',
+37 verbose headers   'keep-alive': 'timeout=10, max=50',
+37 verbose headers   connection: 'Keep-Alive' }
+38 silly registry.get cb [ 404,
+38 silly registry.get   { date: 'Wed, 11 Mar 2015 02:34:06 GMT',
+38 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+38 silly registry.get     'content-type': 'application/json',
+38 silly registry.get     'cache-control': 'max-age=0',
+38 silly registry.get     'content-length': '52',
+38 silly registry.get     'accept-ranges': 'bytes',
+38 silly registry.get     via: '1.1 varnish',
+38 silly registry.get     age: '0',
+38 silly registry.get     'x-served-by': 'cache-lhr6324-LHR',
+38 silly registry.get     'x-cache': 'MISS',
+38 silly registry.get     'x-cache-hits': '0',
+38 silly registry.get     'x-timer': 'S1426041246.531604,VS0,VE90',
+38 silly registry.get     'keep-alive': 'timeout=10, max=50',
+38 silly registry.get     connection: 'Keep-Alive' } ]
+39 silly lockFile bfd91185-kloudless-node kloudless-node@
+40 silly lockFile bfd91185-kloudless-node kloudless-node@
+41 error 404 404 Not Found: kloudless-node
+41 error 404
+41 error 404 'kloudless-node' is not in the npm registry.
+41 error 404 You should bug the author to publish it
+41 error 404 It was specified as a dependency of 'lecturus'
+41 error 404
+41 error 404 Note that you can also install from a
+41 error 404 tarball, folder, or http url, or git url.
+42 error System Windows_NT 6.1.7601
+43 error command "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "install" "kloudless-node"
+44 error cwd D:\Documents\Documents\GitHub\lecturus
+45 error node -v v0.10.32
+46 error npm -v 1.4.28
+47 error code E404
+48 verbose exit [ 1, true ]

@@ -6,6 +6,8 @@ var fs = require("fs-extra");
 var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
+var async = require('async'); // for clean demonstration
+var kloudless = require('kloudless')('MPTcgxGlEx6KuW7aH2xvr_Cq63LdAGWjenopayI0IhaolajZ');
 
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
@@ -110,7 +112,6 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
     });
   });
 });
-
 /*
 get session id and audio file
 {data: file.mp3, sessionId:sessionid}
@@ -340,5 +341,82 @@ router.post("/session/uploadAudio2", function(req, res ) {
   }
 });
 
+
+var accountId, fileId;
+
+async.series([
+  function(cb) {
+    // to get the base account data
+    kloudless.accounts.base({}, function(err, res) {
+      if (err) {
+        return console.log("Error getting the account data: " + err);
+      }
+      // assuming you authorized at least one service (Dropbox, Google Drive, etc.)
+      console.log("We got the account data!");
+      accountId = res["objects"][0]["id"]
+      //console.log('accountId',accountId)
+      cb();
+    });
+  },
+
+  function(cb) {
+    var stat = fs.statSync(_public+'temp/1.jpg');
+    var options = { 
+      flags: 'r',
+      encoding: null,
+      fd: null,
+      mode: 0666,
+      bufferSize: 64*1024,
+      start: 0, 
+      end: stat.size
+    }
+    // create the fs.ReadStream to pass in to files.upload()
+    var filestream = fs.createReadStream(_public+'temp/1.jpg');
+  
+    // to upload a file to the account we just got data for
+    kloudless.files.upload({
+      "name": "1.jpg",
+      "account_id": accountId,
+      "parent_id": "root",
+      "file": filestream,
+      // all API calls can specify URL query parameters by defining "queryParams"
+      "queryParams": {
+        "overwrite": "true"
+      }
+    }, function(err, res) {
+      if (err) {
+        console.log("Error uploading file: " + err);
+        return cb(err);
+      }
+      console.log("We uploaded the file!");
+      fileId = res['id'];
+      cb();
+    });
+  },
+
+  function(cb){
+    // and now we're going to download that file we just uploaded
+    kloudless.files.contents({
+      "account_id": accountId,
+      "file_id": fileId
+    }, function(err, filestream) {
+      if (err) {
+        return console.log("Files contents: " + err);
+      }
+      var filecontents = '';
+      console.log("got the filestream:");
+      filestream.on('data', function(chunk) {
+        console.log("reading in data chunk...");
+        console.log(chunk);
+        filecontents += chunk;
+      });
+      filestream.on('end',function() {
+        console.log("finished reading file!");
+        console.log(filecontents);
+        cb();
+      });
+    });
+  }
+]);
 
 module.exports = router;
