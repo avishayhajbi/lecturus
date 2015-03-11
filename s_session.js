@@ -11,8 +11,6 @@ var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 var fldname=_public+"temp";
 
-//checkAndCreateSessionDirectory(fldname);
-
 router.get('/session', function (req, res) {
 	res.render('session',{
     title:"Session API"
@@ -52,7 +50,7 @@ get session id to know the relevant directory
 */
 router.get("/session/mergeAudios/:sessionId?", function(req, res) {
   fldname = _public+req.query.sessionId;
-  var mergedRecName='fullAudio.mp3';
+  var mergedRecName=req.query.sessionId+'.mp3';
   files = fs.readdirSync(fldname),
   dhh = fs.createWriteStream(fldname+'/'+mergedRecName);
   // fs.renameSync(currentname, newname);
