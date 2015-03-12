@@ -6,8 +6,12 @@ var fs = require("fs-extra");
 var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
-var async = require('async'); // for clean demonstration
-var kloudless = require('kloudless')('MPTcgxGlEx6KuW7aH2xvr_Cq63LdAGWjenopayI0IhaolajZ');
+var async = require('async');
+var kloudless = require('kloudless')(process.env.API_KEY || 'MPTcgxGlEx6KuW7aH2xvr_Cq63LdAGWjenopayI0IhaolajZ');
+if (process.env.API_HOST)
+    kloudless.setHost(process.env.API_HOST, process.env.API_PORT || 443);
+if (process.env.API_CA != null)
+    kloudless.setCA(process.env.API_CA);
 
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
@@ -220,11 +224,12 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
         console.log(file)
   });
   
-  var recId = "levi.mp3";
-  var recId2 = "left.mp3";
+  var recId =  "01.mp3";
+  var recId2 = "02.mp3";
 
-  var imgId = "1.jpg";
-  var imgId2 = "2.jpg";
+  var imgId =  "01.jpg";
+  var imgId2 = "02.jpg";
+  var imgId3 = "03.jpg";
 
   try{
    var temp = {
@@ -263,7 +268,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
       },
 
       "220": {
-        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId3,
         "text": "this is titles 220"
       },
 
@@ -282,7 +287,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
         "text": "this is titles 382"
       },
       "383": {
-        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId3,
         "text": "this is titles 383"
       }
     }
@@ -354,13 +359,13 @@ async.series([
       // assuming you authorized at least one service (Dropbox, Google Drive, etc.)
       console.log("We got the account data!");
       accountId = res["objects"][0]["id"]
-      //console.log('accountId',accountId)
+      console.log('accountId',accountId)
       cb();
     });
   },
 
   function(cb) {
-    var stat = fs.statSync(_public+'temp/1.jpg');
+    /*var stat = fs.statSync(_public+'temp/1.jpg');
     var options = { 
       flags: 'r',
       encoding: null,
@@ -369,7 +374,7 @@ async.series([
       bufferSize: 64*1024,
       start: 0, 
       end: stat.size
-    }
+    }*/
     // create the fs.ReadStream to pass in to files.upload()
     var filestream = fs.createReadStream(_public+'temp/1.jpg');
   
@@ -379,7 +384,6 @@ async.series([
       "account_id": accountId,
       "parent_id": "root",
       "file": filestream,
-      // all API calls can specify URL query parameters by defining "queryParams"
       "queryParams": {
         "overwrite": "true"
       }
