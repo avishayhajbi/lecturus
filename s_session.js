@@ -224,7 +224,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
         console.log(file)
   });
   
-  
+
   
   var recId =  "01.mp3";
   var recId2 = "02.mp3";
@@ -378,11 +378,11 @@ async.series([
       end: stat.size
     }*/
     // create the fs.ReadStream to pass in to files.upload()
-    var filestream = fs.createReadStream(_public+'temp/1.jpg');
+    var filestream = fs.createReadStream(_public+'temp/f1.jpg');
   
     // to upload a file to the account we just got data for
     kloudless.files.upload({
-      "name": "1.jpg",
+      "name": "f1.jpg",
       "account_id": accountId,
       "parent_id": "root",
       "file": filestream,
