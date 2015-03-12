@@ -231,7 +231,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   var imgId =  "01.jpg";
   var imgId2 = "02.jpg";
   var imgId3 = "03.jpg";
-  var imgId3 = "04.jpg";
+  var imgId4 = "04.jpg";
   try{
    var temp = {
     "videoId": "temp",
