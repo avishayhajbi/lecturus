@@ -224,13 +224,14 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
         console.log(file)
   });
   
+  
   var recId =  "01.mp3";
   var recId2 = "02.mp3";
 
   var imgId =  "01.jpg";
   var imgId2 = "02.jpg";
   var imgId3 = "03.jpg";
-
+  var imgId3 = "04.jpg";
   try{
    var temp = {
     "videoId": "temp",
@@ -273,21 +274,21 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
       },
 
       "379": {
-        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId4,
         "text": "this is titles 379"
       },
       "380": {
         "text": "this is titles 380"
       },
       "381": {
-        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId,
         "text": "this is titles 381"
       },
       "382": {
         "text": "this is titles 382"
       },
       "383": {
-        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId3,
+        "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId="+imgId2,
         "text": "this is titles 383"
       }
     }
