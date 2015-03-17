@@ -6,12 +6,13 @@ var fs = require("fs-extra");
 var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
-var async = require('async');
-var kloudless = require('kloudless')(process.env.API_KEY || 'MPTcgxGlEx6KuW7aH2xvr_Cq63LdAGWjenopayI0IhaolajZ');
-if (process.env.API_HOST)
-    kloudless.setHost(process.env.API_HOST, process.env.API_PORT || 443);
-if (process.env.API_CA != null)
-    kloudless.setCA(process.env.API_CA);
+var cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'hakrhqyps', 
+  api_key: '437118412619984', 
+  api_secret: '2y8KTIp1PGzNUQgcwDQsjqMQiU4' 
+  //cdn_subdomain: true
+});
 
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
@@ -106,15 +107,62 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   
-  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"data error"}));
+  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
   else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
-  else fs.readFile(req.files.data.path, function (err, data) {
+  /*else fs.readFile(req.files.data.path, function (err, data) {
     if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+uniqueid+".jpg", data, function (err) {
         if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
-        res.send(JSON.stringify({"status":1,"desc":"success"}))
+        else res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
-  });
+  });*/
+
+   /* else {
+        var stream = cloudinary.uploader.upload_stream(function(result) { 
+          console.log(result) 
+          res.send(JSON.stringify(result))
+        },
+        {
+          public_id: uniqueid, 
+          crop: 'limit',
+          width: 2000,
+          height: 2000,
+          eager: [
+            { width: 200, height: 200, crop: 'thumb' },
+            { width: 200, height: 250, crop: 'fit', format: 'jpg' }
+          ],                                     
+          tags: ['1426236025252127001', 'lecturus']
+        }      
+      );
+      var file_reader = fs.createReadStream(req.files.data.path).pipe(stream);
+     }*/
+
+ 
+  
+  else cloudinary.uploader.upload(
+    req.files.data.path,
+    function(result) { 
+       if (result.error){
+        console.log(result); 
+        res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+      }
+      else {
+        console.log(result);
+        res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+      }
+    },
+    {
+      public_id: uniqueid, 
+      crop: 'limit',
+      width: 2000,
+      height: 2000,
+      eager: [
+        { width: 200, height: 200, crop: 'thumb' },
+        { width: 200, height: 250, crop: 'fit', format: 'jpg' }
+      ],                                     
+      tags: ['1426236025252127001', 'lecturus']
+    }      
+  )  
 });
 /*
 get session id and audio file
@@ -126,15 +174,37 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
 
-  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session error"}));
+  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
   else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
-  else fs.readFile(req.files.data.path, function (err, data) { //req.files.data.path
+  /*else fs.readFile(req.files.data.path, function (err, data) {
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+uniqueid+".mp3", data, function (err) {
         if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
         res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
-  });
+  });*/
+
+  else cloudinary.uploader.upload(
+    req.files.data.path,
+    function(result) { 
+      
+      if (result.error){
+        console.log(result); 
+        res.send(JSON.stringify({"status":0,"desc":result.error}));
+      }
+      else {
+        console.log(result);
+        res.send(JSON.stringify({"status":1,"desc":"success"}));
+      }
+    },
+    {
+      public_id: uniqueid, 
+      resource_type: 'raw',
+      format: 'mp3',
+      tags: ['1426236025252127001', 'lecturus']
+    }      
+  )  
+
 });
 
 /*
@@ -156,6 +226,7 @@ router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
   }catch(err){
     res.send(JSON.stringify({"status":0,"desc":"fail"})); 
   }
+
 });
 
 /*
@@ -210,7 +281,15 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
 router.get('/session/getVideoId/:videoId?', function (req, res) {
   fldname = _public+req.query.videoId;
   
-  var images =[]
+  cloudinary.api.resources_by_tag("1426236025252127001", function(result){
+    console.log(result)
+  });
+  cloudinary.api.resources_by_tag("1426236025252127001",
+    function(result){
+      console.log(result)
+    }, { resource_type: 'raw' });
+  
+  /*var images =[]
   files = fs.readdirSync(fldname),
   files.forEach(function (file) {
       if (file.indexOf(".jpg")!= -1)
@@ -222,9 +301,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   files.forEach(function (file) {
       if (file.indexOf(".mp3")!= -1)
         console.log(file)
-  });
-  
-
+  });*/
   
   var recId =  "01.mp3";
   var recId2 = "02.mp3";
@@ -348,81 +425,5 @@ router.post("/session/uploadAudio2", function(req, res ) {
   }
 });
 
-
-var accountId, fileId;
-
-async.series([
-  function(cb) {
-    // to get the base account data
-    kloudless.accounts.base({}, function(err, res) {
-      if (err) {
-        return console.log("Error getting the account data: " + err);
-      }
-      // assuming you authorized at least one service (Dropbox, Google Drive, etc.)
-      console.log("We got the account data!");
-      accountId = res["objects"][0]["id"]
-      console.log('accountId',accountId)
-      cb();
-    });
-  },
-
-  function(cb) {
-    /*var stat = fs.statSync(_public+'temp/1.jpg');
-    var options = { 
-      flags: 'r',
-      encoding: null,
-      fd: null,
-      mode: 0666,
-      bufferSize: 64*1024,
-      start: 0, 
-      end: stat.size
-    }*/
-    // create the fs.ReadStream to pass in to files.upload()
-    var filestream = fs.createReadStream(_public+'temp/f1.jpg');
-  
-    // to upload a file to the account we just got data for
-    kloudless.files.upload({
-      "name": "f1.jpg",
-      "account_id": accountId,
-      "parent_id": "root",
-      "file": filestream,
-      "queryParams": {
-        "overwrite": "true"
-      }
-    }, function(err, res) {
-      if (err) {
-        console.log("Error uploading file: " + err);
-        return cb(err);
-      }
-      console.log("We uploaded the file!");
-      fileId = res['id'];
-      cb();
-    });
-  },
-
-  function(cb){
-    // and now we're going to download that file we just uploaded
-    kloudless.files.contents({
-      "account_id": accountId,
-      "file_id": fileId
-    }, function(err, filestream) {
-      if (err) {
-        return console.log("Files contents: " + err);
-      }
-      var filecontents = '';
-      console.log("got the filestream:");
-      filestream.on('data', function(chunk) {
-        console.log("reading in data chunk...");
-        console.log(chunk);
-        filecontents += chunk;
-      });
-      filestream.on('end',function() {
-        console.log("finished reading file!");
-        console.log(filecontents);
-        cb();
-      });
-    });
-  }
-]);
 
 module.exports = router;

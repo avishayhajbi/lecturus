@@ -22,6 +22,41 @@ router.post("/users/registerUser", function(req, res) {
     }catch(err){
     	data={"email":""};
     }
+    //safe:true , fsync: true
+    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+        var r={};
+        if (err) {
+            console.log("query error ",err);
+            r.uid=0;
+            r.status=0;
+            r.desc="err";
+            res.send(lecturusCallback(JSON.stringify(r)))
+            return;
+        }
+        var collection = db.collection('users');
+        collection.find({email:data.email}).toArray(function (err, docs) {
+            if (!docs.length)
+                collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) {
+                    console.log("register",data.email);
+                    r.uid=data.email;
+                    r.status=1;
+                    r.desc="register";
+                    db.close();
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                });
+            else
+                 collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                    console.log("exist",data.email);
+                    r.uid=data.email;
+                    r.status=2;
+                    r.desc="exist";
+                    db.close();
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                 });
+        });
+           
+    });
+/*
     console.log("registerUser -- "+data)
     pool.getConnection(function (err, connection) {
     	if(err) { console.log(err); return; }
@@ -51,6 +86,7 @@ router.post("/users/registerUser", function(req, res) {
     	});
 	    connection.end();
     });
+*/
 });
 
 /*

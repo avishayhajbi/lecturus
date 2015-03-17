@@ -4,7 +4,7 @@ var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
 var app = express();
-var Db = require('mongodb').Db,
+Db = require('mongodb').Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,
@@ -31,7 +31,7 @@ var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
 
-if (port == 8080)
+/*if (port == 8080)
   config ={
   	host:"127.0.0.1",
   	user:"root",
@@ -39,9 +39,8 @@ if (port == 8080)
   	database:"lecturus",
   	port: 3306,
     mongoUrl:'mongodb://localhost:27017/lecturus'
-    
   }
-else
+else*/
   config ={
   	host: "us-cdbr-iron-east-01.cleardb.net",
     user: "b23c6d0f964532",
@@ -50,6 +49,7 @@ else
     port: 3306,
     mongoUrl:'mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705'
   }
+
 
 pool = mysql.createPool(config);
 
@@ -79,22 +79,26 @@ app.get('/', function (req, res) {
 	});
 });
 
-MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-  if (err) return;
-  assert.equal(null, err);
-  // insert the jsons below
-  //db.collection('coll_test').insert([{a:1}, {b:1}, {c:2}], {upsert:true}, function(err, result) {
-  // update the first match a:1 to b:8 if not exist insert
-  /*db.collection('coll_test').update({a:1}, {b:8}, {upsert:true}, function(err, result) { 
-    assert.equal(null, err);
-    //assert.equal(1, result);
-    console.log('done update mongodb')
-    db.close();
-    mongocallback();
-  });*/
+app.get('/*', function (req, res) {
+	res.send(405,'page not allowed lecturus')
 });
 
-var mongocallback = function(){
+ /*MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+      if (err) return;
+      assert.equal(null, err);
+      // insert the jsons below
+      //db.collection('coll_test').insert([{a:1}, {b:1}, {c:2}], {upsert:true}, function(err, result) {
+      // update the first match a:1 to b:8 if not exist insert
+      db.collection('coll_test').update({a:1}, {b:8}, {upsert:true}, function(err, result) { 
+        assert.equal(null, err);
+        //assert.equal(1, result);
+        console.log('done update mongodb')
+        db.close();
+        mongocallback();
+      });
+    });*/
+
+/*var mongocallback = function(){
   MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
     var collection = db.collection('coll_test');
     collection.find().toArray(function (err, docs) {
@@ -102,9 +106,4 @@ var mongocallback = function(){
       db.close();
     });
   });
-}
-
-
-app.get('/*', function (req, res) {
-	res.send(405,'page not allowed lecturus')
-});
+}*/
