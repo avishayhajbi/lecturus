@@ -477,14 +477,15 @@ router.post("/session/uploadImage2", function(req, res ) {
       );
       var file_reader = fs.createReadStream(data).pipe(stream);
       
-    }
+    
     /*fs.writeFile(fldname+"/"+uniqueid+'.jpg', data, 'binary', function(err){
-          if (err) res.send({"status":0,"desc":"fail"})
+          if (err) res.send({"status":0,"desc":"fail2"})
           else {
-            console.log('Wrote out song');
-            res.send({"status":1,"desc":"success"})
+            console.log('Wrote out file');
+            res.send({"status":1,"desc":"success2"})
           }
       });*/
+    }
   }
 });
 
