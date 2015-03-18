@@ -103,24 +103,31 @@ get session id and image file
 return status 1 if success and 0 if fail
 */
 router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
-  fldname = _public+req.body.sessionId;
+  //fldname = _public+req.body.sessionId[0]; // if form
+  fldname = _public+req.body.sessionId; // if FormData
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
-  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
+  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"no file"}));
   /*else fs.readFile(req.files.data.path, function (err, data) {
-    if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
+    if (err)  res.send(JSON.stringify({"status":0,"desc read":err}));
     else fs.writeFile(fldname+"/"+uniqueid+".jpg", data, function (err) {
-        if (err)  res.send(JSON.stringify({"status":0,"desc":"fail"}));
+        if (err)  res.send(JSON.stringify({"status":0,"desc write":err}));
         else res.send(JSON.stringify({"status":1,"desc":"success"}))
     });
   });*/
 
-   /* else {
+   else {
         var stream = cloudinary.uploader.upload_stream(function(result) { 
-          console.log(result) 
-          res.send(JSON.stringify(result))
+           if (result.error){
+              console.log(result); 
+              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+            }
+            else {
+              console.log(result);
+              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+            }
         },
         {
           public_id: uniqueid, 
@@ -135,10 +142,11 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
         }      
       );
       var file_reader = fs.createReadStream(req.files.data.path).pipe(stream);
-     }*/
+      
+   }
 
  
-  
+  /*
   else cloudinary.uploader.upload(
     req.files.data.path,
     function(result) { 
@@ -162,7 +170,7 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
       ],                                     
       tags: ['1426236025252127001', 'lecturus']
     }      
-  )  
+  ) */ 
 });
 /*
 get session id and audio file
@@ -170,12 +178,13 @@ get session id and audio file
 return status 1 if success and 0 if fail
 */
 router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
-  fldname = _public+req.body.sessionId;
+  //fldname = _public+req.body.sessionId[0]; // if form
+  fldname = _public+req.body.sessionId; // if FormData
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
 
   if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
-  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"file error"}));
+  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"no file"}));
   /*else fs.readFile(req.files.data.path, function (err, data) {
     if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
     else fs.writeFile(fldname+"/"+uniqueid+".mp3", data, function (err) {
@@ -184,7 +193,28 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
     });
   });*/
 
-  else cloudinary.uploader.upload(
+  else{
+    var stream = cloudinary.uploader.upload_stream(function(result) { 
+           if (result.error){
+              console.log(result); 
+              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+            }
+            else {
+              console.log(result);
+              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+            }
+        },
+        {
+          public_id: uniqueid, 
+          resource_type: 'raw',
+          format: 'mp3',
+          tags: ['1426236025252127001', 'lecturus']
+        }      
+      );
+      var file_reader = fs.createReadStream(req.files.data.path).pipe(stream);
+  }
+
+ /* else cloudinary.uploader.upload(
     req.files.data.path,
     function(result) { 
       
@@ -203,10 +233,18 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
       format: 'mp3',
       tags: ['1426236025252127001', 'lecturus']
     }      
-  )  
+  ) */ 
 
 });
 
+router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
+  //fldname = _public+req.body.sessionId[0]; // if form
+  fldname = _public+req.body.sessionId; // if FormData
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  
+});
 /*
 get image by session id
 return audio file or status 0 (fail)
@@ -379,7 +417,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   }
 });
 
-function checkAndCreateSessionDirectory(dirName){
+function CreateSessionDirectory(dirName){
   //check if directory exist else create
   if (fs.existsSync(dirName)) {
   }
@@ -392,7 +430,7 @@ get session id and audio file named data
 {data: file.mp3, sessionId:sessionid}
 */
 
-router.post("/session/uploadAudio2", function(req, res ) {
+router.post("/session/uploadImage2", function(req, res ) {
   var form = new multiparty.Form();
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
@@ -414,14 +452,39 @@ router.post("/session/uploadAudio2", function(req, res ) {
   });
 
   var callback = function(){
-    if (count++ == 1)
-    fs.writeFile(fldname+"/"+uniqueid+'.mp3', data, 'binary', function(err){
+    if (count++ == 1){
+      var stream = cloudinary.uploader.upload_stream(function(result) { 
+           if (result.error){
+              console.log(result); 
+              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+            }
+            else {
+              console.log(result);
+              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+            }
+        },
+        {
+          public_id: uniqueid, 
+          crop: 'limit',
+          width: 2000,
+          height: 2000,
+          eager: [
+            { width: 200, height: 200, crop: 'thumb' },
+            { width: 200, height: 250, crop: 'fit', format: 'jpg' }
+          ],                                     
+          tags: ['1426236025252127001', 'lecturus']
+        }      
+      );
+      var file_reader = fs.createReadStream(data).pipe(stream);
+      
+    }
+    /*fs.writeFile(fldname+"/"+uniqueid+'.jpg', data, 'binary', function(err){
           if (err) res.send({"status":0,"desc":"fail"})
           else {
             console.log('Wrote out song');
             res.send({"status":1,"desc":"success"})
           }
-      });
+      });*/
   }
 });
 
