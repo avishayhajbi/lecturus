@@ -1,6 +1,7 @@
 var multiparty = require('multiparty');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var formidable = require('formidable');
 var express = require('express');
 var fs = require("fs-extra");
 var mkdirp = require('mkdirp');
