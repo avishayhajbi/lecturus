@@ -18,7 +18,7 @@ return json {"uid":"","status":0-2,"desc":""}
 router.post("/users/registerUser", function(req, res) {
     var data;
     try{
-    	data = JSON.parse(req.body.data);
+    	data = JSON.parse(req.body.data);       
     }catch(err){
     	data={"email":""};
     }
@@ -114,6 +114,9 @@ router.post("/users/getUser", function(req, res) {
 	    	}
 	    	else if (err == null) {
 	    		console.log("query getUser (post) done");
+                result.user_id : true;
+                result.camera_awake : true;
+                result.system_language : true;
 	    		res.send(lecturusCallback(JSON.stringify(result)))
 	    	}
     	});

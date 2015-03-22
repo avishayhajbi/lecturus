@@ -488,6 +488,89 @@ router.post("/session/uploadImage2", function(req, res ) {
     }
   }
 });
+router.post('/session/uploadImage3', function(request, response)
+{
+    console.log('-->UPLOAD IMAGE<--');
 
+    var form = new formidable.IncomingForm();
+    
+    //form.uploadDir = "/uploads";
+    //form.keepExtensions = true;
+    
+    form.parse(request, function(error, fields, files) 
+    {
+        console.log('-->PARSE<--');
+        //logs the file information 
+        console.log(JSON.stringify(files));
+        console.log(JSON.stringify(fields));
+        console.log('util files: ' + util.inspect(files));
+         console.log('util fields: ' + util.inspect(files));
+
+        /*
+        fs.rename(files.file.path, "./uploads/test.png", function(err) 
+        {
+            if (err) 
+            {
+                fs.unlink("/uploads/test.png");
+                fs.rename(files.file.path, "/uploads/test.png");
+            }
+        });
+        */
+        response.writeHead(200, {"Content-Type": "text/html"});
+        response.write("received image:<br/>");
+        response.write("<img src='/show' />");
+        response.end();
+    });
+    
+    form.on('progress', function(bytesReceived, bytesExpected) 
+    {
+        var percent_complete = (bytesReceived / bytesExpected) * 100;
+        console.log(percent_complete.toFixed(2));
+    });
+ 
+    form.on('error', function(err) 
+    {
+         console.log("-->ERROR<--");
+        console.error(err);
+    });
+    
+    form.on('end', function(error, fields, files) 
+    {
+        console.log('-->END<--');
+        
+        /* Temporary location of our uploaded file */
+        var temp_path = this.openedFiles[0].path;
+        console.log("temp_path: " + temp_path);
+            
+        /* The file name of the uploaded file */
+        var file_name = this.openedFiles[0].name;
+        console.log("file_name: " + file_name);
+            
+        var stream = cloudinary.uploader.upload_stream(function(result) { 
+           if (result.error){
+              console.log(result); 
+              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+            }
+            else {
+              console.log(result);
+              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+            }
+        },
+        {
+          public_id: uniqueid, 
+          crop: 'limit',
+          width: 2000,
+          height: 2000,
+          eager: [
+            { width: 200, height: 200, crop: 'thumb' },
+            { width: 200, height: 250, crop: 'fit', format: 'jpg' }
+          ],                                     
+          tags: ['1426236025252127001', 'lecturus']
+        }      
+      );
+      var file_reader = fs.createReadStream(temp_path).pipe(stream);
+    });
+    
+});
 
 module.exports = router;
