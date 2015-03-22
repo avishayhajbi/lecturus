@@ -1,4 +1,5 @@
 var express = require('express');
+var fs = require("fs-extra");
 var router = express.Router();
 
 router.get('/users', function (req, res) {
@@ -197,10 +198,7 @@ router.get("/users/getCourses:email?", function(req, res) {
     }
     var r ={
         status:1,
-    	courses:{
-    		math:["linearit","hedva"],
-    		economi:["micro","macro"]
-    	}
+    	courses:JSON.stringify(fs.readFileSync('./views/json/courses.json', 'utf8'))
     }
    res.send(lecturusCallback(JSON.stringify(r)))
 });
