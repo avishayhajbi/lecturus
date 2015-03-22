@@ -8,7 +8,6 @@ var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
 
-
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 var fldname=_public+"temp";
@@ -80,14 +79,15 @@ get session id to know the relevant directory
 */
 router.get("/session/mergeAudios/:sessionId?", function(req, res) {
   fldname = _public+req.query.sessionId;
+  var mergedRecName='fullAudio.mp3';
   files = fs.readdirSync(fldname),
-  dhh = fs.createWriteStream(fldname+'/fullAudio.mp3');
+  dhh = fs.createWriteStream(fldname+'/'+mergedRecName);
   // fs.renameSync(currentname, newname);
 
   // create an array with filenames (time)
   files.forEach(function (file) {
-      if (file.indexOf(".mp3")!= -1 && file.indexOf("fullAudio") == -1){
-       clips.push(file.substring(0, file.length-4));  
+      if (file.indexOf(".mp3")!= -1 && file.indexOf(mergedRecName) == -1){
+        clips.push(file.substring(0, file.length-4));  
      }
   });
 
@@ -113,6 +113,9 @@ function merge() {
     stream.on("end", function() {
         console.log(currentfile + ' appended');
         merge();        
+    });
+    stream.on("error", function() {
+        console.log('error while merging');
     });
 }
 
@@ -161,8 +164,10 @@ router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
   fldname = _public+req.query.sessionId;
   var iid = "/"+req.query.imageId;
   try{
-
-    res.writeHead(200, {'Content-Type': 'image/jpg' });
+    var headerOptions = {
+      'Content-Type': 'image/jpg'
+    }
+    res.writeHead(200, headerOptions);
     res.end(fs.readFileSync(fldname+iid), 'binary');
    
    
@@ -202,10 +207,6 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
     var readStream = fs.createReadStream(fldname+vid, options);
 
     var temp=[];
-    /*readStream.on('data', function(data) {
-      temp+=data;
-      res.write(data);
-    });*/
     
     readStream.on('open', function () {
       readStream.pipe(res,'binary');
@@ -226,14 +227,21 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
 
 router.get('/session/getVideoId/:videoId?', function (req, res) {
   fldname = _public+req.query.videoId;
-  /*
+  
   var images =[]
   files = fs.readdirSync(fldname),
   files.forEach(function (file) {
       if (file.indexOf(".jpg")!= -1)
-      images.push(fs.readFileSync(fldname+"/"+file));  
+        console.log(file)
   });
-  */
+
+  var audios =[]
+  files = fs.readdirSync(fldname),
+  files.forEach(function (file) {
+      if (file.indexOf(".mp3")!= -1)
+        console.log(file)
+  });
+  
   var recId = "levi.mp3";
   var recId2 = "left.mp3";
 
@@ -314,5 +322,37 @@ function checkAndCreateSessionDirectory(dirName){
   }
   else fs.mkdirSync(dirName);
 }
+
+
+//test cloud upload
+var cloudinary = require('cloudinary');
+cloudinary.config({ 
+  cloud_name: 'hqnsaplme', 
+  api_key: '368477831978619', 
+  api_secret: 'BGE9DmD5Jm7fv79yUZo2KEqNDHA'
+});
+router.post('/session/cloudinary/',multipartMiddleware, function (req, res) {
+    cloudinary.uploader.upload(
+      req.files.data.path,
+      function(result) {  
+        console.log(result)
+        res.send(result); 
+      },
+      {
+        public_id: new Date().getTime(), 
+        //crop: 'limit',
+        //width: 2000,
+        //height: 2000,
+        /*eager: [
+          { width: 200, height: 200, crop: 'thumb', gravity: 'face', radius: 20, effect: 'sepia' },
+          { width: 100, height: 150, crop: 'fit', format: 'jpg' }
+        ],*/                                     
+        tags: ['lecturus']
+      }      
+    )
+});
+router.post('/session/cloudinaryget/',multipartMiddleware, function (req, res) {
+    res.send(cloudinary.image("1425150932776.png")); //, { width: 100, height: 150, crop: "fill" }
+});
 
 module.exports = router;

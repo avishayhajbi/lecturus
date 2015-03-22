@@ -23,24 +23,24 @@ app.set('port', port);
 app.set('view engine', 'ejs');
 
 if (port == 8080)
-config ={
-	host:"127.0.0.1",
-	user:"root",
-	password:"",
-	database:"lecturus",
-	port: 3306
-}
+  config ={
+  	host:"127.0.0.1",
+  	user:"root",
+  	password:"",
+  	database:"lecturus",
+  	port: 3306
+  }
 else
-config ={
-	host: "us-cdbr-iron-east-01.cleardb.net",
-    user: "b23c6d0f964532",
-    password: "1fc1c4ed",
-    database: "heroku_f00102faee97288",
-    port: 3306,
-    databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
-    Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
-    mySql: "mysql://b23c6d0f964532:1fc1c4ed"
-};
+  config ={
+  	host: "us-cdbr-iron-east-01.cleardb.net",
+      user: "b23c6d0f964532",
+      password: "1fc1c4ed",
+      database: "heroku_f00102faee97288",
+      port: 3306,
+      databaseURL: "postgres://pyfekaqvrthvgq:PBcXHR3GCO3WE3pkiycfbNqoFK@ec2-184-73-165-193.compute-1.amazonaws.com:5432/ddsmieiqgh77je",
+      Psql: "heroku pg:psql --app heroku-postgres-31992389 HEROKU_POSTGRESQL_AQUA",
+      mySql: "mysql://b23c6d0f964532:1fc1c4ed"
+  }
 
 pool = mysql.createPool(config);
 
@@ -76,19 +76,7 @@ app.get('/', function (req, res) {
 		title:"LecturuS"
 	});
 });
-/*
-app.get('/1423623392192', function (req, res) {
-    res.writeHead(200, {'Content-Type': 'image/jpg' });
-    var temp = './1423623392192/1423624346816.jpg';
-    var rs = fs.createReadStream(temp);
-    var buff;
-    rs.once('readable', function() {
-        buff = rs.read(); //Read first 8 bytes only once
-        //res.end("<img src='"+buff.toString()+"' >");
-    });
-    res.end("<img src="+temp+" >");
-});
-*/
+
 app.get('/*', function (req, res) {
 	res.send(405,'page not allowed lecturus')
 });
