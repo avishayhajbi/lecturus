@@ -27,7 +27,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-
 var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
@@ -50,7 +49,6 @@ else*/
     port: 3306,
     mongoUrl:'mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705'
   }
-
 
 pool = mysql.createPool(config);
 
