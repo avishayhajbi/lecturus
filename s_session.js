@@ -491,6 +491,8 @@ router.post("/session/uploadImage2", function(req, res ) {
 });
 router.post('/session/uploadImage3', function(request, response)
 {
+  var userip = request.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
     console.log('-->UPLOAD IMAGE<--');
 
     var form = new formidable.IncomingForm();
@@ -504,8 +506,8 @@ router.post('/session/uploadImage3', function(request, response)
         //logs the file information 
         console.log(JSON.stringify(files));
         console.log(JSON.stringify(fields));
-        console.log('util files: ' + util.inspect(files));
-         console.log('util fields: ' + util.inspect(files));
+        //console.log('util files: ' + util.inspect(files));
+        //console.log('util fields: ' + util.inspect(files));
 
         /*
         fs.rename(files.file.path, "./uploads/test.png", function(err) 
@@ -517,10 +519,10 @@ router.post('/session/uploadImage3', function(request, response)
             }
         });
         */
-        response.writeHead(200, {"Content-Type": "text/html"});
-        response.write("received image:<br/>");
-        response.write("<img src='/show' />");
-        response.end();
+        //response.writeHead(200, {"Content-Type": "text/html"});
+        //response.write("received image:<br/>");
+        //response.write("<img src='/show' />");
+        //response.end();
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -550,11 +552,11 @@ router.post('/session/uploadImage3', function(request, response)
         var stream = cloudinary.uploader.upload_stream(function(result) { 
            if (result.error){
               console.log(result); 
-              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":0,"desc":result.error}));
             }
             else {
               console.log(result);
-              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":1,"desc":"success","desc":result.url}));
             }
         },
         {
