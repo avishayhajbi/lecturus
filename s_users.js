@@ -69,6 +69,7 @@ router.post("/users/registerUser", function(req, res) {
         }
     // if the data parsing failed
     }catch(err){
+        var r={};
         r.status=0;
         r.desc="data error";
     	res.send(lecturusCallback(JSON.stringify(r)));
@@ -82,9 +83,9 @@ if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", r
 */
 router.post("/users/getUser", function(req, res) {
     try{
-        // try to parse json data
+        //try to parse json data
         var data = JSON.parse(req.body.data); 
-        // check if email field exist and no empty
+        // check if the field email exist and not empty
         if (data.email && data.email!="")
         // try to connect to mongodb
         MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
@@ -132,6 +133,7 @@ router.post("/users/getUser", function(req, res) {
         }
     // if the parsing failed
     }catch(err){
+        var r={};
         r.status=0;
         r.desc="data error";
         res.send(lecturusCallback(JSON.stringify(r)));
@@ -195,6 +197,7 @@ router.post("/users/updateUser", function(req, res) {
         }
     // if the data parsing failed
     }catch(err){
+        var r={};
         r.status=0;
         r.desc="data error";
         res.send(lecturusCallback(JSON.stringify(r)));
@@ -259,6 +262,7 @@ router.get("/users/getCourses:email?", function(req, res) {
         }
     // if the parsing failed
     }catch(err){
+        var r={};
         r.status=0;
         r.desc="data error";
         res.send(lecturusCallback(JSON.stringify(r)));
