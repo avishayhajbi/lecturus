@@ -19,7 +19,7 @@ return json {"uid":"","status":0-2,"desc":""}
 router.post("/users/registerUser", function(req, res) {
     try{
         //try to parse json data
-    	var data = JSON.parse(req.body.data); 
+    	var data = req.body; 
         // check if the field email exist and not empty
         if (data.email && data.email!="")
         // connect to mongodb 
@@ -84,7 +84,7 @@ if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", r
 router.post("/users/getUser", function(req, res) {
     try{
         //try to parse json data
-        var data = JSON.parse(req.body.data); 
+        var data = req.body; 
         // check if the field email exist and not empty
         if (data.email && data.email!="")
         // try to connect to mongodb
@@ -149,7 +149,7 @@ success return {status:1}
 router.post("/users/updateUser", function(req, res) {
     try{
         //try to parse json data
-        var data = JSON.parse(req.body.data); 
+        var data = req.body; 
         // check if the field email exist and not empty
         if (data.email && data.email!="")
         // connect to mongodb 

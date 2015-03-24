@@ -39,7 +39,7 @@ router.post('/session/createSession', function (req, res) {
   var uniqueid = date+userip;
   try{
         // try to parse the json data
-        var data = JSON.parse(req.body.data); 
+        var data = req.body; 
         // check if data.email exist and not enpty
         if (data.email && data.email!="")
         // connect to mongodb
