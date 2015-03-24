@@ -422,8 +422,8 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
         console.log(file)
   });*/
   
-  var recId =  "01.mp3";
-  var recId2 = "02.mp3";
+  var recId =  "1.mp3";
+  var recId2 = "2.mp3";
 
   var imgId =  "01.jpg";
   var imgId2 = "02.jpg";
@@ -431,70 +431,113 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   var imgId4 = "04.jpg";
   try{
    var temp = {
-  "videoId": "123aeEg",
-  "title": "אוטומטים שיעור 1.3.14",
-  "uploadBy": "vandervidi@gmail.com",
-  "description":"no description",
-  "privacy": true,
-  "degree": 33,
-  "course": 3313110,
-  "lecturer":"kimhi",
-  "praticipant": [
-    {
-      "user": "vandervidi@gmail.com",
-      "user": "avishayhajbi@gmail.com"
-    }
-  ],
-  "totalSecondLength": 412,
-  "audio": [
-    {
-      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=01.mp3",
-      "length": 214,
-      "startSecond": 0
-    }, {
-      "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=02.mp3",
-      "length": 198,
-      "startSecond": 215
-    }
-  ],
-  "elements": {
-    "6": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
-      "text": "this is subtitles 6"
+    "videoId": "123aeEg",
+    "title": "אוטומטים שיעור 1.3.14",
+    "description": "no description",
+    "privacy": true,
+    "degree": 33,
+    "course": 3313110,
+    "lecturer": "kimhi",
+    "totalSecondLength": 412,
+    "uploadBy": "iofirag@gmail.com",
+    "praticipant": [
+      {
+        "user": "vandervidi@gmail.com",
+        "user": "avishayhajbi@gmail.com"
+      }
+    ],
+    "audio": [
+      {
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=01.mp3",
+        "length": 214,
+        "startSecond": 0,
+        "user": "iofirag@gmail.com"
+      }, {
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=02.mp3",
+        "length": 198,
+        "startSecond": 215,
+        "user": "iofirag@gmail.com"
+      }
+    ],
+    "elements": {
+      "6": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
+          "user": "vandervidi@gmail.com"
+        },
+        "tag": {
+          "text": "this is tags 6",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "24": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg",
+          "user": "vandervidi@gmail.com"
+        }
+      },
+      "210": {
+        "tag": {
+          "text": "audio-1 end",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "220": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=03.jpg",
+          "user": "vandervidi@gmail.com"
+        },
+        "tag": {
+          "text": "this is titles 220",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "379": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=04.jpg",
+          "user": "vandervidi@gmail.com"
+        },
+        "tag": {
+          "text": "this is titles 379",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "380": {
+        "tag": {
+          "text": "this is titles 380",
+          "user": "vandervidi@gmail.com"
+        }
+      },
+      "381": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg",
+          "user": "vandervidi@gmail.com"
+        },
+        "tag": {
+          "text": "this is titles 381",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "382": {
+        "tag": {
+          "text": "this is titles 382",
+          "user": "avishayhajbi@gmail.com"
+        }
+      },
+      "383": {
+        "photo": {
+          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
+          "user": "avishayhajbi@gmail.com"
+        },
+        "tag": {
+          "text": "this is titles 383",
+          "user": "vandervidi@gmail.com"
+        }
+      }
     },
-    "24": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg"
-    },
-
-    "210": {
-      "text": "audio-1 end"
-    },
-
-    "220": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=03.jpg",
-      "text": "this is titles 220"
-    },
-
-    "379": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=04.jpg",
-      "text": "this is titles 379"
-    },
-    "380": {
-      "text": "this is titles 380"
-    },
-    "381": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg",
-      "text": "this is titles 381"
-    },
-    "382": {
-      "text": "this is titles 382"
-    },
-    "383": {
-      "photo": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
-      "text": "this is titles 383"
-    }
+    "status": 1
   }
-}
+
   temp.status=1;
   res.send(JSON.stringify(temp));
   }catch(err){
