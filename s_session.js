@@ -418,6 +418,11 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   "videoId": "123aeEg",
   "title": "אוטומטים שיעור 1.3.14",
   "uploadBy": "iofirag@gmail.com",
+  "description":"no description",
+  "privacy": true,
+  "degree": 33,
+  "course": 3313110,
+  "lecturer":"kimhi",
   "praticipant": [
     {
       "user": "vandervidi@gmail.com",

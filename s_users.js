@@ -284,7 +284,7 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
                 id:"temp"
             }]
         }
-       res.send(lecturusCallback(JSON.stringify(r)))
+        res.send(lecturusCallback(JSON.stringify(r)))
     }catch(err){
         var r ={
         status:0,
