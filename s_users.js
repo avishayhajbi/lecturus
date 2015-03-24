@@ -247,7 +247,7 @@ router.get("/users/getCourses:email?", function(req, res) {
                     var org = docs[0].org;
                     r ={
                         status:1,
-                        courses: (fs.existsSync('./views/json/'+org+'.json'))?JSON.parse(fs.readFileSync('./views/json/'+org+'.json', 'utf8')):[]
+                        degrees: (fs.existsSync('./views/json/'+org+'.json'))?JSON.parse(fs.readFileSync('./views/json/'+org+'.json', 'utf8')):[]
                     }
                     db.close();
                     res.send(lecturusCallback(JSON.stringify(r)))
@@ -269,11 +269,12 @@ router.get("/users/getCourses:email?", function(req, res) {
     }    
 });
 
-router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
+router.get("/users/getCourseVideos/:email?:courseId?:lessonId?", function(req, res) {
     try{
         var data={};
         data.email = req.query.email;
-        data.courseName = req.query.courseName;
+        data.courseId = req.query.courseId;
+        data.lessonId = req.query.lessonId;
         var r ={
         status:1,
         videos:[{
@@ -281,7 +282,7 @@ router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
                 owner:"avishay",
                 participants:["ofir","vidran"],
                 length:15895,
-                id:"temp"
+                id: 1426236025252127001
             }]
         }
         res.send(lecturusCallback(JSON.stringify(r)))

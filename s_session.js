@@ -33,14 +33,19 @@ return status 1 if the session created
 return timestamp to use it as session id
 */
 router.post('/session/createSession', function (req, res) {
+  // create timestamp and uniqeid
   var date= new Date().getTime();
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = date+userip;
   try{
+        // try to parse the json data
         var data = JSON.parse(req.body.data); 
+        // check if data.email exist and not enpty
         if (data.email && data.email!="")
+        // connect to mongodb
         MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
             var r={};
+            // if connection failed
             if (err) {
                 console.log("query error ",err);
                 r.uid=0;
@@ -49,8 +54,10 @@ router.post('/session/createSession', function (req, res) {
                 res.send(lecturusCallback(JSON.stringify(r)))
                 return;
             }
+            // get users collection 
             var collection = db.collection('users');
             collection.find({email:data.email}).toArray(function (err, docs) {
+                // if fail while connecting to users collection
                 if (err) {
                     console.log("collection error ",err);
                     r.uid=0;
@@ -59,57 +66,66 @@ router.post('/session/createSession', function (req, res) {
                     res.send(lecturusCallback(JSON.stringify(r)))
                     return;
                 }
-
+                // if the user is not exist
                 if (!docs.length) {
-                    console.log("user not exist ",err);
+                    console.log("user not exist");
                     r.uid=0;
                     r.status=0;
                     r.desc="user is not exist";
                     res.send(lecturusCallback(JSON.stringify(r)))
-                    return; // need to check if its really stop and not continue because its async 
-                }
-            });
-            var collection = db.collection('sessions');
-            collection.find({sessionId:uniqueid}).toArray(function (err, docs) {
-                if (err) {
-                    console.log("collection error ",err);
-                    r.uid=0;
-                    r.status=0;
-                    r.desc="err db";
-                    res.send(lecturusCallback(JSON.stringify(r)))
-                    return;
+                    return; 
                 }
 
-                if (!docs.length)
-                    uniqueid+= new Date().getTime();
-                var session={
-                  sessionId : uniqueid,
-                  owner: data.email,
-                  timestamp: date
-                };
-                collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
+                // if the user exist we arrive here and get session collection
+                var collection = db.collection('sessions');
+                collection.find({sessionId:uniqueid}).toArray(function (err, docs) {
+                    // if fail while connecting to session collection 
                     if (err) {
-                      console.log("collection error ",err);
-                      r.uid=0;
-                      r.status=0;
-                      r.desc="err db";
-                      res.send(lecturusCallback(JSON.stringify(r)))
-                      return;
+                        console.log("collection error ",err);
+                        r.uid=0;
+                        r.status=0;
+                        r.desc="err db";
+                        res.send(lecturusCallback(JSON.stringify(r)))
+                        return;
                     }
-                    console.log("session",session);
-                    r.sid=uniqueid;
-                    r.status=1;
-                    r.desc="session created";
-                    db.close();
-                    res.send(lecturusCallback(JSON.stringify(r)))
+                    // if the session id already exist 
+                    if (docs.length)
+                        // create another session id
+                        uniqueid+= new Date().getTime();
+                    var session={
+                      sessionId : uniqueid,
+                      owner: data.email,
+                      timestamp: date
+                    };
+                    // insert session into db
+                    collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
+                        // if faile while registering the new session
+                        if (err) {
+                          console.log("collection error ",err);
+                          r.uid=0;
+                          r.status=0;
+                          r.desc="err db";
+                          res.send(lecturusCallback(JSON.stringify(r)))
+                          return;
+                        }
+
+                        console.log("session",session);
+                        r.sid=uniqueid;
+                        r.status=1;
+                        r.desc="session created";
+                        db.close();
+                        res.send(lecturusCallback(JSON.stringify(r)))
+                    });
                 });
             });
         });
+        // if data.email not exist or empty
         else{
             r.status=0;
-            r.desc="session error";
+            r.desc="user details error";
             res.send(lecturusCallback(JSON.stringify(r)));     
         }
+    // if the json data parsing failed
     }catch(err){
         r.status=0;
         r.desc="data error";
@@ -308,7 +324,7 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   
-  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 /*
 get image by session id
@@ -417,7 +433,7 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
    var temp = {
   "videoId": "123aeEg",
   "title": "אוטומטים שיעור 1.3.14",
-  "uploadBy": "iofirag@gmail.com",
+  "uploadBy": "vandervidi@gmail.com",
   "description":"no description",
   "privacy": true,
   "degree": 33,
@@ -643,5 +659,8 @@ router.post('/session/uploadImage3', function(request, response)
     });
     
 });
-
+function lecturusCallback (obj){
+  //return 'lecturusCallback('+obj+');';
+  return obj;
+}
 module.exports = router;
