@@ -8,6 +8,7 @@ var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
 var cloudinary = require('cloudinary');
+
 cloudinary.config({ 
   cloud_name: 'hakrhqyps', 
   api_key: '437118412619984', 
@@ -34,23 +35,86 @@ return timestamp to use it as session id
 router.post('/session/createSession', function (req, res) {
   var date= new Date().getTime();
   var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = date+userip;
   try{
-    data = JSON.parse(req.body.data);
-  }catch(err){ }
-  var info={};
-  if (fs.existsSync(_public+date+userip)) {
-    info.status = 0;
-    info.session = date+userip;
-    info.desc = "failed";
-  }
-  else {
-    //fs.mkdirSync(_public+date);
-    info.status = 1;
-    info.session = date+userip;
-    info.desc = "created";
-  }
-  info.timestamp = date;
-  res.send(JSON.stringify(info));
+        var data = JSON.parse(req.body.data); 
+        if (data.email && data.email!="")
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            var r={};
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send(lecturusCallback(JSON.stringify(r)))
+                return;
+            }
+            var collection = db.collection('users');
+            collection.find({email:data.email}).toArray(function (err, docs) {
+                if (err) {
+                    console.log("collection error ",err);
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="err db";
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                    return;
+                }
+
+                if (!docs.length) {
+                    console.log("user not exist ",err);
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="user is not exist";
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                    return; // need to check if its really stop and not continue because its async 
+                }
+            });
+            var collection = db.collection('sessions');
+            collection.find({sessionId:uniqueid}).toArray(function (err, docs) {
+                if (err) {
+                    console.log("collection error ",err);
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="err db";
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                    return;
+                }
+
+                if (!docs.length)
+                    uniqueid+= new Date().getTime();
+                var session={
+                  sessionId : uniqueid,
+                  owner: data.email,
+                  timestamp: date
+                };
+                collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
+                    if (err) {
+                      console.log("collection error ",err);
+                      r.uid=0;
+                      r.status=0;
+                      r.desc="err db";
+                      res.send(lecturusCallback(JSON.stringify(r)))
+                      return;
+                    }
+                    console.log("session",session);
+                    r.sid=uniqueid;
+                    r.status=1;
+                    r.desc="session created";
+                    db.close();
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                });
+            });
+        });
+        else{
+            r.status=0;
+            r.desc="session error";
+            res.send(lecturusCallback(JSON.stringify(r)));     
+        }
+    }catch(err){
+        r.status=0;
+        r.desc="data error";
+        res.send(lecturusCallback(JSON.stringify(r)));
+    }
 });
 
 /*
