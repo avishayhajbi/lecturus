@@ -448,12 +448,12 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
     ],
     "audio": [
       {
-        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=01.mp3",
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=1.mp3",
         "length": 214,
         "startSecond": 0,
         "user": "iofirag@gmail.com"
       }, {
-        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=02.mp3",
+        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=2.mp3",
         "length": 198,
         "startSecond": 215,
         "user": "iofirag@gmail.com"
