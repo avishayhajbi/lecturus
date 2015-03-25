@@ -31,7 +31,7 @@ var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
 
-/*if (port == 8080)
+(port == false/*8080*/) ?
   config ={
   	host:"127.0.0.1",
   	user:"root",
@@ -40,7 +40,7 @@ app.set('view engine', 'ejs');
   	port: 3306,
     mongoUrl:'mongodb://localhost:27017/lecturus'
   }
-else*/
+:
   config ={
   	host: "us-cdbr-iron-east-01.cleardb.net",
     user: "b23c6d0f964532",
