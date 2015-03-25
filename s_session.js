@@ -97,14 +97,19 @@ router.post('/session/createSession', function (req, res) {
                     data.length= 0;
                     data.participants= [];
                     data.audios= [];
-                    data.elements= [{
-                      tags:[],
-                      images:[]
-                    }];
+                    data.elements= [
+                        {
+                          time:{
+                            tags:[],
+                            images:[]
+                        }
+                      }
+                    ];
                     date.active= true;
+                    data.public = false;
                     data.timestamp= date;
-                    
                     delete data.email;
+
                     // insert session into db
                     collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
                         // if faile while registering the new session
@@ -187,9 +192,64 @@ function merge() {
     });
 }
 
+/* /session/addMembers -- precondition
+  json data with sessionId, email array[emails]
+*/
+/* /session/addMembers -- postcondition
+  json data with status 1/0 
+*/
+router.post("/session/addMembers",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/getSessionInProgress -- precondition
+  json data with email
+*/
+/* /session/getSessionInProgress -- postcondition
+  json data with status 1/0, all current active sesions that the user was participant 
+*/
+router.post("/session/getSessionInProgress",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/startRecording -- precondition
+  json data with sessionId, email, recording true/false, timestamp
+*/
+/* /session/startRecording -- postcondition
+  json data with status 1/0
+*/
+router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/stopRecording -- precondition
+  json data with sessionId, email, recording true/fale, timestamp
+*/
+/* /session/stopRecording -- postcondition
+  json data with status 1/0
+*/
+router.post("/session/stopRecording",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
 
 /* /session/uploadTag -- precondition
-  json data with sessionId, tags[json data with timestamp, text, email]
+  json data with sessionId, tags[json data with timestamp{text, email}]
 */
 /* /session/uploadTag -- postcondition
   json data with status 1/0
@@ -203,13 +263,12 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
 });
 
 /* /session/uploadImage -- precondition
-  json data with file, sessionId
+  json data with file, sessionId, timestamp, email
 */
 /* /session/uploadImage -- postcondition
   json data with status 1/0
 */
 router.post('/session/uploadImage', function(request, response) {
-  //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
@@ -280,13 +339,12 @@ router.post('/session/uploadImage', function(request, response) {
 });
 
 /* /session/uploadAudio -- precondition
-  json data with file, sessionId
+  json data with file, sessionId, timestamp, email
 */
 /* /session/uploadAudio -- postcondition
   json data with status 1/0
 */
 router.post('/session/uploadAudio', function(request, response) {
-  //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id

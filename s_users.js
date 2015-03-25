@@ -10,7 +10,7 @@ router.get('/users', function (req, res) {
 });
 
 /* /users/registerUser -- precondition
-  json data with email, any other fileds  
+  json data with email, any other fileds like active true/false  
 */
 /* /users/registerUser -- postcondition
   json data with status 1/0
@@ -38,7 +38,7 @@ router.post("/users/registerUser", function(req, res) {
             // find user id from users collection
             collection.find({email:data.email}).toArray(function (err, docs) {
                 // if the user not exist register the user
-                if (!docs.length)
+                if (!docs.length){
                     // insert new user to users collection 
                     collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) {
                         console.log("register",data.email);
@@ -48,6 +48,7 @@ router.post("/users/registerUser", function(req, res) {
                         db.close();
                         res.send(lecturusCallback(JSON.stringify(r)))
                     });
+                }
                 // if the user exist update the user data
                 /*else{
                      collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
@@ -125,6 +126,68 @@ router.post("/users/getUser", function(req, res) {
                     r.info = docs[0];
                     r.status=1;
                     r.desc="exist";
+                    db.close();
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                 }
+            });
+        });
+        // if data.email not exist or empty
+        else{
+            r.status=0;
+            r.desc="uid error";
+            res.send(lecturusCallback(JSON.stringify(r)));     
+        }
+    // if the parsing failed
+    }catch(err){
+        var r={};
+        r.status=0;
+        r.desc="data error";
+        res.send(lecturusCallback(JSON.stringify(r)));
+    }
+    
+});
+
+/* /users/getActiveUsers -- precondition
+  json data with email, org  
+*/
+/* /users/getActiveUsers -- postcondition
+  json data with status 1/0, all active users
+*/
+router.post("/users/getActiveUsers", function(req, res) {
+    try{
+        //try to parse json data
+        var data = req.body; 
+        // check if the field email exist and not empty
+        if (data.email && data.email!="")
+        // try to connect to mongodb
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            var r={};
+            // if the connection failed return message and exit
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send(lecturusCallback(JSON.stringify(r)))
+                return;
+            }
+            // ask for users collection
+            var collection = db.collection('users');
+            // try to find user id 
+            collection.find({org:data.org, active:true}).toArray(function (err, docs) {
+                // if the user not exist
+                if (!docs.length) {
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="no one active";
+                    db.close();
+                    res.send(lecturusCallback(JSON.stringify(r)))
+                }
+                // if the user exist
+                else {
+                    r.users = docs;
+                    r.status=1;
+                    r.desc="active users";
                     db.close();
                     res.send(lecturusCallback(JSON.stringify(r)))
                  }
