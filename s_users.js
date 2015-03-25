@@ -9,12 +9,11 @@ router.get('/users', function (req, res) {
 	
 });
 
-/*
-POST registerUser recieve data:{"email":""}
-if error occured return status 0
-if user register return status 1 
-if user exist return status 2 
-return json {"uid":"","status":0-2,"desc":""}
+/* /users/registerUser -- precondition
+  json data with email, any other fileds  
+*/
+/* /users/registerUser -- postcondition
+  json data with status 1/0
 */
 router.post("/users/registerUser", function(req, res) {
     try{
@@ -84,10 +83,11 @@ router.post("/users/registerUser", function(req, res) {
     }
 });
 
-/*
-POST getUser by id recieve {data:email} 
-if fail return {status:0}
-if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
+/* /users/getUser -- precondition
+  json data with email  
+*/
+/* /users/getUser -- postcondition
+  json data with status 1/0, all user data
 */
 router.post("/users/getUser", function(req, res) {
     try{
@@ -122,10 +122,6 @@ router.post("/users/getUser", function(req, res) {
                 // if the user exist
                 else {
                     delete docs[0]._id
-                    // remark -- the three docs[0] below neet to be removed they added staticly for rami
-                    docs[0].user_id = true;
-                    docs[0].camera_awake = true;
-                    docs[0].system_language = true;
                     r.info = docs[0];
                     r.status=1;
                     r.desc="exist";
@@ -150,10 +146,11 @@ router.post("/users/getUser", function(req, res) {
     
 });
 
-/*
-GET updateUser by id recieve data:{email:email} and combines with the params {dislike:NUM,like:NUM,name:"",organization:"", rate:NUM}
-fail return {status:0}
-success return {status:1}
+/* /users/updateUser -- precondition
+  json data with email, any other fields
+*/
+/* /users/updateUser -- postcondition
+  json data with status 1/0
 */
 router.post("/users/updateUser", function(req, res) {
     try{
@@ -189,9 +186,9 @@ router.post("/users/updateUser", function(req, res) {
                 // if the user exist update the user data
                 else{
                      collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                        console.log("exist",data.email);
+                        console.log("user updated",data.email);
                         r.uid=data.email;
-                        r.status=2;
+                        r.status=1;
                         r.desc="user updated";
                         db.close();
                         res.send(lecturusCallback(JSON.stringify(r)))
@@ -213,12 +210,12 @@ router.post("/users/updateUser", function(req, res) {
     }
 });
 
-
-function lecturusCallback (obj){
-	//return 'lecturusCallback('+obj+');';
-	return obj;
-}
-
+/* /users/getCourses -- precondition
+  data with email
+*/
+/* /users/getCourses -- postcondition
+  json data with status 1/0, all user courses hierarchy
+*/
 router.get("/users/getCourses:email?", function(req, res) {
     try{
         // try to jet data
@@ -278,6 +275,12 @@ router.get("/users/getCourses:email?", function(req, res) {
     }    
 });
 
+/* /users/getCourseVideos -- precondition
+  data with email, courseId, lessonId
+*/
+/* /users/getCourseVideos -- postcondition
+  json data with status 1/0, all related videos
+*/
 router.get("/users/getCourseVideos/:email?:courseId?:lessonId?", function(req, res) {
     try{
         var data={};
@@ -304,4 +307,15 @@ router.get("/users/getCourseVideos/:email?:courseId?:lessonId?", function(req, r
     }
     
 });
+
+/* /users/lecturusCallback -- precondition
+  json data
+*/
+/* /users/lecturusCallback -- postcondition
+  json data callback lecturusCallback
+*/
+function lecturusCallback (obj){
+    //return 'lecturusCallback('+obj+');';
+    return obj;
+}
 module.exports = router;

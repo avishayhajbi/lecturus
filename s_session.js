@@ -25,11 +25,11 @@ router.get('/session', function (req, res) {
   });
 });
 
-/*
-recieve session parameters and create the session
-return status 0 if the failed to create session
-return status 1 if the session created
-return timestamp to use it as session id
+/* /session/createSession -- precondition
+  json data with email
+*/
+/* /session/createSession -- postcondition
+  json data with sessionId, server timestamp, status 1/0
 */
 router.post('/session/createSession', function (req, res) {
   // create timestamp and uniqeid
@@ -91,16 +91,19 @@ router.post('/session/createSession', function (req, res) {
                     if (docs.length)
                         // create another session id because the last one was taken
                         uniqueid+= new Date().getTime();
-                      data ={
-                      sessionId : uniqueid,
-                      owner: data.email,
-                      length:0,
-                      participants:[],
-                      audios:[],
-                      images:[],
+                      
+                    data.sessionId= uniqueid;
+                    data.owner= data.email;
+                    data.length= 0;
+                    data.participants= [];
+                    data.audios= [];
+                    data.elements= [{
                       tags:[],
-                      timestamp: date
-                    };
+                      images:[]
+                    }];
+                    date.active= true;
+                    data.timestamp= date;
+                    
                     delete data.email;
                     // insert session into db
                     collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
@@ -116,6 +119,7 @@ router.post('/session/createSession', function (req, res) {
 
                         console.log("session",session);
                         r.sessionId=uniqueid;
+                        r.timestamp=date;
                         r.status=1;
                         r.desc="session created";
                         db.close();
@@ -184,7 +188,12 @@ function merge() {
 }
 
 
-
+/* /session/uploadTag -- precondition
+  json data with sessionId, tags[json data with timestamp, text, email]
+*/
+/* /session/uploadTag -- postcondition
+  json data with status 1/0
+*/
 router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
   var userip = req.connection.remoteAddress.replace(/\./g , '');
@@ -193,24 +202,30 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
-router.post('/session/uploadImage3', function(request, response) {
+/* /session/uploadImage -- precondition
+  json data with file, sessionId
+*/
+/* /session/uploadImage -- postcondition
+  json data with status 1/0
+*/
+router.post('/session/uploadImage', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
+  var sessionId; // save session id
+  var file; // save file info
 
     console.log('-->UPLOAD IMAGE<--');
     var form = new formidable.IncomingForm();
-    
-    //form.uploadDir = "/uploads";
-    //form.keepExtensions = true;
-    
+   
     form.parse(request, function(error, fields, files) 
     {
         console.log('-->PARSE<--');
         //logs the file information 
         console.log("files",JSON.stringify(files));
         console.log("fields",JSON.stringify(fields));
-   
+        sessionId= fields.sessionId;
+        file = files.file; // file.size
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -221,7 +236,7 @@ router.post('/session/uploadImage3', function(request, response) {
  
     form.on('error', function(err) 
     {
-         console.log("-->ERROR<--");
+        console.log("-->ERROR<--");
         console.error(err);
     });
     
@@ -264,24 +279,30 @@ router.post('/session/uploadImage3', function(request, response) {
     
 });
 
+/* /session/uploadAudio -- precondition
+  json data with file, sessionId
+*/
+/* /session/uploadAudio -- postcondition
+  json data with status 1/0
+*/
 router.post('/session/uploadAudio', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
+  var sessionId; // save session id
+  var file; // save file info
 
-    console.log('-->UPLOAD IMAGE<--');
+    console.log('-->UPLOAD AUDIO<--');
     var form = new formidable.IncomingForm();
-    
-    //form.uploadDir = "/uploads";
-    //form.keepExtensions = true;
-    
+   
     form.parse(request, function(error, fields, files) 
     {
         console.log('-->PARSE<--');
         //logs the file information 
-        console.log(JSON.stringify(files));
-        console.log(JSON.stringify(fields));
-   
+        console.log("files",JSON.stringify(files));
+        console.log("fields",JSON.stringify(fields));
+        sessionId= fields.sessionId;
+        file = files.file; // file.size
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -400,30 +421,23 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
   }
 });
 
+/* /session/getVideoId -- precondition
+  data with videoId
+*/
+/* /session/getVideoId -- postcondition
+  json data with status 1/0, all session data
+*/
 router.get('/session/getVideoId/:videoId?', function (req, res) {
   var fldname = _public+req.query.videoId;
-  
+  /*
   cloudinary.api.resources_by_tag("1426236025252127001", function(result){
     console.log(result)
   });
   cloudinary.api.resources_by_tag("1426236025252127001",
     function(result){
       console.log(result)
-    }, { resource_type: 'raw' });
-  
-  /*var images =[]
-  files = fs.readdirSync(fldname),
-  files.forEach(function (file) {
-      if (file.indexOf(".jpg")!= -1)
-        console.log(file)
-  });
-
-  var audios =[]
-  files = fs.readdirSync(fldname),
-  files.forEach(function (file) {
-      if (file.indexOf(".mp3")!= -1)
-        console.log(file)
-  });*/
+  }, { resource_type: 'raw' });
+  */
   
   var recId =  "1.mp3";
   var recId2 = "2.mp3";
