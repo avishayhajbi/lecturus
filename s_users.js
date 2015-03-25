@@ -291,7 +291,7 @@ router.get("/users/getCourseVideos/:email?:courseId?:lessonId?", function(req, r
                 owner:"avishay",
                 participants:["ofir","vidran"],
                 length:15895,
-                id: 1426236025252127001
+                sessionId: 1426236025252127001
             }]
         }
         res.send(lecturusCallback(JSON.stringify(r)))

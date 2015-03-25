@@ -89,13 +89,19 @@ router.post('/session/createSession', function (req, res) {
                     }
                     // if the session id already exist 
                     if (docs.length)
-                        // create another session id
+                        // create another session id because the last one was taken
                         uniqueid+= new Date().getTime();
-                    var session={
+                      data ={
                       sessionId : uniqueid,
                       owner: data.email,
+                      length:0,
+                      participants:[],
+                      audios:[],
+                      images:[],
+                      tags:[],
                       timestamp: date
                     };
+                    delete data.email;
                     // insert session into db
                     collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
                         // if faile while registering the new session
@@ -187,7 +193,7 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
-router.post('/session/uploadImage3', function(request, response) {
+router.post('/session/uploadImage', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
@@ -258,7 +264,7 @@ router.post('/session/uploadImage3', function(request, response) {
     
 });
 
-router.post('/session/uploadAudio3', function(request, response) {
+router.post('/session/uploadAudio', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;

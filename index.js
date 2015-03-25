@@ -71,28 +71,3 @@ app.get('/', function (req, res) {
 app.get('/*', function (req, res) {
 	res.send(405,'page not allowed lecturus')
 });
-
- /*MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-      if (err) return;
-      assert.equal(null, err);
-      // insert the jsons below
-      //db.collection('coll_test').insert([{a:1}, {b:1}, {c:2}], {upsert:true}, function(err, result) {
-      // update the first match a:1 to b:8 if not exist insert
-      db.collection('coll_test').update({a:1}, {b:8}, {upsert:true}, function(err, result) { 
-        assert.equal(null, err);
-        //assert.equal(1, result);
-        console.log('done update mongodb')
-        db.close();
-        mongocallback();
-      });
-    });*/
-
-/*var mongocallback = function(){
-  MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-    var collection = db.collection('coll_test');
-    collection.find().toArray(function (err, docs) {
-      //console.log(docs)
-      db.close();
-    });
-  });
-}*/
