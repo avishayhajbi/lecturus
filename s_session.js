@@ -18,7 +18,6 @@ cloudinary.config({
 
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
-var fldname=_public+"temp";
 
 router.get('/session', function (req, res) {
 	res.render('session',{
@@ -110,7 +109,7 @@ router.post('/session/createSession', function (req, res) {
                         }
 
                         console.log("session",session);
-                        r.sid=uniqueid;
+                        r.sessionId=uniqueid;
                         r.status=1;
                         r.desc="session created";
                         db.close();
@@ -178,36 +177,68 @@ function merge() {
     });
 }
 
-/*
-get session id and image file
-{data: file.jpg, sessionId:sessionid}
-return status 1 if success and 0 if fail
-*/
-router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
-  //fldname = _public+req.body.sessionId[0]; // if form
-  fldname = _public+req.body.sessionId; // if FormData
+
+
+router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   
-  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
-  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"no file"}));
-  /*else fs.readFile(req.files.data.path, function (err, data) {
-    if (err)  res.send(JSON.stringify({"status":0,"desc read":err}));
-    else fs.writeFile(fldname+"/"+uniqueid+".jpg", data, function (err) {
-        if (err)  res.send(JSON.stringify({"status":0,"desc write":err}));
-        else res.send(JSON.stringify({"status":1,"desc":"success"}))
-    });
-  });*/
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
 
-   else {
+router.post('/session/uploadImage3', function(request, response) {
+  //var sessionId = _public+req.body.sessionId[0];
+  var userip = request.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+
+    console.log('-->UPLOAD IMAGE<--');
+    var form = new formidable.IncomingForm();
+    
+    //form.uploadDir = "/uploads";
+    //form.keepExtensions = true;
+    
+    form.parse(request, function(error, fields, files) 
+    {
+        console.log('-->PARSE<--');
+        //logs the file information 
+        console.log(JSON.stringify(files));
+        console.log(JSON.stringify(fields));
+   
+    });
+    
+    form.on('progress', function(bytesReceived, bytesExpected) 
+    {
+        var percent_complete = (bytesReceived / bytesExpected) * 100;
+        console.log(percent_complete.toFixed(2));
+    });
+ 
+    form.on('error', function(err) 
+    {
+         console.log("-->ERROR<--");
+        console.error(err);
+    });
+    
+    form.on('end', function(error, fields, files) 
+    {
+        console.log('-->END<--');
+        
+        /* Temporary location of our uploaded file */
+        var temp_path = this.openedFiles[0].path;
+        console.log("temp_path: " + temp_path);
+            
+        /* The file name of the uploaded file */
+        var file_name = this.openedFiles[0].name;
+        console.log("file_name: " + file_name);
+            
         var stream = cloudinary.uploader.upload_stream(function(result) { 
            if (result.error){
               console.log(result); 
-              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":0,"desc":result.error}));
             }
             else {
               console.log(result);
-              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":1,"desc":"success","desc":result.url}));
             }
         },
         {
@@ -222,60 +253,56 @@ router.post("/session/uploadImage",multipartMiddleware, function(req, res ) {
           tags: ['1426236025252127001', 'lecturus']
         }      
       );
-      var file_reader = fs.createReadStream(req.files.data.path).pipe(stream);
-      
-   }
-
- 
-  /*
-  else cloudinary.uploader.upload(
-    req.files.data.path,
-    function(result) { 
-       if (result.error){
-        console.log(result); 
-        res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
-      }
-      else {
-        console.log(result);
-        res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
-      }
-    },
-    {
-      public_id: uniqueid, 
-      crop: 'limit',
-      width: 2000,
-      height: 2000,
-      eager: [
-        { width: 200, height: 200, crop: 'thumb' },
-        { width: 200, height: 250, crop: 'fit', format: 'jpg' }
-      ],                                     
-      tags: ['1426236025252127001', 'lecturus']
-    }      
-  ) */ 
+      var file_reader = fs.createReadStream(temp_path).pipe(stream);
+    });
+    
 });
-/*
-get session id and audio file
-{data: file.mp3, sessionId:sessionid}
-return status 1 if success and 0 if fail
-*/
-router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
-  //fldname = _public+req.body.sessionId[0]; // if form
-  fldname = _public+req.body.sessionId; // if FormData
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
+
+router.post('/session/uploadAudio3', function(request, response) {
+  //var sessionId = _public+req.body.sessionId[0];
+  var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
 
-  if (!req.body.sessionId) res.send(JSON.stringify({"status":0,"desc":"session name error"}));
-  else if (!req.files) res.send(JSON.stringify({"status":0,"desc":"no file"}));
-  /*else fs.readFile(req.files.data.path, function (err, data) {
-    if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
-    else fs.writeFile(fldname+"/"+uniqueid+".mp3", data, function (err) {
-        if (err) res.send(JSON.stringify({"status":0,"desc":"fail"}));
-        res.send(JSON.stringify({"status":1,"desc":"success"}))
+    console.log('-->UPLOAD IMAGE<--');
+    var form = new formidable.IncomingForm();
+    
+    //form.uploadDir = "/uploads";
+    //form.keepExtensions = true;
+    
+    form.parse(request, function(error, fields, files) 
+    {
+        console.log('-->PARSE<--');
+        //logs the file information 
+        console.log(JSON.stringify(files));
+        console.log(JSON.stringify(fields));
+   
     });
-  });*/
-
-  else{
-    var stream = cloudinary.uploader.upload_stream(function(result) { 
+    
+    form.on('progress', function(bytesReceived, bytesExpected) 
+    {
+        var percent_complete = (bytesReceived / bytesExpected) * 100;
+        console.log(percent_complete.toFixed(2));
+    });
+ 
+    form.on('error', function(err) 
+    {
+         console.log("-->ERROR<--");
+        console.error(err);
+    });
+    
+    form.on('end', function(error, fields, files) 
+    {
+        console.log('-->END<--');
+        
+        /* Temporary location of our uploaded file */
+        var temp_path = this.openedFiles[0].path;
+        console.log("temp_path: " + temp_path);
+            
+        /* The file name of the uploaded file */
+        var file_name = this.openedFiles[0].name;
+        console.log("file_name: " + file_name);
+            
+        var stream = cloudinary.uploader.upload_stream(function(result) { 
            if (result.error){
               console.log(result); 
               res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
@@ -292,47 +319,17 @@ router.post("/session/uploadAudio",multipartMiddleware, function(req, res ) {
           tags: ['1426236025252127001', 'lecturus']
         }      
       );
-      var file_reader = fs.createReadStream(req.files.data.path).pipe(stream);
-  }
-
- /* else cloudinary.uploader.upload(
-    req.files.data.path,
-    function(result) { 
-      
-      if (result.error){
-        console.log(result); 
-        res.send(JSON.stringify({"status":0,"desc":result.error}));
-      }
-      else {
-        console.log(result);
-        res.send(JSON.stringify({"status":1,"desc":"success"}));
-      }
-    },
-    {
-      public_id: uniqueid, 
-      resource_type: 'raw',
-      format: 'mp3',
-      tags: ['1426236025252127001', 'lecturus']
-    }      
-  ) */ 
-
+      var file_reader = fs.createReadStream(temp_path).pipe(stream);
+    });
+    
 });
 
-router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
-  //fldname = _public+req.body.sessionId[0]; // if form
-  fldname = _public+req.body.sessionId; // if FormData
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
-});
 /*
 get image by session id
 return audio file or status 0 (fail)
 */
 router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
-  
-  fldname = _public+req.query.sessionId;
+  var fldname = _public+req.query.sessionId;
   var iid = "/"+req.query.imageId;
   try{
     var headerOptions = {
@@ -353,7 +350,7 @@ get session id and audio file
 return audio file of status 0 (fail)
 */
 router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
-  fldname = _public+req.query.sessionId;
+  var fldname = _public+req.query.sessionId;
   var vid = "/"+req.query.videoId;
   try{
     var stat = fs.statSync(fldname+vid);
@@ -398,7 +395,7 @@ router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
 });
 
 router.get('/session/getVideoId/:videoId?', function (req, res) {
-  fldname = _public+req.query.videoId;
+  var fldname = _public+req.query.videoId;
   
   cloudinary.api.resources_by_tag("1426236025252127001", function(result){
     console.log(result)
@@ -552,156 +549,6 @@ function CreateSessionDirectory(dirName){
   else fs.mkdirSync(dirName);
 }
 
-/*
-TEST::
-get session id and audio file named data
-{data: file.mp3, sessionId:sessionid}
-*/
-
-router.post("/session/uploadImage2", function(req, res ) {
-  var form = new multiparty.Form();
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-
-  var count=0;
-  var data = new Buffer('');
-  req.on('data', function(chunk) {
-      data = Buffer.concat([data, chunk]);
-  });
-
-  form.parse(req, function(err, fields, files) {
-      fldname=_public+fields['sessionId'][0];
-      callback();
-  });
-
-  req.on('end', function() {
-      req.rawBody = data;
-      callback();
-  });
-
-  var callback = function(){
-    if (count++ == 1){
-      var stream = cloudinary.uploader.upload_stream(function(result) { 
-           if (result.error){
-              console.log(result); 
-              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
-            }
-            else {
-              console.log(result);
-              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
-            }
-        },
-        {
-          public_id: uniqueid, 
-          crop: 'limit',
-          width: 2000,
-          height: 2000,
-          eager: [
-            { width: 200, height: 200, crop: 'thumb' },
-            { width: 200, height: 250, crop: 'fit', format: 'jpg' }
-          ],                                     
-          tags: ['1426236025252127001', 'lecturus']
-        }      
-      );
-      var file_reader = fs.createReadStream(data).pipe(stream);
-      
-    
-    /*fs.writeFile(fldname+"/"+uniqueid+'.jpg', data, 'binary', function(err){
-          if (err) res.send({"status":0,"desc":"fail2"})
-          else {
-            console.log('Wrote out file');
-            res.send({"status":1,"desc":"success2"})
-          }
-      });*/
-    }
-  }
-});
-router.post('/session/uploadImage3', function(request, response)
-{
-  var userip = request.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-    console.log('-->UPLOAD IMAGE<--');
-
-    var form = new formidable.IncomingForm();
-    
-    //form.uploadDir = "/uploads";
-    //form.keepExtensions = true;
-    
-    form.parse(request, function(error, fields, files) 
-    {
-        console.log('-->PARSE<--');
-        //logs the file information 
-        console.log(JSON.stringify(files));
-        console.log(JSON.stringify(fields));
-        //console.log('util files: ' + util.inspect(files));
-        //console.log('util fields: ' + util.inspect(files));
-
-        /*
-        fs.rename(files.file.path, "./uploads/test.png", function(err) 
-        {
-            if (err) 
-            {
-                fs.unlink("/uploads/test.png");
-                fs.rename(files.file.path, "/uploads/test.png");
-            }
-        });
-        */
-        //response.writeHead(200, {"Content-Type": "text/html"});
-        //response.write("received image:<br/>");
-        //response.write("<img src='/show' />");
-        //response.end();
-    });
-    
-    form.on('progress', function(bytesReceived, bytesExpected) 
-    {
-        var percent_complete = (bytesReceived / bytesExpected) * 100;
-        console.log(percent_complete.toFixed(2));
-    });
- 
-    form.on('error', function(err) 
-    {
-         console.log("-->ERROR<--");
-        console.error(err);
-    });
-    
-    form.on('end', function(error, fields, files) 
-    {
-        console.log('-->END<--');
-        
-        /* Temporary location of our uploaded file */
-        var temp_path = this.openedFiles[0].path;
-        console.log("temp_path: " + temp_path);
-            
-        /* The file name of the uploaded file */
-        var file_name = this.openedFiles[0].name;
-        console.log("file_name: " + file_name);
-            
-        var stream = cloudinary.uploader.upload_stream(function(result) { 
-           if (result.error){
-              console.log(result); 
-              response.send(JSON.stringify({"status":0,"desc":result.error}));
-            }
-            else {
-              console.log(result);
-              response.send(JSON.stringify({"status":1,"desc":"success","desc":result.url}));
-            }
-        },
-        {
-          public_id: uniqueid, 
-          crop: 'limit',
-          width: 2000,
-          height: 2000,
-          eager: [
-            { width: 200, height: 200, crop: 'thumb' },
-            { width: 200, height: 250, crop: 'fit', format: 'jpg' }
-          ],                                     
-          tags: ['1426236025252127001', 'lecturus']
-        }      
-      );
-      var file_reader = fs.createReadStream(temp_path).pipe(stream);
-    });
-    
-});
 function lecturusCallback (obj){
   //return 'lecturusCallback('+obj+');';
   return obj;

@@ -50,7 +50,7 @@ router.post("/users/registerUser", function(req, res) {
                         res.send(lecturusCallback(JSON.stringify(r)))
                     });
                 // if the user exist update the user data
-                else{
+                /*else{
                      collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("exist",data.email);
                         r.uid=data.email;
@@ -59,6 +59,14 @@ router.post("/users/registerUser", function(req, res) {
                         db.close();
                         res.send(lecturusCallback(JSON.stringify(r)))
                      });
+                 }*/
+                 else {
+                        console.log("exist",data.email);
+                        r.uid=data.email;
+                        r.status=2;
+                        r.desc="user exist";
+                        db.close();
+                        res.send(lecturusCallback(JSON.stringify(r)))
                  }
             });
         });
@@ -114,6 +122,7 @@ router.post("/users/getUser", function(req, res) {
                 // if the user exist
                 else {
                     delete docs[0]._id
+                    // remark -- the three docs[0] below neet to be removed they added staticly for rami
                     docs[0].user_id = true;
                     docs[0].camera_awake = true;
                     docs[0].system_language = true;

@@ -56,16 +56,6 @@ app.listen(app.get('port'), function () {
     console.log('LecturuS Server running...'+app.get('port'));
 });
 
-function keepAlive(){
-  try{
-    pool.getConnection(function(err, connection){
-    if(err) { return; }
-    connection.ping();
-    connection.end();
-    });
-  }catch(err){}
-}
-setInterval(keepAlive, 30000);
 
 var lec_users = require('./s_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
 app.use(lec_users); 
