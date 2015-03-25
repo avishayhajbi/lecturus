@@ -197,7 +197,7 @@ router.post('/session/uploadImage3', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
-  
+
     console.log('-->UPLOAD IMAGE<--');
     var form = new formidable.IncomingForm();
     
@@ -208,8 +208,8 @@ router.post('/session/uploadImage3', function(request, response) {
     {
         console.log('-->PARSE<--');
         //logs the file information 
-        console.log(JSON.stringify(files));
-        console.log(JSON.stringify(fields));
+        console.log("files",JSON.stringify(files));
+        console.log("fields",JSON.stringify(fields));
    
     });
     
