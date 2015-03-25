@@ -193,11 +193,11 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
-router.post('/session/uploadImage', function(request, response) {
+router.post('/session/uploadImage3', function(request, response) {
   //var sessionId = _public+req.body.sessionId[0];
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
-
+  
     console.log('-->UPLOAD IMAGE<--');
     var form = new formidable.IncomingForm();
     
