@@ -26,9 +26,10 @@ router.get('/session', function (req, res) {
 });
 
 /* /session/createSession -- precondition
-  json data with email
+  json data with email, name, description, lecturer, degree, course, more data as wanted
 */
 /* /session/createSession -- postcondition
+  create new session with and return the session id with timestamp and status 1/0
   json data with sessionId, server timestamp, status 1/0
 */
 router.post('/session/createSession', function (req, res) {
@@ -50,7 +51,7 @@ router.post('/session/createSession', function (req, res) {
                 r.uid=0;
                 r.status=0;
                 r.desc="err db";
-                res.send(lecturusCallback(JSON.stringify(r)))
+                res.send((JSON.stringify(r)))
                 return;
             }
             // get users collection 
@@ -62,7 +63,7 @@ router.post('/session/createSession', function (req, res) {
                     r.uid=0;
                     r.status=0;
                     r.desc="err db";
-                    res.send(lecturusCallback(JSON.stringify(r)))
+                    res.send((JSON.stringify(r)))
                     return;
                 }
                 // if the user is not exist
@@ -71,7 +72,7 @@ router.post('/session/createSession', function (req, res) {
                     r.uid=0;
                     r.status=0;
                     r.desc="user is not exist";
-                    res.send(lecturusCallback(JSON.stringify(r)))
+                    res.send((JSON.stringify(r)))
                     return; 
                 }
 
@@ -84,7 +85,7 @@ router.post('/session/createSession', function (req, res) {
                         r.uid=0;
                         r.status=0;
                         r.desc="err db";
-                        res.send(lecturusCallback(JSON.stringify(r)))
+                        res.send((JSON.stringify(r)))
                         return;
                     }
                     // if the session id already exist 
@@ -93,32 +94,44 @@ router.post('/session/createSession', function (req, res) {
                         uniqueid+= new Date().getTime();
                       
                     data.sessionId= uniqueid;
-                    data.owner= data.email;
+                    data.owner = data.email;
                     data.length= 0;
+                    data.rating={
+                      positive:{
+                        value:0,
+                        users:[]
+                      },
+                      negative:{
+                        value:0,
+                        users:[]
+                      },
+                    };
                     data.participants= [];
-                    data.audios= [];
+                    data.audios= []; // {email, url, length, startAt}
                     data.elements= [
                         {
-                          time:{
-                            tags:[],
-                            images:[]
+                          time:{ // integer
+                            tags:[], // {email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
+                            images:[] // {email, url}
                         }
                       }
                     ];
-                    date.active= true;
+                    data.views= 0;
+                    data.recordStarts= false;
+                    data.active= true;
                     data.public = false;
                     data.timestamp= date;
                     delete data.email;
 
                     // insert session into db
-                    collection.insert(session, {upsert:true, safe:true , fsync: true}, function(err, result) {
+                    collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) {
                         // if faile while registering the new session
                         if (err) {
                           console.log("collection error ",err);
                           r.uid=0;
                           r.status=0;
                           r.desc="err db";
-                          res.send(lecturusCallback(JSON.stringify(r)))
+                          res.send((JSON.stringify(r)))
                           return;
                         }
 
@@ -128,7 +141,7 @@ router.post('/session/createSession', function (req, res) {
                         r.status=1;
                         r.desc="session created";
                         db.close();
-                        res.send(lecturusCallback(JSON.stringify(r)))
+                        res.send((JSON.stringify(r)))
                     });
                 });
             });
@@ -137,65 +150,22 @@ router.post('/session/createSession', function (req, res) {
         else{
             r.status=0;
             r.desc="user details error";
-            res.send(lecturusCallback(JSON.stringify(r)));     
+            res.send((JSON.stringify(r)));     
         }
     // if the json data parsing failed
     }catch(err){
         r.status=0;
         r.desc="data error";
-        res.send(lecturusCallback(JSON.stringify(r)));
+        res.send((JSON.stringify(r)));
     }
 });
 
-/*
-get session id to know the relevant directory
-*/
-router.get("/session/mergeAudios/:sessionId?", function(req, res) {
-  fldname = _public+req.query.sessionId;
-  var mergedRecName=req.query.sessionId+'.mp3';
-  files = fs.readdirSync(fldname),
-  dhh = fs.createWriteStream(fldname+'/'+mergedRecName);
-  // fs.renameSync(currentname, newname);
-
-  // create an array with filenames (time)
-  files.forEach(function (file) {
-      if (file.indexOf(".mp3")!= -1 && file.indexOf(mergedRecName) == -1){
-        clips.push(file.substring(0, file.length-4));  
-     }
-  });
-
-  // Sort
-  clips.sort(function (a, b) {
-      return a - b;
-  });
-
-  merge();
-
-  res.send(JSON.stringify({"status":1,"desc":"success"}))
-});
-
-// recursive function
-function merge() {
-    if (!clips.length) {
-        dhh.end("Done");
-        return;
-    }
-    currentfile = fldname +"/"+ clips.shift() + '.mp3';
-    stream = fs.createReadStream(currentfile);
-    stream.pipe(dhh, {end: false});
-    stream.on("end", function() {
-        console.log(currentfile + ' appended');
-        merge();        
-    });
-    stream.on("error", function() {
-        console.log('error while merging');
-    });
-}
 
 /* /session/addMembers -- precondition
   json data with sessionId, email array[emails]
 */
 /* /session/addMembers -- postcondition
+  insert all users to the session id participants
   json data with status 1/0 
 */
 router.post("/session/addMembers",multipartMiddleware, function(req, res ) {
@@ -210,6 +180,7 @@ router.post("/session/addMembers",multipartMiddleware, function(req, res ) {
   json data with email
 */
 /* /session/getSessionInProgress -- postcondition
+  return all the active settions with the same participants as the user previous sessions  
   json data with status 1/0, all current active sesions that the user was participant 
 */
 router.post("/session/getSessionInProgress",multipartMiddleware, function(req, res ) {
@@ -224,6 +195,8 @@ router.post("/session/getSessionInProgress",multipartMiddleware, function(req, r
   json data with sessionId, email, recording true/false, timestamp
 */
 /* /session/startRecording -- postcondition
+  store the information inside mongodb session collection like session.recordStarts and 
+  uploading an audio and image and tags enable iff its true
   json data with status 1/0
 */
 router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
@@ -238,9 +211,56 @@ router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
   json data with sessionId, email, recording true/fale, timestamp
 */
 /* /session/stopRecording -- postcondition
+    store the information inside mongodb session collection like session.recordStarts and 
+    uploading an audio and image and tags disable iff its false
   json data with status 1/0
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/updateSession -- precondition
+  json data with sessionId and any other data
+*/
+/* /session/updateSession -- postcondition
+  update the session in mongo collection session
+  json data with status 1/0
+*/
+router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/updateSessionRating -- precondition
+  json data with sessionId, email, rating true/false (positive/negative)
+*/
+/* /session/updateSessionRating -- postcondition
+  check if the user not exist in votes (positive and negative) 
+  json data with status 1/0
+*/
+router.post("/session/updateSessionRating",multipartMiddleware, function(req, res ) {
+  var sessionId = _public+req.body.sessionId[0];
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
+  var uniqueid = new Date().getTime()+userip;
+  
+  res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+/* /session/updateViews -- precondition
+  json data with sessionId
+*/
+/* /session/updateViews -- postcondition
+  update session views to ++ in the session collection
+  json data with status 1/0
+*/
+router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
@@ -252,6 +272,7 @@ router.post("/session/stopRecording",multipartMiddleware, function(req, res ) {
   json data with sessionId, tags[json data with timestamp{text, email}]
 */
 /* /session/uploadTag -- postcondition
+  if recordStarts true can insert tags into session id
   json data with status 1/0
 */
 router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
@@ -266,6 +287,7 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   json data with file, sessionId, timestamp, email
 */
 /* /session/uploadImage -- postcondition
+  if recordStarts true can insert tags into session id
   json data with status 1/0
 */
 router.post('/session/uploadImage', function(request, response) {
@@ -342,6 +364,7 @@ router.post('/session/uploadImage', function(request, response) {
   json data with file, sessionId, timestamp, email
 */
 /* /session/uploadAudio -- postcondition
+  if recordStarts true can insert tags into session id
   json data with status 1/0
 */
 router.post('/session/uploadAudio', function(request, response) {
@@ -390,11 +413,11 @@ router.post('/session/uploadAudio', function(request, response) {
         var stream = cloudinary.uploader.upload_stream(function(result) { 
            if (result.error){
               console.log(result); 
-              res.send(JSON.stringify({"status":0,"desc":result.error, "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":0,"desc":result.error, "received_data":result.error}));
             }
             else {
               console.log(result);
-              res.send(JSON.stringify({"status":1,"desc":"success", "received_data":req.files.data}));
+              response.send(JSON.stringify({"status":1,"desc":"success", "received_data":result.url}));
             }
         },
         {
@@ -409,93 +432,17 @@ router.post('/session/uploadAudio', function(request, response) {
     
 });
 
-/*
-get image by session id
-return audio file or status 0 (fail)
-*/
-router.get('/session/getImage/:sessionId?:imageId?', function (req, res) {
-  var fldname = _public+req.query.sessionId;
-  var iid = "/"+req.query.imageId;
-  try{
-    var headerOptions = {
-      'Content-Type': 'image/jpg'
-    }
-    res.writeHead(200, headerOptions);
-    res.end(fs.readFileSync(fldname+iid), 'binary');
-   
-   
-  }catch(err){
-    res.send(JSON.stringify({"status":0,"desc":"fail"})); 
-  }
-
-});
-
-/*
-get session id and audio file
-return audio file of status 0 (fail)
-*/
-router.get('/session/getAudio/:sessionId?:videoId?', function (req, res) {
-  var fldname = _public+req.query.sessionId;
-  var vid = "/"+req.query.videoId;
-  try{
-    var stat = fs.statSync(fldname+vid);
-    //https://groups.google.com/forum/#!topic/nodejs/gzng3IJcBX8
-    var headerOptions = {
-      'Content-Type': 'audio/mpeg',
-      'Content-Length': stat.size,
-      'Content-Range': "bytes " + 0 + "-" + stat.size + "/" + stat.size, 
-      "Accept-Ranges": "bytes"
-    }
-    
-    res.writeHead(200, headerOptions );
-    
-   var options = { 
-      flags: 'r',
-      encoding: null,
-      fd: null,
-      mode: 0666,
-      bufferSize: 64*1024,
-      start: 0, 
-      end: stat.size
-    }
-    var readStream = fs.createReadStream(fldname+vid, options);
-
-    var temp=[];
-    
-    readStream.on('open', function () {
-      readStream.pipe(res,'binary');
-    });
-
-    readStream.on('end', function() {
-       res.end();
-    });
-
-    readStream.on('error', function(err) {
-      res.end({"status":0,"desc":"failed while transfering"});
-    });
-
-  }catch(err){
-    res.send(JSON.stringify({"status":0,"desc":"fail"}));
-  }
-});
 
 /* /session/getVideoId -- precondition
-  data with videoId
+  data with videoId, edit true/false (info for data views conter)
 */
 /* /session/getVideoId -- postcondition
+  if edit is false session.views ++ any case return session details
   json data with status 1/0, all session data
 */
-router.get('/session/getVideoId/:videoId?', function (req, res) {
-  var fldname = _public+req.query.videoId;
-  /*
-  cloudinary.api.resources_by_tag("1426236025252127001", function(result){
-    console.log(result)
-  });
-  cloudinary.api.resources_by_tag("1426236025252127001",
-    function(result){
-      console.log(result)
-  }, { resource_type: 'raw' });
-  */
+router.get('/session/getVideoId/:videoId?:edit?', function (req, res) {
+  var videoId = req.query.videoId;
+  var edit = req.query.edit;
   
   var recId =  "1.mp3";
   var recId2 = "2.mp3";
@@ -509,12 +456,13 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
     "videoId": "123aeEg",
     "title": "אוטומטים שיעור 1.3.14",
     "description": "no description",
-    "privacy": true,
+    "public": true,
     "degree": 33,
     "course": 3313110,
     "lecturer": "kimhi",
     "totalSecondLength": 412,
     "uploadBy": "iofirag@gmail.com",
+    "timestamp":"12/5/2015",
     "praticipant": [
       {
         "user": "vandervidi@gmail.com",
@@ -620,15 +568,5 @@ router.get('/session/getVideoId/:videoId?', function (req, res) {
   }
 });
 
-function CreateSessionDirectory(dirName){
-  //check if directory exist else create
-  if (fs.existsSync(dirName)) {
-  }
-  else fs.mkdirSync(dirName);
-}
 
-function lecturusCallback (obj){
-  //return 'lecturusCallback('+obj+');';
-  return obj;
-}
 module.exports = router;

@@ -56,11 +56,13 @@ app.listen(app.get('port'), function () {
     console.log('LecturuS Server running...'+app.get('port'));
 });
 
-
-var lec_users = require('./s_users'); // can use app.use( '/folderName' ,require('lecturus_users'));
-app.use(lec_users); 
-var session = require('./s_session'); // can use app.use( '/folderName' ,require('lecturus_users'));
+// can use app.use( '/folderName' ,require('lecturus_users'));
+var users = require('./s_users'); 
+app.use(users); 
+var session = require('./s_session'); 
 app.use(session); 
+var auxiliary = require('./s_auxiliary'); 
+app.use(auxiliary); 
 
 app.get('/', function (req, res) {
   res.render('index',{
