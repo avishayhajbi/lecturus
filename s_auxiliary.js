@@ -2,10 +2,10 @@ var express = require('express');
 var fs = require("fs-extra");
 var router = express.Router();
 
-/* /users/getCourses -- precondition
+/* /auxiliary/getCourses -- precondition
   data with email
 */
-/* /users/getCourses -- postcondition
+/* /auxiliary/getCourses -- postcondition
     return all related courses to user
   json data with status 1/0, all user courses hierarchy
 */
@@ -68,14 +68,14 @@ router.post("/auxiliary/getCourses", function(req, res) {
     }    
 });
 
-/* /users/getCourseVideos -- precondition
+/* /auxiliary/getCourseVideos -- precondition
   data with email, degree (id), course (id)
 */
-/* /users/getCourseVideos -- postcondition
+/* /auxiliary/getCourseVideos -- postcondition
     return all related videos by combination between user email degree and course
   json data with status 1/0, all related videos
 */
-router.get("/users/getCourseVideos/:email?:degree?:course?", function(req, res) {
+router.get("/auxiliary/getCourseVideos/:email?:degree?:course?", function(req, res) {
     try{
         var data={};
         data.email = req.query.email;
