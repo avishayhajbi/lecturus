@@ -4,11 +4,14 @@
     <head>
         <script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
         <script src="js/index.js" type="text/javascript"></script>
+        <link href="css/index.css" type="text/css" rel="stylesheet"/>
         <title>lecturus</title>
     </head>
-    <body >
+    <body>
         <h1> <%=title %> </h1>
-       
+        <section>
+            red color: not ready
+        </section>
         <ul>
             <li> 
                 <h3> /users/registerUser -- precondition </h3>
@@ -65,7 +68,7 @@
                     json data with sessionId, server timestamp, status 1/0
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/addMembers -- precondition </h3>
                 <p> 
                    json data with sessionId, email array[emails]
@@ -74,7 +77,7 @@
                     json data with status 1/0 
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/getSessionInProgress -- precondition </h3>
                 <p> 
                    json data with email
@@ -83,7 +86,7 @@
                     json data with status 1/0, all current active sesions that the user was participant 
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/startRecording -- precondition </h3>
                 <p> 
                    json data with sessionId, email, recording true/false, timestamp
@@ -92,7 +95,7 @@
                     json data with status 1/0 
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/stopRecording -- precondition </h3>
                 <p> 
                    json data with sessionId, email, recording true/fale, timestamp
@@ -101,7 +104,7 @@
                     json data with status 1/0
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/updateSession -- precondition </h3>
                 <p> 
                    json data with sessionId and any other data
@@ -110,7 +113,7 @@
                     json data with status 1/0
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/updateSessionRating -- precondition </h3>
                 <p> 
                    json data with sessionId, email, rating true/false (positive/negative)
@@ -119,7 +122,7 @@
                     json data with status 1/0
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/updateViews -- precondition </h3>
                 <p> 
                    json data with sessionId
@@ -128,7 +131,7 @@
                     json data with status 1/0
                 </p>
             </li>
-            <li> 
+            <li class="notReady"> 
                 <h3> /session/uploadTag -- precondition </h3>
                 <p> 
                    json data with sessionId, tags[json data with timestamp{text, email}]
@@ -155,17 +158,8 @@
                     json data with status 1/0
                 </p>
             </li>
-            <li> 
-                <h3> /session/getVideoId/?videoId & edit -- precondition </h3>
-                <p> 
-                   data with videoId, edit true/false (info for data views conter)
-                </p>
-                <p>
-                     json data with status 1/0, all session data
-                </p>
-            </li>
-            <li> 
-                <h3> /session/getVideoId/? videoId & edit -- precondition </h3>
+            <li class="notReady"> 
+                <h3> /session/getVideoById/?videoId & edit -- precondition </h3>
                 <p> 
                    data with videoId, edit true/false (info for data views conter)
                 </p>
@@ -174,8 +168,8 @@
                 </p>
             </li>
             <hr>
-            <li> 
-                <h3> /auxiliary/getCourseVideos/? email & degree & course -- precondition </h3>
+            <li class="notReady"> 
+                <h3> /auxiliary/getVideosByCourse/? email & degree & course -- precondition </h3>
                 <p> 
                     data with email, degree (id), course (id) 
                 </p>

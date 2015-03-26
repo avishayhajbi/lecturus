@@ -433,14 +433,14 @@ router.post('/session/uploadAudio', function(request, response) {
 });
 
 
-/* /session/getVideoId -- precondition
+/* /session/getVideoById -- precondition
   data with videoId, edit true/false (info for data views conter)
 */
-/* /session/getVideoId -- postcondition
+/* /session/getVideoById -- postcondition
   if edit is false session.views ++ any case return session details
   json data with status 1/0, all session data
 */
-router.get('/session/getVideoId/:videoId?:edit?', function (req, res) {
+router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   var videoId = req.query.videoId;
   var edit = req.query.edit;
   

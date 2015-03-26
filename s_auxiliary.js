@@ -68,14 +68,14 @@ router.post("/auxiliary/getCourses", function(req, res) {
     }    
 });
 
-/* /auxiliary/getCourseVideos -- precondition
+/* /auxiliary/getVideosByCourse -- precondition
   data with email, degree (id), course (id)
 */
-/* /auxiliary/getCourseVideos -- postcondition
+/* /auxiliary/getVideosByCourse -- postcondition
     return all related videos by combination between user email degree and course
   json data with status 1/0, all related videos
 */
-router.get("/auxiliary/getCourseVideos/:email?:degree?:course?", function(req, res) {
+router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req, res) {
     try{
         var data={};
         data.email = req.query.email;
