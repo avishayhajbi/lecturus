@@ -471,12 +471,12 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
     ],
     "audio": [
       {
-        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=1.mp3",
+        "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226573/1426236786297227001.mp3",
         "length": 214,
         "startSecond": 0,
         "user": "iofirag@gmail.com"
       }, {
-        "sound": "https://lecturus.herokuapp.com/session/getAudio/?sessionId=temp&videoId=2.mp3",
+        "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226581/1426236786297227002.mp3",
         "length": 198,
         "startSecond": 215,
         "user": "iofirag@gmail.com"
@@ -485,7 +485,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
     "elements": {
       "6": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416506/04_fo4yui.jpg",
           "user": "vandervidi@gmail.com"
         },
         "tag": {
@@ -495,7 +495,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
       },
       "24": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416499/02_zqcb9j.jpg",
           "user": "vandervidi@gmail.com"
         }
       },
@@ -507,7 +507,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
       },
       "220": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=03.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
           "user": "vandervidi@gmail.com"
         },
         "tag": {
@@ -517,7 +517,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
       },
       "379": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=04.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
           "user": "vandervidi@gmail.com"
         },
         "tag": {
@@ -533,7 +533,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
       },
       "381": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=02.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
           "user": "vandervidi@gmail.com"
         },
         "tag": {
@@ -549,7 +549,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
       },
       "383": {
         "photo": {
-          "url": "https://lecturus.herokuapp.com/session/getImage/?sessionId=temp&imageId=01.jpg",
+          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
           "user": "avishayhajbi@gmail.com"
         },
         "tag": {
