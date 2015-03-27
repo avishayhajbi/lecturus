@@ -443,14 +443,7 @@ router.post('/session/uploadAudio', function(request, response) {
 router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   var videoId = req.query.videoId;
   var edit = req.query.edit;
-  
-  var recId =  "1.mp3";
-  var recId2 = "2.mp3";
-
-  var imgId =  "01.jpg";
-  var imgId2 = "02.jpg";
-  var imgId3 = "03.jpg";
-  var imgId4 = "04.jpg";
+ 
   try{
    var temp = {
     "videoId": "123aeEg",
