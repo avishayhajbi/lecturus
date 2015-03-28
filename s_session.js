@@ -186,20 +186,20 @@ router.post('/session/createSession', function (req, res)
 });
 
 /* /session/addMembers -- precondition
- *	This function must receive json with sessionId, participants: array[emails]
+  This function must receive json with sessionId, participants: array[emails]
 */
 /* /session/addMembers -- postcondition
- *	This function will return json with status: 1 = success / 0 = failure 
+ 	This function will return json with status: 1 = success / 0 = failure 
 */
 /* /session/addMembers -- description
- *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
- *	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
+ 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
+ 	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
  */
 /* /session/addMembers -- example
- * sessionId 		1427559374447127001
- * participants[1] 	somemail1@gmail.com
- * participants[2] 	somemail2@gmail.com 
- * participants[3] 	somemail3@gmail.com
+  sessionId 		1427559374447127001
+  participants[1] 	somemail1@gmail.com
+  participants[2] 	somemail2@gmail.com 
+  participants[3] 	somemail3@gmail.com
  */
 router.post("/session/addMembers", function(req, res ) 
 {  	
@@ -420,6 +420,7 @@ router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
 /* /session/stopRecording -- postcondition
     store the information inside mongodb session collection like session.recordStarts and 
     uploading an audio and image and tags disable iff its false
+    and to manage elements order by timestamp for the website audio query
   json data with status 1/0
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
@@ -506,8 +507,10 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
             collection.find({sessionId:sessionId}).toArray(function (err, docs) {
                 // if the session exist update
                 if (docs.length){
-                    for (var i=0;i<tags.length;i++)
-                      docs[0].elements.tags.push(tags[i]);
+                  (tags).forEach (function (tag) {
+                      docs[0].elements.tags.push(tag);
+                  });
+                    
                     delete docs[0]._id;
 
                     // insert new user to users collection 
