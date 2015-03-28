@@ -38,6 +38,7 @@ router.post('/session/createSession', function (req, res)
   var date = new Date().getTime();
  	var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = date + userip;
+  var r={};
 	try {
       // try to parse the json data
       var data = req.body;
@@ -46,7 +47,7 @@ router.post('/session/createSession', function (req, res)
         // connect to mongodb
         MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {//TODO. REMOVE
         	console.log("Trying to connect to db.");
-            var r={};
+            
             
             // if connection failed
             if (err) {
@@ -180,11 +181,9 @@ router.post('/session/createSession', function (req, res)
   } // if the json data parsing failed
   catch(err){
   	console.log("failure while parsing the request, the error:", err);
-    var r={
-      status : 0,
-      desc : "failure while parsing the request"
-    };
-      res.send((JSON.stringify(r)));
+    r.status = 0;
+    r.desc = "failure while parsing the request";
+    res.send((JSON.stringify(r)));
   }
 });
 
@@ -358,12 +357,12 @@ router.post("/session/addMembers", function(req, res )
     catch(err)
     {
     	console.log("failure while parsing the request, the error:", err);
-        r.status = 0;
+        
         r.desc = "failure while parsing the request";
         res.send((JSON.stringify(r)));
-        return;
+       
     }
-    //res.send(JSON.stringify({"status":1,"desc":"success"}));
+
 });
 
 /*
