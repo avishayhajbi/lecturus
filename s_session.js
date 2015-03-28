@@ -131,14 +131,12 @@ router.post('/session/createSession', function (req, res)
                     };
                     data.participants = [];
                     data.audios = []; // {email, url, length, startAt}
-                    data.elements = [
-                        {
-                        	time : { // integer
+                    data.elements = {
+                        	//time : { // integer
                             	tags : [], // {email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
                             	images : [] // {email, url}
-                        	}
-                      	}
-                    ];
+                        	//}
+                      	};
                     data.views = 0;
                     data.recordStarts = false;
                     data.active = true;
@@ -479,18 +477,57 @@ router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
 });
 
 /* /session/uploadTag -- precondition
-  json data with sessionId, tags[json data with timestamp{text, email}]
+  json data with sessionId, tags[json data {timestamp ,text, email}]
 */
 /* /session/uploadTag -- postcondition
   if recordStarts true can insert tags into session id
   json data with status 1/0
 */
 router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
+  var sessionId = req.body.sessionId;
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
-  
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+  var tags = req.body.tags;
+
+  var r={};
+            MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            
+            // if mongodb connection failed return error message and exit
+            if (err) {
+                console.log("connection error ",err);
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // if mongodb connection success asking for users collection
+            var collection = db.collection('sessions');
+            // find user id from users collection
+            collection.find({sessionId:sessionId}).toArray(function (err, docs) {
+                // if the session exist update
+                if (docs.length){
+                    for (var i=0;i<tags.length;i++)
+                      docs[0].elements.tags.push(tags[i]);
+                    delete docs[0]._id;
+
+                    // insert new user to users collection 
+                    collection.update({sessionId:sessionId},docs[0], {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                        console.log("tags list updated");
+                        r.status=1;
+                        r.desc="tags uploaded";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                     });
+                }
+                 else { // if the session does not exist return status 0
+                        console.log("session not exist",sessionId);
+                        r.status=0;
+                        r.desc="session not exist";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                 }
+            });
+        });
 });
 
 /* /session/uploadImage -- precondition
@@ -505,6 +542,7 @@ router.post('/session/uploadImage', function(request, response) {
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
   var file; // save file info
+  var timestamp, email;
 
     console.log('-->UPLOAD IMAGE<--');
     var form = new formidable.IncomingForm();
@@ -517,6 +555,8 @@ router.post('/session/uploadImage', function(request, response) {
         console.log("fields",JSON.stringify(fields));
         sessionId= fields.sessionId;
         file = files.file; // file.size
+        timestamp = fields.timestamp;
+        email = fields.email;
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -544,6 +584,47 @@ router.post('/session/uploadImage', function(request, response) {
         console.log("file_name: " + file_name);
             
         var stream = cloudinary.uploader.upload_stream(function(result) { 
+            var r={};
+            MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            
+            // if mongodb connection failed return error message and exit
+            if (err) {
+                console.log("connection error ",err);
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // if mongodb connection success asking for users collection
+            var collection = db.collection('sessions');
+            // find user id from users collection
+            collection.find({sessionId:sessionId}).toArray(function (err, docs) {
+                // if the session exist update
+                if (docs.length){
+
+                    delete docs[0]._id;
+                    docs[0].elements.images.push({email: email,url: result.url});
+                  
+                    // insert new user to users collection 
+                    collection.update({sessionId:sessionId},docs[0], {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                        console.log("image list updated");
+                        r.status=1;
+                        r.desc="image uploaded";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                     });
+                }
+                 else { // if the session does not exist return status 0
+                        console.log("session not exist",sessionId);
+                        r.status=0;
+                        r.desc="session not exist";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                 }
+            });
+        });
+
+
            if (result.error){
               console.log(result); 
               response.send(JSON.stringify({"status":0,"desc":result.error}));
@@ -582,7 +663,8 @@ router.post('/session/uploadAudio', function(request, response) {
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
   var file; // save file info
-
+  var timestamp, email;
+  var audioLength=30;
     console.log('-->UPLOAD AUDIO<--');
     var form = new formidable.IncomingForm();
    
@@ -594,6 +676,8 @@ router.post('/session/uploadAudio', function(request, response) {
         console.log("fields",JSON.stringify(fields));
         sessionId= fields.sessionId;
         file = files.file; // file.size
+        timestamp = fields.timestamp;
+        email = fields.email;
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -621,14 +705,51 @@ router.post('/session/uploadAudio', function(request, response) {
         console.log("file_name: " + file_name);
             
         var stream = cloudinary.uploader.upload_stream(function(result) { 
-           if (result.error){
-              console.log(result); 
-              response.send(JSON.stringify({"status":0,"desc":result.error, "received_data":result.error}));
+           var r={};
+            MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            
+            // if mongodb connection failed return error message and exit
+            if (err) {
+                console.log("connection error ",err);
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
             }
-            else {
-              console.log(result);
-              response.send(JSON.stringify({"status":1,"desc":"success", "received_data":result.url}));
-            }
+            // if mongodb connection success asking for users collection
+            var collection = db.collection('sessions');
+            // find user id from users collection
+            collection.find({sessionId:sessionId}).toArray(function (err, docs) {
+                // if the session exist update
+                if (docs.length){
+
+                    delete docs[0]._id;
+                    //email url startAt length
+                    docs[0].audios.push({
+                      length: file.size,
+                      email: email,
+                      url: result.url,
+                      startAt: (docs[0].audios.length) ? docs[0].audios.length*audioLength : audioLength 
+                    });
+                  
+                    // insert new user to users collection 
+                    collection.update({sessionId:sessionId},docs[0], {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                        console.log("audio list updated");
+                        r.status=1;
+                        r.desc="audio uploaded";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                     });
+                }
+                 else { // if the session does not exist return status 0
+                        console.log("session not exist",sessionId);
+                        r.status=0;
+                        r.desc="session not exist";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                 }
+            });
+        });
         },
         {
           public_id: uniqueid, 

@@ -50,17 +50,6 @@ router.post("/users/registerUser", function(req, res) {
                         res.send((JSON.stringify(r)))
                     });
                 }
-                // if the user exist update the user data
-                /*else{
-                     collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                        console.log("exist",data.email);
-                        r.uid=data.email;
-                        r.status=2;
-                        r.desc="user updated";
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                     });
-                 }*/
                  else {
                         console.log("exist",data.email);
                         r.uid=data.email;
