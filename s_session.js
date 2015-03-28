@@ -202,19 +202,19 @@ router.post('/session/createSession', function (req, res)
 
 /* /session/addMembers -- precondition
  *	This function must receive json with sessionId, participants: array[emails]
-*/
-/* /session/addMembers -- postcondition
+ *
+ * /session/addMembers -- postcondition
  *	This function will return json with status: 1 = success / 0 = failure 
-*/
-/* /session/addMembers -- description
+ *
+ * /session/addMembers -- description
  *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
  *	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
- */
-/* /session/addMembers -- example
- * sessionId 		1427559374447127001
- * participants[1] 	somemail1@gmail.com
- * participants[2] 	somemail2@gmail.com 
- * participants[3] 	somemail3@gmail.com
+ *
+ * /session/addMembers -- example
+ *  sessionId 			1427559374447127001
+ *  participants[1] 	somemail1@gmail.com
+ *  participants[2] 	somemail2@gmail.com 
+ *  participants[3] 	somemail3@gmail.com
  */
 router.post("/session/addMembers", function(req, res ) 
 {  	
@@ -229,7 +229,7 @@ router.post("/session/addMembers", function(req, res )
         data = req.body;
         newParticipants = req.body.participants;
         
-        if ( newParticipants.length == 0	)
+        if ( newParticipants.length == 0 )
         {
         	console.log("no participants were sent.");
             r.uid = 0;
@@ -238,7 +238,7 @@ router.post("/session/addMembers", function(req, res )
             res.send((JSON.stringify(r)));
             return; 	
         }
-        else
+        else	//TODO. ERASE
         {
 			(newParticipants).forEach (function (currParticipant) 
 			{
@@ -276,10 +276,10 @@ router.post("/session/addMembers", function(req, res )
 	                // failure while connecting to sessions collection
 	                if (err) 
 	                {
-	                    console.log("filure while searching for a session, the error: ", err);
+	                    console.log("failure while searching for a session, the error: ", err);
 	                    r.uid = 0;
 	                    r.status = 0;
-	                    r.desc = "filure while searching for a session.";
+	                    r.desc = "failure while searching for a session.";
 	                    res.send((JSON.stringify(r)));
 	                    return;
 	                }
@@ -404,7 +404,7 @@ function arrayUnique( array )
   return all the active settions with the same participants as the user previous sessions  
   json data with status 1/0, all current active sesions that the user was participant 
 */
-router.post("/session/getSessionInProgress", multipartMiddleware, function(req, res ) 
+router.post("/session/getSessionInProgress", function(req, res ) 
 {
  	var sessionId = _public+req.body.sessionId[0];
   	var userip = req.connection.remoteAddress.replace(/\./g , '');
@@ -414,19 +414,107 @@ router.post("/session/getSessionInProgress", multipartMiddleware, function(req, 
 });
 
 /* /session/startRecording -- precondition
-  json data with sessionId, email, recording true/false, timestamp
+ *  This function will receive json with sessionId, email.
+ * 
+ * /session/startRecording -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure.
+ *  
+ * /session/startRecording -- description
+ *  This function will find the suitable session according to 'sessionId' passed in the request, check if email passed passed in the request 
+ *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' from false to true in the 'sessions' collection.
+ * 
+ * /session/startRecording -- example
+ *  sessionId	1427559374447127001
+ *  email		somemail1@gmail.com		
 */
-/* /session/startRecording -- postcondition
-  store the information inside mongodb session collection like session.recordStarts and 
-  uploading an audio and image and tags enable iff its true
-  json data with status 1/0
-*/
-router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+router.post("/session/startRecording", function(req, res ) 
+{
+  	 //create new empty variables
+  	var reqOwner, reqSession;
+	var r = { };	//response object	
+  		        	
+	try
+  	{
+        // try to parse the json data
+        reqSession = req.body.sessionId;
+		reqOwner = req.body.email;
+                 
+        if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
+        {
+        	console.log("Owner is: " + reqOwner);
+        	console.log("Session id is: " + reqSession);
+        	
+	        // connect to mongodb
+	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+			{
+				console.log("Trying to connect to the db.");
+					            
+	            // if connection failed
+	            if (err) 
+	            {
+	                console.log("MongoLab connection error: ", err);
+	                r.uid = 0;
+	                r.status = 0;
+	                r.desc = "failed to connect to MongoLab.";
+	                res.send((JSON.stringify(r)));
+	                return;
+	            }
+	            
+	            // get sessions collection 
+	            var collection = db.collection('sessions');
+	            //TODO. in case 'recordStarts' is true, we should not change it and return status '0' - failure.	                
+				collection.update( { 
+					$and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
+					{ $set : { recordStarts : true } }, function( err, result ) 
+				{ 
+					// failure while connecting to sessions collection
+	                if (err) 
+	                {
+	                    console.log("failure while update session status, the error: ", err);
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "failure while update session status.";
+	                    res.send((JSON.stringify(r)));
+	                    return;
+	                }
+	                
+	                if (result === 0)
+	                {
+	                    console.log("failed to find suitable session, the error: ", err);
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "failed to find suitable session.";
+	                    res.send((JSON.stringify(r)));
+	                    return;
+	                }
+	                else
+	                {
+                        console.log("session status was updated, the result is: " + result);
+                        r.status = 1;
+                        r.desc = "session status was updated.";
+                        db.close();		/* TODO REMOVE */
+                        res.send((JSON.stringify(r)));		                	
+	                }
+            	});         
+			});
+		}
+		else
+		{
+            console.log("data.sessionId propery does not exist in the query or it is empty");
+            r.status = 0;
+            r.desc = "data.sessionId propery does not exist in the query or it is empty";
+            res.send((JSON.stringify(r)));  
+            return;			
+		}
+	}	                        
+    catch(err)
+    {
+    	console.log("failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.send((JSON.stringify(r)));
+        return;
+    }                   
 });
 
 /* /session/stopRecording -- precondition
