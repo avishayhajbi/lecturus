@@ -30,151 +30,372 @@ router.get('/session', function (req, res) {
 */
 /* /session/createSession -- postcondition
   create new session with and return the session id with timestamp and status 1/0
-  json data with sessionId, server timestamp, status 1/0
+  json data with sessionId, server timestamp, status: 1 = success / 0 = failure
 */
-router.post('/session/createSession', function (req, res) {
-  // create timestamp and uniqeid
-  var date= new Date().getTime();
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = date+userip;
-  try{
+router.post('/session/createSession', function (req, res) 
+{
+	// create timestamp and uniqeid
+  	var date = new Date().getTime();
+ 	var userip = req.connection.remoteAddress.replace(/\./g , '');
+  	var uniqueid = date + userip;
+  	
+  	try
+  	{
         // try to parse the json data
-        var data = req.body; 
-        // check if data.email exist and not enpty
-        if (data.email && data.email!="")
-        // connect to mongodb
-        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-            var r={};
-            // if connection failed
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // get users collection 
-            var collection = db.collection('users');
-            collection.find({email:data.email}).toArray(function (err, docs) {
-                // if fail while connecting to users collection
-                if (err) {
-                    console.log("collection error ",err);
-                    r.uid=0;
-                    r.status=0;
-                    r.desc="err db";
-                    res.send((JSON.stringify(r)))
-                    return;
-                }
-                // if the user is not exist
-                if (!docs.length) {
-                    console.log("user not exist");
-                    r.uid=0;
-                    r.status=0;
-                    r.desc="user is not exist";
-                    res.send((JSON.stringify(r)))
-                    return; 
-                }
-
-                // if the user exist we arrive here and get session collection
-                var collection = db.collection('sessions');
-                collection.find({sessionId:uniqueid}).toArray(function (err, docs) {
-                    // if fail while connecting to session collection 
-                    if (err) {
-                        console.log("collection error ",err);
-                        r.uid=0;
-                        r.status=0;
-                        r.desc="err db";
-                        res.send((JSON.stringify(r)))
-                        return;
-                    }
-                    // if the session id already exist 
-                    if (docs.length)
-                        // create another session id because the last one was taken
-                        uniqueid+= new Date().getTime();
-                      
-                    data.sessionId= uniqueid;
-                    data.owner = data.email;
-                    data.length= 0;
-                    data.rating={
-                      positive:{
-                        value:0,
-                        users:[]
-                      },
-                      negative:{
-                        value:0,
-                        users:[]
-                      },
-                    };
-                    data.participants= [];
-                    data.audios= []; // {email, url, length, startAt}
-                    data.elements= [
-                        {
-                          time:{ // integer
-                            tags:[], // {email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
-                            images:[] // {email, url}
-                        }
-                      }
-                    ];
-                    data.views= 0;
-                    data.recordStarts= false;
-                    data.active= true;
-                    data.public = false;
-                    data.timestamp= date;
-                    delete data.email;
-
-                    // insert session into db
-                    collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) {
-                        // if faile while registering the new session
-                        if (err) {
-                          console.log("collection error ",err);
-                          r.uid=0;
-                          r.status=0;
-                          r.desc="err db";
-                          res.send((JSON.stringify(r)))
-                          return;
-                        }
-
-                        console.log("session",session);
-                        r.sessionId=uniqueid;
-                        r.timestamp=date;
-                        r.status=1;
-                        r.desc="session created";
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                    });
-                });
-            });
-        });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="user details error";
+        var data = req.body;
+        console.log("email is: " + req.body.email);
+         
+        if ( data.email && data.email != "" )	// if data.email property exists in the request is not empty
+        {
+	        // connect to mongodb
+	        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) //TODO. REMOVE
+	        {
+	        	console.log("Trying to connect to db.");
+	            var r={};
+	            
+	            // if connection failed
+	            if (err) 
+	            {
+	                console.log("MongoLab connection error: ", err);
+	                r.uid = 0;
+	                r.status = 0;
+	                r.desc = "failed to connect to MongoLab.";
+	                res.send((JSON.stringify(r)));
+	                return;
+	            }
+	            
+	            // get users collection 
+	            var collection = db.collection('users');
+	            
+	            collection.find( {email : data.email} ).toArray( function (err, docs) 
+	            {
+	            	console.log("Trying to find the user in the db.");
+	            	
+	                // failure while connecting to users collection
+	                if (err) 
+	                {
+	                    console.log("filure while searching for a user, the error: ", err);
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "filure while searching for a user.";
+	                    res.send((JSON.stringify(r)));
+	                    return;
+	                }
+	                
+	                // the user do not exist
+	                if ( !docs.length ) 
+	                {
+	                    console.log("user: " + data.email + " do not exist.");
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "user: " + data.email + " was not found.";
+	                    res.send((JSON.stringify(r)));
+	                    return; 
+	                }
+	
+	                // get session collection (only if the user exists)
+	                var collection = db.collection('sessions');
+	                
+	                collection.find( {sessionId : uniqueid} ).toArray(function (err, docs) 
+	                {
+	                	console.log("Trying to find the session in the db.");
+	                	
+	                    // failure while connecting to session collection 
+	                    if (err) 
+	                    {
+	                        console.log("filure while searching for a session, the error: ", err);
+	                        r.uid = 0;
+	                        r.status = 0;
+	                        r.desc = "filure while searching for a session";
+	                        res.send((JSON.stringify(r)));
+	                        return;
+	                    }
+	                    
+	                    // if the session exists 
+	                    if ( docs.length )
+	                        // create another session id because the last one was taken
+	                        uniqueid += new Date().getTime();
+	                    
+	                    // set session id  
+	                    data.sessionId = uniqueid;
+	                    
+	                    // set session owner
+	                    data.owner = data.email;
+	                    data.length = 0;
+	                    data.rating = 
+	                    {
+	                      	positive : 
+	                      	{
+	                        	value : 0,
+	                        	users : []	//<<---shouldn't we call them voters?
+	                      	},
+	                      	negative : 
+	                      	{
+	                        	value : 0,
+	                        	users : []	//<<---shouldn't we call them voters?
+	                      	},
+	                    };
+	                    
+	                    data.participants = [];
+	                    data.audios = []; // {email, url, length, startAt}
+	                    data.elements = [
+	                        {
+	                        	time : { // integer
+	                            	tags : [], // {email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
+	                            	images : [] // {email, url}
+	                        	}
+	                      	}
+	                    ];
+	                    data.views = 0;
+	                    data.recordStarts = false;
+	                    data.active = true;
+	                    data.public = false;
+	                    data.timestamp = date;
+	                    delete data.email;
+	
+	                    // insert new session into db
+	                    collection.insert( data, {upsert:true, safe:true , fsync: true}, function(err, result) 
+	                    {
+	                    	console.log("Trying to insert new session into the db.");
+	                    	
+	                        // failure during insertion of new session
+	                        if (err) 
+	                        {
+	                         	console.log("failure during insertion of new session, the error: ", err);
+	                         	r.uid = 0;
+	                          	r.status = 0;
+	                          	r.desc = "failure during insertion of new session";
+	                         	res.send((JSON.stringify(r)));
+	                          	return;
+	                        }
+	
+							// succeeded to insert new session
+	                        console.log("session", result);
+	                        r.sessionId = uniqueid;
+	                        r.timestamp = date;
+	                        r.status = 1;
+	                        r.desc = "session created";
+	                        db.close();		//TODO. REMOVE 
+	                        res.send((JSON.stringify(r)));
+	                    });
+	                });
+	            });
+	        });
+        } 
+        else	// if data.email does not exist or empty
+        {
+            console.log("data.email propery does not exist in the query or it is empty");
+            r.status = 0;
+            r.desc = "data.email propery does not exist in the query or it is empty";
             res.send((JSON.stringify(r)));     
         }
     // if the json data parsing failed
-    }catch(err){
-        r.status=0;
-        r.desc="data error";
+    }
+    catch(err)
+    {
+    	console.log("failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
         res.send((JSON.stringify(r)));
     }
 });
 
-
 /* /session/addMembers -- precondition
-  json data with sessionId, email array[emails]
+ *	This function must receive json with sessionId, participants: array[emails]
 */
 /* /session/addMembers -- postcondition
-  insert all users to the session id participants
-  json data with status 1/0 
+ *	This function will return json with status: 1 = success / 0 = failure 
 */
-router.post("/session/addMembers",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+/* /session/addMembers -- description
+ *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
+ *	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
+ */
+/* /session/addMembers -- example
+ * sessionId 		1427559374447127001
+ * participants[1] 	somemail1@gmail.com
+ * participants[2] 	somemail2@gmail.com 
+ * participants[3] 	somemail3@gmail.com
+ */
+router.post("/session/addMembers", function(req, res ) 
+{  	
+  	 //create new empty variables
+  	var newParticipants = Array();
+  	var oldParticipants, data;
+	var r = { };	//response object	
+  		        	
+	try
+  	{
+        // try to parse the json data
+        data = req.body;
+        newParticipants = req.body.participants;
+        
+        if ( newParticipants.length == 0	)
+        {
+        	console.log("no participants were sent.");
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "no participants were sent.";
+            res.send((JSON.stringify(r)));
+            return; 	
+        }
+        else
+        {
+			(newParticipants).forEach (function (currParticipant) 
+			{
+			  	console.log("email: " + currParticipant);
+			});
+        }
+         
+        if ( data.sessionId && data.sessionId != "" )	// if data.sessionId property exists in the request is not empty
+        {
+        	console.log("Session id is: " + data.sessionId);
+        	
+	        // connect to mongodb
+	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+			{
+				console.log("Trying to connect to the db.");
+					            
+	            // if connection failed
+	            if (err) 
+	            {
+	                console.log("MongoLab connection error: ", err);
+	                r.uid = 0;
+	                r.status = 0;
+	                r.desc = "failed to connect to MongoLab.";
+	                res.send((JSON.stringify(r)));
+	                return;
+	            }
+	            
+	            // get sessions collection 
+	            var collection = db.collection('sessions');
+	            
+	            collection.find( { sessionId : data.sessionId } ).toArray( function (err, docs) 
+	            {
+	            	console.log("Searching for the session collection");
+	            	
+	                // failure while connecting to sessions collection
+	                if (err) 
+	                {
+	                    console.log("filure while searching for a session, the error: ", err);
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "filure while searching for a session.";
+	                    res.send((JSON.stringify(r)));
+	                    return;
+	                }
+	                
+	                // the session do not exist
+	                if ( !docs.length ) 
+	                {
+	                    console.log("session: " + data.sessionId + " do not exist.");
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "session: " + data.sessionId + " was not found.";
+	                    res.send((JSON.stringify(r)));
+	                    return; 
+	                }
+	                else
+	                {
+	                	// there is only one session with this sessionId
+	                	
+        				(docs).forEach (function (currDoc) 
+						{
+						  	console.log("session participants: " + currDoc.participants);
+						  	// we get an array of existing participants
+						  	oldParticipants = currDoc.participants;
+						});
+						
+						console.log("oldParticipants: " + oldParticipants);
+						newParticipants = arrayUnique(oldParticipants.concat(newParticipants));
+	                
+						collection.update( { sessionId : data.sessionId }, { $set: { participants : newParticipants } }, function(err, result) 
+						{ 
+							// failure while connecting to sessions collection
+			                if (err) 
+			                {
+			                    console.log("filure while update session participants, the error: ", err);
+			                    r.uid = 0;
+			                    r.status = 0;
+			                    r.desc = "filure while update session participants.";
+			                    res.send((JSON.stringify(r)));
+			                    return;
+			                }
+			                else
+			                {
+		                        console.log("session participants were updated.");
+		                        r.status = 1;
+		                        r.desc = "session participants were updated.";
+		                        db.close();		/* TODO REMOVE */
+		                        res.send((JSON.stringify(r)));		                	
+			                }
+	                	});
+                    }
+                    
+					/* TODO. Validate that each user exists in the db 
+	                // get users collection (only if the session exists)
+	                var collection = db.collection('users');
+	                
+	                
+	                collection.find( {sessionId : uniqueid} ).toArray(function (err, docs) 
+	                {
+	                    // failure while connecting to session collection 
+	                    if (err) 
+	                    {
+	                        console.log("filure while searching for a session, the error: ", err);
+	                        r.uid = 0;
+	                        r.status = 0;
+	                        r.desc = "filure while searching for a session";
+	                        res.send((JSON.stringify(r)));
+	                        return;
+	                    }
+	                    
+	                    // if the session exists 
+	                    if ( docs.length )
+	                        // create another session id because the last one was taken
+	                        uniqueid += new Date().getTime(); 
+	                });
+	                */
+             });
+			});
+		}
+		else
+		{
+            console.log("data.sessionId propery does not exist in the query or it is empty");
+            r.status = 0;
+            r.desc = "data.sessionId propery does not exist in the query or it is empty";
+            res.send((JSON.stringify(r)));  
+            return;			
+		}
+	}	                        
+    catch(err)
+    {
+    	console.log("failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.send((JSON.stringify(r)));
+        return;
+    }
+    //res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
+
+/*
+ * This function will receive an array and delete all duplicate entries.
+ */
+function arrayUnique( array ) 
+{
+    var a = array.concat();
+    
+    for(var i=0; i<a.length; ++i) 
+    {
+        for(var j=i+1; j<a.length; ++j) 
+        {
+            if(a[i] === a[j])
+            	a.splice(j--, 1);
+        }
+    }
+
+    return a;
+};
 
 /* /session/getSessionInProgress -- precondition
   json data with email
@@ -183,12 +404,13 @@ router.post("/session/addMembers",multipartMiddleware, function(req, res ) {
   return all the active settions with the same participants as the user previous sessions  
   json data with status 1/0, all current active sesions that the user was participant 
 */
-router.post("/session/getSessionInProgress",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+router.post("/session/getSessionInProgress", multipartMiddleware, function(req, res ) 
+{
+ 	var sessionId = _public+req.body.sessionId[0];
+  	var userip = req.connection.remoteAddress.replace(/\./g , '');
+  	var uniqueid = new Date().getTime()+userip;
+	  
+ 	res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
 /* /session/startRecording -- precondition
@@ -215,12 +437,13 @@ router.post("/session/startRecording",multipartMiddleware, function(req, res ) {
     uploading an audio and image and tags disable iff its false
   json data with status 1/0
 */
-router.post("/session/stopRecording",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
+router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
+{
+	var sessionId = _public+req.body.sessionId[0];
+  	var userip = req.connection.remoteAddress.replace(/\./g , '');
+  	var uniqueid = new Date().getTime()+userip;
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+  	res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
 /* /session/updateSession -- precondition
