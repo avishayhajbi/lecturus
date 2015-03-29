@@ -68,14 +68,28 @@
                     json data with sessionId, server timestamp, status 1/0
                 </p>
             </li>
-            <li class="notReady"> 
-                <h3> /session/addMembers -- precondition </h3>
+            <li> 
+            	<h3> POST /session/addMembers </h3>
                 <p> 
-                   json data with sessionId, email array[emails]
+                	<h1> precondition </h1>
+                  	This function must receive json with sessionId, participants: array[emails]
                 </p>
                 <p>
-                    json data with status 1/0 
-                </p>
+					<h1> postcondition </h1>
+				 	This function will return json with status: 1 = success / 0 = failure. 
+				</p>
+				<p>
+				 	<h1> description </h1>
+				 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
+				 	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
+				</p>
+				<p>
+				  	<h1> example </h1>
+				   	sessionId 			1427559374447127001
+				   	participants[1] 	somemail1@gmail.com
+				   	participants[2] 	somemail2@gmail.com 
+				   	participants[3] 	somemail3@gmail.com
+				</p>
             </li>
             <li class="notReady"> 
                 <h3> /session/getSessionInProgress -- precondition </h3>
@@ -86,22 +100,26 @@
                     json data with status 1/0, all current active sesions that the user was participant 
                 </p>
             </li>
-            <li class="notReady"> 
-                <h3> /session/startRecording -- precondition </h3>
+            <li> 
+                <h3> POST /session/updateSessionStatus </h3>
                 <p> 
-                   json data with sessionId, email, recording true/false, timestamp
+                 	<h1> precondition </h1>
+   					This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
                 </p>
                 <p>
-                    json data with status 1/0 
+					<h1> postcondition </h1>
+					This function will return json with status: 1 = success / 0 = failure.
                 </p>
-            </li>
-            <li class="notReady"> 
-                <h3> /session/stopRecording -- precondition </h3>
-                <p> 
-                   json data with sessionId, email, recording true/fale, timestamp
+                <p>					   
+  					<h1> description </h1>
+   					This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request 
+  					belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
                 </p>
                 <p>
-                    json data with status 1/0
+			  		<h1> example </h1>
+				   	sessionId	1427559374447127001
+				   	email		somemail1@gmail.com
+				   	status		1		
                 </p>
             </li>
             <li class="notReady"> 

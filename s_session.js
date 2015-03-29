@@ -398,36 +398,40 @@ router.post("/session/getSessionInProgress", function(req, res )
  	res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
-/* /session/startRecording -- precondition
- *  This function will receive json with sessionId, email.
+/* /session/updateSessionStatus -- precondition
+ *  This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
+ * 	
  * 
- * /session/startRecording -- postcondition
+ * /session/updateSessionStatus -- postcondition
  *  This function will return json with status: 1 = success / 0 = failure.
  *  
- * /session/startRecording -- description
- *  This function will find the suitable session according to 'sessionId' passed in the request, check if email passed passed in the request 
- *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' from false to true in the 'sessions' collection.
+ * /session/updateSessionStatus -- description
+ *  This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request 
+ *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
  * 
- * /session/startRecording -- example
+ * /session/updateSessionStatus -- example
  *  sessionId	1427559374447127001
- *  email		somemail1@gmail.com		
+ *  email		somemail1@gmail.com	
+ *	status		1
 */
-router.post("/session/startRecording", function(req, res ) 
+router.post("/session/updateSessionStatus", function(req, res ) 
 {
   	 //create new empty variables
-  	var reqOwner, reqSession;
-	var r = { };	//response object	
+  	var reqOwner, reqSession, reqStatus;	//temporary variables
+	var r = { };							//response object	
   		        	
 	try
   	{
         // try to parse the json data
         reqSession = req.body.sessionId;
 		reqOwner = req.body.email;
+		reqStatus = req.body.status;
                  
         if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
         {
         	console.log("Owner is: " + reqOwner);
         	console.log("Session id is: " + reqSession);
+        	console.log("Session status is: " + reqStatus);
         	
 	        // connect to mongodb
 	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
@@ -447,10 +451,10 @@ router.post("/session/startRecording", function(req, res )
 	            
 	            // get sessions collection 
 	            var collection = db.collection('sessions');
-	            //TODO. in case 'recordStarts' is true, we should not change it and return status '0' - failure.	                
+	            //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.	                
 				collection.update( { 
 					$and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
-					{ $set : { recordStarts : true } }, function( err, result ) 
+					{ $set : { recordStarts : reqStatus } }, function( err, result ) 
 				{ 
 					// failure while connecting to sessions collection
 	                if (err) 

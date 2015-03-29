@@ -45,6 +45,7 @@ router.post("/users/registerUser", function(req, res) {
                         console.log("register",data.email);
                         r.uid=data.email;
                         r.status=1;
+                        r.active = false;
                         r.desc="register";
                         db.close();
                         res.send((JSON.stringify(r)))
