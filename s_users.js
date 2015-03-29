@@ -242,7 +242,7 @@ router.post("/users/updateUser", function(req, res) {
                 }
                 // if the user exist update the user data
                 else{
-                     collection.update({email:data.email},data, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                     collection.update({email:data.email},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("user updated",data.email);
                         r.uid=data.email;
                         r.status=1;
