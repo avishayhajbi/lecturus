@@ -76,12 +76,61 @@ router.post("/auxiliary/getCourses", function(req, res) {
   json data with status 1/0, all related videos
 */
 router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req, res) {
-    try{
+    try
+    {
         var data={};
         data.email = req.query.email;
-        data.courseId = req.query.degree || "";
-        data.lessonId = req.query.course || "";
-        var r ={
+        data.degreeId = req.query.degree;
+        data.courseId = req.query.course ;
+
+        var r ={};
+        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+        {
+            console.log("Trying to connect to the db.");
+                            
+            // if connection failed
+            if (err) 
+            {
+                console.log("MongoLab connection error: ", err);
+                r.uid = 0;
+                r.status = 0;
+                r.desc = "failed to connect to MongoLab.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            console.log(JSON.stringify(data))
+            // get sessions collection 
+            var collection = db.collection('sessions');
+            //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+            collection.find( { degree : data.degreeId , course : data.courseId || {$exists:true} }
+                , {name : '',description:'', participants:'', owner:'', sessionId:'', length:'' }).toArray(function (err, docs)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.send((JSON.stringify(r)));
+                    return;
+                }
+                
+                else
+                {
+                    console.log("videos found "+ docs);
+                    r.status = 1;
+                    r.length=docs.length;
+                    r.res = docs;
+                    r.desc = "get videos.";
+                    db.close();     /* TODO REMOVE */
+                    res.send((JSON.stringify(r)));                          
+                }
+            });         
+        });
+
+
+
+        /*var r ={
         status:1,
         videos:[{
                 title:"אוטומטים ושפות ופרמאליות",
@@ -92,7 +141,8 @@ router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req,
                 sessionId: 1426236025252127001
             }]
         }
-        res.send((JSON.stringify(r)))
+        res.send((JSON.stringify(r)))*/
+
     }catch(err){
         var r ={
         status:0,

@@ -604,7 +604,9 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
       {
         (tags).forEach (function (tag) 
         {
-            docs[0].elements.tags.push(tag);
+          console.log(tag)
+          tag.rating = {positive:{ users:[] , rate:0},negative:{ users:[], rate:0} };
+          docs[0].elements.tags.push(tag);
         });
         delete docs[0]._id;
         // insert new user to users collection 
@@ -866,7 +868,7 @@ router.post('/session/uploadAudio', function(request, response) {
 router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   var videoId = req.query.videoId;
   var edit = req.query.edit;
- 
+  
   try{
    var temp = {
     "videoId": "123aeEg",
@@ -877,7 +879,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
     "course": 3313110,
     "lecturer": "kimhi",
     "totalSecondLength": 412,
-    "uploadBy": "iofirag@gmail.com",
+    "owner": "iofirag@gmail.com",
     "timestamp":"12/5/2015",
     "praticipant": [
       {
