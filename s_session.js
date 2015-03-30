@@ -414,96 +414,115 @@ router.post("/session/getSessionInProgress", function(req, res )
  *  email		somemail1@gmail.com	
  *	status		1
 */
-router.post("/session/updateSessionStatus", function(req, res ) 
 {
-  	 //create new empty variables
-  	var reqOwner, reqSession, reqStatus;	//temporary variables
+	//create new empty variables
+	var reqOwner, reqSession, reqStatus;	//temporary variables
 	var r = { };							//response object	
   		        	
-	try
-  	{
-        // try to parse the json data
-        reqSession = req.body.sessionId;
-		reqOwner = req.body.email;
-		reqStatus = req.body.status;
-                 
-        if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
-        {
-        	console.log("Owner is: " + reqOwner);
-        	console.log("Session id is: " + reqSession);
-        	console.log("Session status is: " + reqStatus);
-        	
-	        // connect to mongodb
-	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-			{
-				console.log("Trying to connect to the db.");
-					            
-	            // if connection failed
-	            if (err) 
-	            {
-	                console.log("MongoLab connection error: ", err);
-	                r.uid = 0;
-	                r.status = 0;
-	                r.desc = "failed to connect to MongoLab.";
-	                res.send((JSON.stringify(r)));
-	                return;
-	            }
-	            
-	            // get sessions collection 
-	            var collection = db.collection('sessions');
-	            //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.	                
-				collection.update( { 
-					$and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
-					{ $set : { recordStarts : reqStatus } }, function( err, result ) 
-				{ 
-					// failure while connecting to sessions collection
-	                if (err) 
-	                {
-	                    console.log("failure while update session status, the error: ", err);
-	                    r.uid = 0;
-	                    r.status = 0;
-	                    r.desc = "failure while update session status.";
-	                    res.send((JSON.stringify(r)));
-	                    return;
-	                }
-	                
-	                if (result === 0)
-	                {
-	                    console.log("failed to find suitable session, the error: ", err);
-	                    r.uid = 0;
-	                    r.status = 0;
-	                    r.desc = "failed to find suitable session.";
-	                    res.send((JSON.stringify(r)));
-	                    return;
-	                }
-	                else
-	                {
-                        console.log("session status was updated, the result is: " + result);
-                        r.status = 1;
-                        r.desc = "session status was updated.";
-                        db.close();		/* TODO REMOVE */
-                        res.send((JSON.stringify(r)));		                	
-	                }
-            	});         
-			});
-		}
-		else
-		{
-            console.log("data.sessionId propery does not exist in the query or it is empty");
-            r.status = 0;
-            r.desc = "data.sessionId propery does not exist in the query or it is empty";
-            res.send((JSON.stringify(r)));  
-            return;			
+  try
+  {
+    // try to parse the json data
+    reqSession = req.body.sessionId;
+    reqOwner = req.body.email;
+    reqStatus = req.body.status;
+               
+      if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
+      {
+      	console.log("Owner is: " + reqOwner);
+      	console.log("Session id is: " + reqSession);
+      	console.log("Session status is: " + reqStatus);
+      	
+        // connect to mongodb
+        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+  			{
+  				console.log("Trying to connect to the db.");
+  		            
+          // if connection failed
+          if (err) 
+          {
+              console.log("MongoLab connection error: ", err);
+              r.uid = 0;
+              r.status = 0;
+              r.desc = "failed to connect to MongoLab.";
+              res.send((JSON.stringify(r)));
+              return;
+          }
+          
+          // get sessions collection 
+          var collection = db.collection('sessions');
+          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.	                
+  				
+          collection.find( { sessionId:reqSession }).toArray(function (err, docs)
+          { 
+            // failure while connecting to sessions collection
+            if (err) 
+            {
+                console.log("failure while trying close session, the error: ", err);
+                r.status = 0;
+                r.desc = "failure while trying close session.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            else
+            {
+              if (docs.length)
+              {
+                // elements:closeSessionFunction(docs[0].elements)
+                  collection.update( { 
+                  $and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
+                  { $set : { recordStarts : reqStatus , elements: (reqStatus==1) ? closeSessionFunction(docs[0].elements) : docs[0].elements } }, function( err, result ) 
+                  { 
+                  // failure while connecting to sessions collection
+                    if (err) 
+                    {
+                        console.log("failure while update session status, the error: ", err);
+                        r.uid = 0;
+                        r.status = 0;
+                        r.desc = "failure while update session status.";
+                        res.send((JSON.stringify(r)));
+                        return;
+                    }
+                    
+                    if (result === 0)
+                    {
+                        console.log("failed to find suitable session, the error: ", err);
+                        r.uid = 0;
+                        r.status = 0;
+                        r.desc = "failed to find suitable session.";
+                        res.send((JSON.stringify(r)));
+                        return;
+                    }
+                    else
+                    {
+                          console.log("session status was updated, the result is: " + result);
+                          r.status = 1;
+                          r.desc = "session status was updated.";
+                          db.close();   /* TODO REMOVE */
+                          res.send((JSON.stringify(r)));                      
+                    }
+                });
+              }
+            }
+          });                  
+  			});
+  		}
+  		else
+  		{
+              console.log("data.sessionId propery does not exist in the query or it is empty");
+              r.status = 0;
+              r.desc = "data.sessionId propery does not exist in the query or it is empty";
+              res.send((JSON.stringify(r)));  
+              return;			
 		}
 	}	                        
-    catch(err)
-    {
-    	console.log("failure while parsing the request, the error:", err);
-        r.status = 0;
-        r.desc = "failure while parsing the request";
-        res.send((JSON.stringify(r)));
-        return;
-    }                   
+  catch(err)
+  {
+  	console.log("failure while parsing the request, the error:", err);
+      r.status = 0;
+      r.desc = "failure while parsing the request";
+      res.send((JSON.stringify(r)));
+      return;
+  }                   
 });
 
 /* /session/stopRecording -- precondition
@@ -517,26 +536,138 @@ router.post("/session/updateSessionStatus", function(req, res )
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
 {
-	var sessionId = _public+req.body.sessionId[0];
-  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-  	var uniqueid = new Date().getTime()+userip;
-    
-  	res.send(JSON.stringify({"status":1,"desc":"success"}));
+	var sessionId = req.body.sessionId;
+	var userip = req.connection.remoteAddress.replace(/\./g , '');
+	var uniqueid = new Date().getTime()+userip;
+  
+  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+  {
+      console.log("Trying to connect to the db.");
+      var r ={};              
+      // if connection failed
+      if (err) 
+      {
+          console.log("MongoLab connection error: ", err);
+          r.uid = 0;
+          r.status = 0;
+          r.desc = "failed to connect to MongoLab.";
+          res.send((JSON.stringify(r)));
+          return;
+      }
+      console.log(JSON.stringify(sessionId))
+      // get sessions collection 
+      var collection = db.collection('sessions');
+      //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+      collection.find( { sessionId:sessionId }).toArray(function (err, docs)
+      { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying close session, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying close session.";
+            res.send((JSON.stringify(r)));
+            return;
+        }
+        else
+        {
+          if (docs.length)
+            collection.update({sessionId:sessionId},{ $set : {elements:closeSessionFunction(docs[0].elements)} }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                console.log("session closed");
+                r.status=1;
+                r.desc="session closed";
+                db.close(); /* TODO REMOVE */
+                res.send((JSON.stringify(r)))
+             });
+        }
+      });         
+  }); 
+  	
 });
 
+function closeSessionFunction(elements){
+  var elemTemp={};
+  (elements.tags).forEach (function (tag) 
+  {
+      if (elemTemp[tag.timestamp])
+        elemTemp[tag.timestamp].tags.push(tag)
+      else
+      {
+        elemTemp[tag.timestamp]={
+          tags:[tag],
+          images:[]
+        }
+      }
+  });
+  (elements.images).forEach (function (image) 
+  {
+       if (elemTemp[image.timestamp])
+        elemTemp[image.timestamp].tags.push(image)
+      else
+      {
+        elemTemp[image.timestamp]={
+          tags:[],
+          images:[image]
+        }
+      }
+  });
+  return elemTemp;
+}
 /* /session/updateSession -- precondition
-  json data with sessionId and any other data
+  json data with session detailes
 */
 /* /session/updateSession -- postcondition
   update the session in mongo collection session
   json data with status 1/0
 */
 router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
+  var data = req.body.data;
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+  {
+      console.log("Trying to connect to the db.");
+      var r ={};              
+      // if connection failed
+      if (err) 
+      {
+          console.log("MongoLab connection error: ", err);
+          r.uid = 0;
+          r.status = 0;
+          r.desc = "failed to connect to MongoLab.";
+          res.send((JSON.stringify(r)));
+          return;
+      }
+      //console.log(JSON.stringify(sessionId))
+      // get sessions collection 
+      var collection = db.collection('sessions');
+      //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+      collection.find( { sessionId:data.sessionId }).toArray(function (err, docs)
+      { 
+          // failure while connecting to sessions collection
+          if (err) 
+          {
+              console.log("failure while trying close session, the error: ", err);
+              r.status = 0;
+              r.desc = "failure while trying update session.";
+              res.send((JSON.stringify(r)));
+              return;
+          }
+          
+          else
+          {
+              collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                  console.log("session updated");
+                  r.status=1;
+                  r.desc="session updated";
+                  db.close(); /* TODO REMOVE */
+                  res.send((JSON.stringify(r)))
+               });
+          }
+      });         
+  }); 
+ 
 });
 
 /* /session/updateSessionRating -- precondition
@@ -867,124 +998,59 @@ router.post('/session/uploadAudio', function(request, response) {
   json data with status 1/0, all session data
 */
 router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
-  var videoId = req.query.videoId;
-  var edit = req.query.edit;
+  
   
   try{
-   var temp = {
-    "videoId": "123aeEg",
-    "title": "אוטומטים שיעור 1.3.14",
-    "description": "no description",
-    "public": true,
-    "degree": 33,
-    "course": 3313110,
-    "lecturer": "kimhi",
-    "totalLength": 412,
-    "owner": "iofirag@gmail.com",
-    "timestamp":"12/5/2015",
-    "praticipant": [
-      {
-        "user": "vandervidi@gmail.com",
-        "user": "avishayhajbi@gmail.com"
-      }
-    ],
-    "audio": [
-      {
-        "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226573/1426236786297227001.mp3",
-        "length": 214,
-        "startSecond": 0,
-        "user": "iofirag@gmail.com"
-      }, {
-        "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226581/1426236786297227002.mp3",
-        "length": 198,
-        "startSecond": 215,
-        "user": "iofirag@gmail.com"
-      }
-    ],
-    "elements": {
-      "6": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416506/04_fo4yui.jpg",
-          "user": "vandervidi@gmail.com"
-        },
-        "tag": {
-          "text": "this is tags 6",
-          "user": "avishayhajbi@gmail.com"
+    var videoId = req.query.videoId;
+    var edit = req.query.edit; /*TODO views counter*/
+  
+    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+    {
+        console.log("Trying to connect to the db.");
+        var r ={};              
+        // if connection failed
+        if (err) 
+        {
+            console.log("MongoLab connection error: ", err);
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "failed to connect to MongoLab.";
+            res.send((JSON.stringify(r)));
+            return;
         }
-      },
-      "24": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416499/02_zqcb9j.jpg",
-          "user": "vandervidi@gmail.com"
-        }
-      },
-      "210": {
-        "tag": {
-          "text": "audio-1 end",
-          "user": "avishayhajbi@gmail.com"
-        }
-      },
-      "220": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
-          "user": "vandervidi@gmail.com"
-        },
-        "tag": {
-          "text": "this is titles 220",
-          "user": "avishayhajbi@gmail.com"
-        }
-      },
-      "379": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
-          "user": "vandervidi@gmail.com"
-        },
-        "tag": {
-          "text": "this is titles 379",
-          "user": "avishayhajbi@gmail.com"
-        }
-      },
-      "380": {
-        "tag": {
-          "text": "this is titles 380",
-          "user": "vandervidi@gmail.com"
-        }
-      },
-      "381": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
-          "user": "vandervidi@gmail.com"
-        },
-        "tag": {
-          "text": "this is titles 381",
-          "user": "avishayhajbi@gmail.com"
-        }
-      },
-      "382": {
-        "tag": {
-          "text": "this is titles 382",
-          "user": "avishayhajbi@gmail.com"
-        }
-      },
-      "383": {
-        "photo": {
-          "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
-          "user": "avishayhajbi@gmail.com"
-        },
-        "tag": {
-          "text": "this is titles 383",
-          "user": "vandervidi@gmail.com"
-        }
-      }
-    },
-    "status": 1
-  }
-
-  temp.status=1;
-  res.send(JSON.stringify(temp));
-  }catch(err){
-    res.send(JSON.stringify({"status":0,"desc":"fail"}));
-  }
+        console.log(JSON.stringify(videoId))
+        // get sessions collection 
+        var collection = db.collection('sessions');
+        //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+        collection.find( { sessionId:videoId }).toArray(function (err, docs)
+        { 
+          // failure while connecting to sessions collection
+          if (err) 
+          {
+              console.log("failure while trying close session, the error: ", err);
+              r.status = 0;
+              r.desc = "failure while trying close session.";
+              res.send((JSON.stringify(r)));
+              return;
+          }
+          else
+          {
+           if (docs.length)
+              console.log("video found");
+              r.status = 1;
+              r.info = (docs.length)?docs[0]:[];
+              res.send((JSON.stringify(r)));
+              
+          }
+        });         
+    });
+    }
+    catch(err){
+      console.log("failure while parsing the request, the error:", err);
+      r.status = 0;
+      r.desc = "failure while parsing the request";
+      res.send((JSON.stringify(r)));
+    } 
 });
 
 
