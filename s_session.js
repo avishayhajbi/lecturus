@@ -1005,7 +1005,8 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
 
     var temp = {
      "videoId": "123aeEg",
-     "course": 3313110,
+     "degree":30,
+     "course": 3000501,
      "lecturer": "kimhi",
      "totalSecondLength": 412,
     "uploadBy": "iofirag@gmail.com",
