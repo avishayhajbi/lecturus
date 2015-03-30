@@ -414,6 +414,7 @@ router.post("/session/getSessionInProgress", function(req, res )
  *  email		somemail1@gmail.com	
  *	status		1
 */
+router.post("/session/updateSessionStatus",multipartMiddleware, function(req, res ) 
 {
 	//create new empty variables
 	var reqOwner, reqSession, reqStatus;	//temporary variables
