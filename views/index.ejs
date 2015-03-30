@@ -71,20 +71,20 @@
             <li> 
             	<h3> POST /session/addMembers </h3>
                 <p> 
-                	<h1> precondition </h1>
+                	<h4> precondition </h4>
                   	This function must receive json with sessionId, participants: array[emails]
                 </p>
                 <p>
-					<h1> postcondition </h1>
+					<h4> postcondition </h4>
 				 	This function will return json with status: 1 = success / 0 = failure. 
 				</p>
 				<p>
-				 	<h1> description </h1>
+				 	<h4> description </h4>
 				 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
 				 	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
 				</p>
 				<p>
-				  	<h1> example </h1>
+				  	<h4> example </h4>
 				   	sessionId 			1427559374447127001
 				   	participants[1] 	somemail1@gmail.com
 				   	participants[2] 	somemail2@gmail.com 
@@ -103,20 +103,20 @@
             <li> 
                 <h3> POST /session/updateSessionStatus </h3>
                 <p> 
-                 	<h1> precondition </h1>
+                 	<h4> precondition </h4>
    					This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
                 </p>
                 <p>
-					<h1> postcondition </h1>
+					<h4> postcondition </h4>
 					This function will return json with status: 1 = success / 0 = failure.
                 </p>
                 <p>					   
-  					<h1> description </h1>
+  					<h4> description </h4>
    					This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request 
   					belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
                 </p>
                 <p>
-			  		<h1> example </h1>
+			  		<h4> example </h4>
 				   	sessionId	1427559374447127001
 				   	email		somemail1@gmail.com
 				   	status		1		

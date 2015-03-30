@@ -1002,10 +1002,119 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   
   
   try{
-    var videoId = req.query.videoId;
-    var edit = req.query.edit; /*TODO views counter*/
+
+    var temp = {
+     "videoId": "123aeEg",
+     "course": 3313110,
+     "lecturer": "kimhi",
+     "totalSecondLength": 412,
+    "uploadBy": "iofirag@gmail.com",
+     "timestamp":"12/5/2015",
+     "praticipant": [
+       {
+         "user": "vandervidi@gmail.com",
+         "user": "avishayhajbi@gmail.com"
+       }
+     ],
+     "audio": [
+       {
+         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226573/1426236786297227001.mp3",
+         "length": 214,
+         "startSecond": 0,
+         "user": "iofirag@gmail.com"
+       }, {
+         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226581/1426236786297227002.mp3",
+         "length": 198,
+         "startSecond": 215,
+         "user": "iofirag@gmail.com"
+       }
+     ],
+     "elements": {
+       "6": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416506/04_fo4yui.jpg",
+           "user": "vandervidi@gmail.com"
+         },
+         "tag": {
+           "text": "this is tags 6",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "24": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416499/02_zqcb9j.jpg",
+           "user": "vandervidi@gmail.com"
+         }
+       },
+       "210": {
+         "tag": {
+           "text": "audio-1 end",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "220": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
+           "user": "vandervidi@gmail.com"
+         },
+         "tag": {
+           "text": "this is titles 220",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "379": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
+           "user": "vandervidi@gmail.com"
+         },
+         "tag": {
+           "text": "this is titles 379",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "380": {
+         "tag": {
+           "text": "this is titles 380",
+           "user": "vandervidi@gmail.com"
+         }
+       },
+       "381": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
+           "user": "vandervidi@gmail.com"
+         },
+         "tag": {
+           "text": "this is titles 381",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "382": {
+         "tag": {
+           "text": "this is titles 382",
+           "user": "avishayhajbi@gmail.com"
+         }
+       },
+       "383": {
+         "photo": {
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
+           "user": "avishayhajbi@gmail.com"
+         },
+         "tag": {
+           "text": "this is titles 383",
+           "user": "vandervidi@gmail.com"
+         }
+       }
+     },
+     "status": 1
+   }
+ 
+   temp.status=1;
+   res.send(JSON.stringify(temp));
+
+    /*var videoId = req.query.videoId;
+    var edit = req.query.edit; //TODO views counter
   
-    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
     {
         console.log("Trying to connect to the db.");
         var r ={};              
@@ -1044,7 +1153,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
               
           }
         });         
-    });
+    });*/
     }
     catch(err){
       console.log("failure while parsing the request, the error:", err);
