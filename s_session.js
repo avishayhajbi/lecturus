@@ -133,8 +133,8 @@ router.post('/session/createSession', function (req, res)
                     data.audios = []; // {email, url, length, startAt}
                     data.elements = {
                         	//time : { // integer
-                            	tags : [], // {email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
-                            	images : [] // {email, url}
+                            	tags : [], // {timestamp, email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
+                            	images : [] // {timestamp, email, url}
                         	//}
                       	};
                     data.views = 0;
@@ -520,7 +520,7 @@ router.post("/session/stopRecording",multipartMiddleware, function(req, res )
 	var sessionId = _public+req.body.sessionId[0];
   	var userip = req.connection.remoteAddress.replace(/\./g , '');
   	var uniqueid = new Date().getTime()+userip;
-  
+    
   	res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
@@ -706,7 +706,7 @@ router.post('/session/uploadImage', function(request, response) {
             if (docs.length)
             {
                 delete docs[0]._id;
-                docs[0].elements.images.push({email: email,url: result.url});
+                docs[0].elements.images.push({email: email,url: result.url,timestamp:timestamp});
               
                 // insert new user to users collection 
                 collection.update({sessionId:sessionId}, {$set : {elements:docs[0].elements}}, {upsert:true ,safe:true , fsync: true}, function(err, result) 
@@ -732,12 +732,12 @@ router.post('/session/uploadImage', function(request, response) {
       {
         public_id: uniqueid, 
         crop: 'limit',
-        width: 2000,
-        height: 2000,
-        eager: [
-          { width: 200, height: 200, crop: 'thumb' },
-          { width: 200, height: 250, crop: 'fit', format: 'jpg' }
-        ],                                     
+        width: 640,
+        height: 360,
+        // eager: [
+        //   { width: 200, height: 200, crop: 'thumb' },
+        //   { width: 200, height: 250, crop: 'fit', format: 'jpg' }
+        // ],                                     
         tags: [sessionId, 'lecturus']
       }      
     );
@@ -757,7 +757,7 @@ router.post('/session/uploadAudio', function(request, response) {
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
   var timestamp, email,file;
-  var audioLength=30;
+  var audioLength=30;//shound be received from the application
     console.log('-->UPLOAD AUDIO<--');
     var form = new formidable.IncomingForm();
    
@@ -821,13 +821,14 @@ router.post('/session/uploadAudio', function(request, response) {
                     //email url startAt length
                     docs[0].audios.push({
                       length: file.size,
+                      timestamp:timestamp,
                       email: email,
                       url: result.url,
-                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+file.size:file.size 
+                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
-                  
+                    docs[0].length+=file.size;
                     // insert new user to users collection 
-                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , length: docs[0].length}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("audio list updated");
                         r.status=1;
                         r.desc="audio uploaded";
@@ -878,7 +879,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
     "degree": 33,
     "course": 3313110,
     "lecturer": "kimhi",
-    "totalSecondLength": 412,
+    "totalLength": 412,
     "owner": "iofirag@gmail.com",
     "timestamp":"12/5/2015",
     "praticipant": [
