@@ -1019,12 +1019,12 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
      ],
      "audio": [
        {
-         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226573/1426236786297227001.mp3",
+         "sound": "https://cloudinary.com/console/media_library#/dialog/raw/upload/1427673892298127001.mp3",
          "length": 214,
          "startSecond": 0,
          "user": "iofirag@gmail.com"
        }, {
-         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427226581/1426236786297227002.mp3",
+         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427673985/1427673943456127001.mp3",
          "length": 198,
          "startSecond": 215,
          "user": "iofirag@gmail.com"
@@ -1043,7 +1043,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        },
        "24": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416499/02_zqcb9j.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705186/1427705161151127001.jpg",
            "user": "vandervidi@gmail.com"
          }
        },
@@ -1055,7 +1055,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        },
        "220": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705315/1427705288063127001.jpg",
            "user": "vandervidi@gmail.com"
          },
          "tag": {
@@ -1065,7 +1065,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        },
        "379": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705343/1427705321466127001.jpg",
            "user": "vandervidi@gmail.com"
          },
          "tag": {
@@ -1081,7 +1081,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        },
        "381": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416494/01_luyefj.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705356/1427705352145127001.jpg",
            "user": "vandervidi@gmail.com"
          },
          "tag": {
@@ -1097,7 +1097,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        },
        "383": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416502/03_rsxjoo.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705356/1427705352145127001.jpg",
            "user": "avishayhajbi@gmail.com"
          },
          "tag": {
