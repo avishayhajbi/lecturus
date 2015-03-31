@@ -26,11 +26,11 @@ router.get('/session', function (req, res) {
 });
 
 /* /session/createSession -- precondition
-  json data with email, name, description, lecturer, degree, course, more data as wanted
-*/
-/* /session/createSession -- postcondition
-  create new session with and return the session id with timestamp and status 1/0
-  json data with sessionId, server timestamp, status: 1 = success / 0 = failure
+ * json data with email, name, description, lecturer, degree, course, more data as wanted
+ *
+ * /session/createSession -- postcondition
+ *  create new session with and return the session id with timestamp and status 1/0
+ *  json data with sessionId, server timestamp, status: 1 = success / 0 = failure
 */
 router.post('/session/createSession', function (req, res) 
 {
@@ -200,7 +200,7 @@ router.post('/session/createSession', function (req, res)
  *  participants[1] 	somemail1@gmail.com
  *  participants[2] 	somemail2@gmail.com 
  *  participants[3] 	somemail3@gmail.com
- */
+*/
 router.post("/session/addMembers", function(req, res ) 
 {  	
   	 //create new empty variables
@@ -383,11 +383,11 @@ function arrayUnique( array )
 };
 
 /* /session/getSessionInProgress -- precondition
-  json data with email
-*/
-/* /session/getSessionInProgress -- postcondition
-  return all the active settions with the same participants as the user previous sessions  
-  json data with status 1/0, all current active sesions that the user was participant 
+ * json data with email
+ *
+ * /session/getSessionInProgress -- postcondition
+ * return all the active settions with the same participants as the user previous sessions  
+ * json data with status 1/0, all current active sesions that the user was participant 
 */
 router.post("/session/getSessionInProgress", function(req, res ) 
 {
@@ -527,13 +527,13 @@ router.post("/session/updateSessionStatus",multipartMiddleware, function(req, re
 });
 
 /* /session/stopRecording -- precondition
-  json data with sessionId, email, recording true/fale, timestamp
-*/
-/* /session/stopRecording -- postcondition
-    store the information inside mongodb session collection like session.recordStarts and 
-    uploading an audio and image and tags disable iff its false
-    and to manage elements order by timestamp for the website audio query
-  json data with status 1/0
+ * json data with sessionId, email, recording true/fale, timestamp
+ *
+ * /session/stopRecording -- postcondition
+ *  store the information inside mongodb session collection like session.recordStarts and 
+ *  uploading an audio and image and tags disable iff its false
+ *  and to manage elements order by timestamp for the website audio query
+ * json data with status 1/0
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
 {
@@ -586,6 +586,9 @@ router.post("/session/stopRecording",multipartMiddleware, function(req, res )
   	
 });
 
+/*
+ * create the session format as the client want
+*/
 function closeSessionFunction(elements){
   var elemTemp={};
   (elements.tags).forEach (function (tag) 
@@ -615,11 +618,11 @@ function closeSessionFunction(elements){
   return elemTemp;
 }
 /* /session/updateSession -- precondition
-  json data with session detailes
-*/
-/* /session/updateSession -- postcondition
-  update the session in mongo collection session
-  json data with status 1/0
+ *  json data with session detailes
+ * 
+ * /session/updateSession -- postcondition
+ * update the session in mongo collection session
+ * json data with status 1/0
 */
 router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
   var data = req.body.data;
@@ -713,7 +716,7 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   var tags = req.body.tags;
-  console.log(sessionId,tags)
+  console.log(req.body,sessionId,tags)
   var r={};
   MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
   {
@@ -736,8 +739,8 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
       {
         (tags).forEach (function (tag) 
         {
-          console.log(tag)
           tag.rating = {positive:{ users:[] , rate:0},negative:{ users:[], rate:0} };
+          console.log(tag)
           docs[0].elements.tags.push(tag);
         });
         delete docs[0]._id;
@@ -1038,7 +1041,8 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
          },
          "tag": {
            "text": "this is tags 6",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "24": {
@@ -1050,7 +1054,8 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
        "210": {
          "tag": {
            "text": "audio-1 end",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "220": {
@@ -1060,7 +1065,8 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
          },
          "tag": {
            "text": "this is titles 220",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "379": {
@@ -1070,13 +1076,15 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
          },
          "tag": {
            "text": "this is titles 379",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "380": {
          "tag": {
            "text": "this is titles 380",
-           "user": "vandervidi@gmail.com"
+           "user": "vandervidi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "381": {
@@ -1086,13 +1094,15 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
          },
          "tag": {
            "text": "this is titles 381",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "382": {
          "tag": {
            "text": "this is titles 382",
-           "user": "avishayhajbi@gmail.com"
+           "user": "avishayhajbi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        },
        "383": {
@@ -1102,7 +1112,8 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
          },
          "tag": {
            "text": "this is titles 383",
-           "user": "vandervidi@gmail.com"
+           "user": "vandervidi@gmail.com",
+           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
          }
        }
      },
@@ -1113,7 +1124,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
    res.send(JSON.stringify(temp));
 
     /*var videoId = req.query.videoId;
-    var edit = req.query.edit; //TODO views counter
+    var edit = req.query.edit; //TODO handel pluse minus views counter
   
     MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
     {
