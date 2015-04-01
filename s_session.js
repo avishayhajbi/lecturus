@@ -680,8 +680,7 @@ function closeSessionFunction(elements){
       else
       {
         elemTemp[tag.timestamp]={
-          tags:[tag],
-          image:''
+          tags:[tag]
         }
       }
   });
@@ -689,14 +688,12 @@ function closeSessionFunction(elements){
   {
       if (elemTemp[image.timestamp])
       {
-        if (elemTemp[image.timestamp] == '')
-          elemTemp[image.timestamp].image = image;
+          elemTemp[image.timestamp].photo = image;
       }
       else
       {
         elemTemp[image.timestamp]={
-          tags:[],
-          image:image
+          photo:image
         }
       }
   });
