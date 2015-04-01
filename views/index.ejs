@@ -4,16 +4,229 @@
     <head>
         <script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
         <script src="js/index.js" type="text/javascript"></script>
+        <link href="css/index.css" type="text/css" rel="stylesheet"/>
         <title>lecturus</title>
     </head>
-    <body >
+    <body>
         <h1> <%=title %> </h1>
-       
+        <section>
+            red color: not ready
+        </section>
         <ul>
-            <li> <a href="/users"> press here for users api </a> </li>
+            <li> 
+                <h3> /users/registerUser -- precondition </h3>
+                <p> 
+                    json data with email, any other fileds like active true/false
+                </p>
+                <p>
+                     json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /users/getUser -- precondition </h3>
+                <p> 
+                    json data with email
+                </p>
+                <p>
+                     json data with status 1/0, all user data
+                </p>
+            </li>
+            <li> 
+                <h3> /users/getActiveUsers -- precondition </h3>
+                <p> 
+                    json data with email, org  
+                </p>
+                <p>
+                     json data with status 1/0, all active users
+                </p>
+            </li>
+            <li> 
+                <h3> /users/updateUser -- precondition </h3>
+                <p> 
+                    json data with email, any other fields
+                </p>
+                <p>
+                     json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /users/updateUser -- precondition </h3>
+                <p> 
+                    json data with email, any other fields
+                </p>
+                <p>
+                     json data with status 1/0
+                </p>
+            </li>
+            <hr>
+            <li> 
+                <h3> /session/createSession -- precondition </h3>
+                <p> 
+                    json data with email, name , description, lecturer, degree, course, more data as wanted
+                </p>
+                <p>
+                    json data with sessionId, server timestamp, status 1/0
+                </p>
+            </li>
+            <li> 
+            	<h3> POST /session/addMembers </h3>
+                <p> 
+                	<h4> precondition </h4>
+                  	This function must receive json with sessionId, participants: array[emails]
+                </p>
+                <p>
+					<h4> postcondition </h4>
+				 	This function will return json with status: 1 = success / 0 = failure. 
+				</p>
+				<p>
+				 	<h4> description </h4>
+				 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
+				 	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
+				</p>
+				<p>
+				  	<h4> example </h4>
+				   	sessionId 			1427559374447127001
+				   	participants[1] 	somemail1@gmail.com
+				   	participants[2] 	somemail2@gmail.com 
+				   	participants[3]		somemail3@gmail.com
+				</p>
+            </li>
+            <li> 
+            	<h3> POST /session/getUserSessions </h3>
+            	<p>
+             		<h4> precondition </h4>
+			 		This function must receive json with email: userId
+			 				</p>
+				<p>
+			   		<h4> postcondition </h4>
+			 		This function will return json with status: 1 = success / 0 = failure 
+			 				</p>
+				<p>
+			  		<h4> description </h4>
+			 		This function will find all the 'session' documents in the 'sessions' collection by user id (email). 
+			  		This function searches for user id both in 'session' document's 'owner' and 'participants' properties.
+ 				</p>
+				<p>
+			  		<h4> example </h4>
+			   		email		vandervidi@gmail.com
+ 				</p>
+            </li>
+            <li class="notReady"> 
+                <h3> /session/getSessionInProgress -- precondition </h3>
+                <p> 
+                   json data with email
+                </p>
+                <p>
+                    json data with status 1/0, all current active sesions that the user was participant 
+                </p>
+            </li>
+            <li> 
+                <h3> POST /session/updateSessionStatus </h3>
+                <p> 
+                 	<h4> precondition </h4>
+   					This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
+                </p>
+                <p>
+					<h4> postcondition </h4>
+					This function will return json with status: 1 = success / 0 = failure.
+                </p>
+                <p>					   
+  					<h4> description </h4>
+   					This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request 
+  					belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
+                </p>
+                <p>
+			  		<h4> example </h4>
+				   	sessionId	1427559374447127001
+				   	email		somemail1@gmail.com
+				   	status		1		
+                </p>
+            </li>
+            <li> 
+                <h3> /session/updateSession -- precondition </h3>
+                <p> 
+                   json data with session data called data data:{all session data}
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li class="notReady"> 
+                <h3> /session/updateSessionRating -- precondition </h3>
+                <p> 
+                   json data with sessionId, email, rating true/false (positive/negative)
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li class="notReady"> 
+                <h3> /session/updateViews -- precondition </h3>
+                <p> 
+                   json data with sessionId
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /session/uploadTag -- precondition </h3>
+                <p> 
+                   json data with sessionId, tags[json data {timestamp ,text, email}]
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /session/uploadImage -- precondition </h3>
+                <p> 
+                   json data with file, sessionId, timestamp, email
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /session/uploadAudio -- precondition </h3>
+                <p> 
+                   json data with file, sessionId, timestamp, email
+                </p>
+                <p>
+                    json data with status 1/0
+                </p>
+            </li>
+            <li> 
+                <h3> /session/getVideoById/?videoId & edit -- precondition </h3>
+                <p> 
+                   data with videoId, edit true/false (info for data views conter)
+                </p>
+                <p>
+                     json data with status 1/0, all session data
+                </p>
+            </li>
+            <hr>
+            <li> 
+                <h3> /auxiliary/getVideosByCourse/? email & degree & course -- precondition </h3>
+                <p> 
+                    data with email, degree (id), course (id) 
+                </p>
+                <p>
+                    json data with status 1/0, all related videos
+                </p>
+            </li>
+            <li> 
+                <h3> /auxiliary/getCourses -- precondition </h3>
+                <p> 
+                    data with email
+                </p>
+                <p>
+                    json data with status 1/0, all user courses hierarchy
+                </p>
+            </li>
         </ul>
         <script>
-            console.log('shenkar lecturus')
+            console.log('shenkar lecturus api')
         </script>
     </body>
 </html>

@@ -1,187 +1,286 @@
 var express = require('express');
+var fs = require("fs-extra");
 var router = express.Router();
 
-router.get('/users', function (req, res) {
-	res.render('users',{
+router.get('/users', function (req, res) 
+{
+	res.render('users',
+	{
 		title:"Users API"
 	});
-	// res.redirect('/'); if i want to exe another function	
+	
 });
 
-/*
-POST registerUser recieve data:{"email":""}
-if error occured return status 0
-if user register return status 1 
-if user exist return status 2 
-return json {"uid":"","status":0-2,"desc":""}
+/* /users/registerUser -- precondition
+  json data with email, any other fileds like active true/false  
 */
-router.post("/users/registerUser", function(req, res) {
-    var data;
-    try{
-    	data = JSON.parse(req.body.data);
-    }catch(err){
-    	data={"email":""};
+/* /users/registerUser -- postcondition
+    insert new user into users collection in mongodb
+  json data with status 1/0
+*/
+router.post("/users/registerUser", function(req, res) 
+{
+	var r = { };
+	
+    try
+    {
+        //try to parse json data
+    	var data = req.body;
+
+        // check if the field email exist and not empty
+        if (data.email && data.email!="")	// if data.email property exists in the request is not empty
+        	MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db)	// connect to mongodb 
+	        {	            
+	            // if mongodb connection failed return error message and exit
+	            if (err) 
+	            {               
+                    console.log("MongoLab connection error: ", err);
+               	 	r.uid = 0;
+                	r.status = 0;
+                	r.desc = "failed to connect to MongoLab.";
+                	res.send((JSON.stringify(r)));
+                	return;
+	            }
+	            
+	            // if mongodb connection success asking for users collection
+	            var collection = db.collection('users');
+	            
+	            // find user id from users collection
+	            collection.find({email:data.email}).toArray(function (err, docs) {
+	                // if the user not exist register the user
+	                if (!docs.length)
+	                {
+	                    // insert new user to users collection 
+	                    collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) 
+	                    {
+	                        console.log("register", data.email);
+	                        r.uid = data.email;
+	                        r.status = 1;
+	                        r.active = false;
+	                        r.desc = "register";
+	                        db.close();
+	                        res.send((JSON.stringify(r)));
+	                    });
+	                }
+	                 else {
+	                        console.log("exist",data.email);
+	                        r.uid=data.email;
+	                        r.status=2;
+	                        r.desc="user exist";
+	                        db.close();
+	                        res.send((JSON.stringify(r)));
+	                 }
+	            });
+	        });
+        else 	// if data.email not exist or empty
+        {
+            r.status=0;
+            r.desc="uid error";
+            res.send((JSON.stringify(r)));     
+        }
+    // if the data parsing failed
     }
-    console.log("registerUser -- "+data)
-    pool.getConnection(function (err, connection) {
-    	if(err) { console.log(err); return; }
-    	connection.query('INSERT INTO `'+config.database+'`.`user` SET ?', data, function (err, result){
-	    	var r={};
-	    	if (err != null && err.code == 'ER_DUP_ENTRY') {
-	    		console.log("exist",data.email);
-    			r.uid=data.email;
-    			r.status=2;
-    			r.desc="exist";
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-	    	else if (err == null) {
-	    		console.log("register",data.email);
-	    		r.uid=data.email;
-    			r.status=1;
-    			r.desc="register";
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-	    	else {
-	    		console.log("query error ",err);
-	    		r.uid=0;
-    			r.status=0;
-    			r.desc="err";
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-    	});
-	    connection.end();
-    });
+    catch(err)
+    {
+  		console.log("failure while parsing the request, the error:", err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.send((JSON.stringify(r)));
+    }
 });
 
-/*
-POST getUser by id recieve {data:email} 
-if fail return {status:0}
-if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
+/* /users/getUser -- precondition
+  json data with email  
+*/
+/* /users/getUser -- postcondition
+    get user info from the users mongo collection 
+  json data with status 1/0, all user data
 */
 router.post("/users/getUser", function(req, res) {
-    var data;
     try{
-    	data = req.body.data;
+        //try to parse json data
+        var data = req.body; 
+        // check if the field email exist and not empty
+        if (data.email && data.email!="")
+        // try to connect to mongodb
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            var r={};
+            // if the connection failed return message and exit
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // ask for users collection
+            var collection = db.collection('users');
+            // try to find user id 
+            collection.find({email:data.email}).toArray(function (err, docs) {
+                // if the user not exist
+                if (!docs.length) {
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="uid not exist";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                }
+                // if the user exist
+                else {
+                    delete docs[0]._id
+                    r.info = docs[0];
+                    r.status=1;
+                    r.desc="exist";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                 }
+            });
+        });
+        // if data.email not exist or empty
+        else{
+            r.status=0;
+            r.desc="uid error";
+            res.send((JSON.stringify(r)));     
+        }
+    // if the parsing failed
     }catch(err){
-    	data="";
+        var r={};
+        r.status=0;
+        r.desc="data error";
+        res.send((JSON.stringify(r)));
     }
-    console.log('getUser body',req.body)
-    console.log("getUser -- "+data)
-    pool.getConnection(function (err, connection) {
-    	if(err) { console.log(err); return; }
-    	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
-	    	var r={};
-	    	if (err != null) {
-	    		console.log("query getUser (post)  error "+err);
-	    		r.status=0;
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-	    	else if (err == null) {
-	    		console.log("query getUser (post) done");
-	    		res.send(lecturusCallback(JSON.stringify(result)))
-	    	}
-    	});
-	    connection.end();
-    });
+    
 });
 
-/*
-GET getUser by id recieve {id:email} 
-if fail return {status:0}
-if success return json {dislike:NUM,email:"",like:NUM,name:"",organization:"", rate:NUM}
-
-router.get("/users/getUser/:id?", function(req, res) { // :id?/:something?
-    var data = req.query.id;
-    pool.getConnection(function (err, connection) {
-    	if(err) { console.log(err); return; }
-    	connection.query('select * from `'+config.database+'`.`user` where email like ?', [data], function (err, result){
-	    	var r={};
-	    	if (err != null) {
-	    		console.log("query getUser (get) error "+err);
-	    		r.status=0;
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-	    	else if (err == null) {
-	    		console.log("query getUser (get) done");
-	    		res.send(lecturusCallback(JSON.stringify(result)))
-	    	}
-    	});
-    	connection.end();
-    });
-});
+/* /users/getActiveUsers -- precondition
+  json data with email, org  
 */
+/* /users/getActiveUsers -- postcondition
+    get all active users from the same organization
+  json data with status 1/0, all active users
+*/
+router.post("/users/getActiveUsers", function(req, res) {
+    try{
+        //try to parse json data
+        var data = req.body;
+        // check if the field email exist and not empty
+        if (data.email && data.email!="")
+        // try to connect to mongodb
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            var r={};
+            // if the connection failed return message and exit
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // ask for users collection
+            var collection = db.collection('users');
+            // try to find user id 
+            collection.find({org:data.org, active:true}).toArray(function (err, docs) {
+                // if the user not exist
+                if (!docs.length) {
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="no one active";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                }
+                // if the user exist
+                else {
+                    r.users = docs;
+                    r.status=1;
+                    r.desc="active users";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                 }
+            });
+        });
+        // if data.email not exist or empty
+        else{
+            r.status=0;
+            r.desc="uid error";
+            res.send((JSON.stringify(r)));     
+        }
+    // if the parsing failed
+    }catch(err){
+        var r={};
+        r.status=0;
+        r.desc="data error";
+        res.send((JSON.stringify(r)));
+    }
+    
+});
 
-/*
-GET updateUser by id recieve data:{email:email} and combines with the params {dislike:NUM,like:NUM,name:"",organization:"", rate:NUM}
-fail return {status:0}
-success return {status:1}
+/* /users/updateUser -- precondition
+  json data with email, any other fields
+*/
+/* /users/updateUser -- postcondition
+    update user by email
+  json data with status 1/0
 */
 router.post("/users/updateUser", function(req, res) {
-    var data;
     try{
-    	data = JSON.parse(req.body.data);
-    }catch(err){
-    	data={}
-    }
-    console.log(data)
-    pool.getConnection(function (err, connection) {
-    	if(err) { console.log(err); return; }
-    	connection.query('UPDATE `'+config.database+'`.`user` SET ? WHERE email = ?', [data,data.email], function (err, result){
-	    	var r={};
-	    	if (err != null) {
-	    		console.log("query updateUser error "+err);
-	    		r.status=0;
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-	    	else if (err == null) {
-	    		console.log("query updateUser done");
-	    		r.status=1;
-	    		res.send(lecturusCallback(JSON.stringify(r)))
-	    	}
-    	});
-    	connection.end();
-    });
-});
-
-function lecturusCallback (obj){
-	//return 'lecturusCallback('+obj+');';
-	return obj;
-}
-
-// static functions 
-router.get("/users/getCourses:email?", function(req, res) {
-    var data;
-    try{
-    	data.email = req.query.email;
-    }catch(err){
-    	data={}
-    }
-    var r ={
-    	courses:{
-    		math:["linearit","hedva"],
-    		economi:["micro","macro"]
-    	}
-    }
-   res.send(lecturusCallback(JSON.stringify(r)))
-});
-
-router.get("/users/getCourseVideos/:email?:courseName?", function(req, res) {
-    var data;
-    try{
-        data.email = req.query.email;
-        data.courseName = req.query.courseName;
-    }catch(err){
-        data={}
-    }
-    var r ={
-        videos:{
-            title:"אוטומטים ושפות ופרמאליות",
-            owner:"avishay",
-            participants:["ofir","vidran"],
-            length:15895,
-            id:"temp"
+        //try to parse json data
+        var data = req.body; 
+        // check if the field email exist and not empty
+        if (data.email && data.email!="")
+        // connect to mongodb 
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+            var r={};
+            // if mongodb connection failed return error message and exit
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // if mongodb connection success asking for users collection
+            var collection = db.collection('users');
+            // find user id from users collection
+            collection.find({email:data.email}).toArray(function (err, docs) {
+                // if the user not exist 
+                if (!docs.length) {
+                    console.log("user not exist",data.email);
+                    r.uid=data.email;
+                    r.status=0;
+                    r.desc="user is not exist";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                }
+                // if the user exist update the user data
+                else{
+                     collection.update({email:data.email},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                        console.log("user updated",data.email);
+                        r.uid=data.email;
+                        r.status=1;
+                        r.desc="user updated";
+                        db.close();
+                        res.send((JSON.stringify(r)))
+                     });
+                 }
+            });
+        });
+        else{ // if data.email not exist or empty
+            r.status=0;
+            r.desc="uid error";
+            res.send((JSON.stringify(r)));     
         }
+    // if the data parsing failed
+    }catch(err){
+        var r={};
+        r.status=0;
+        r.desc="data error";
+        res.send((JSON.stringify(r)));
     }
-   res.send(lecturusCallback(JSON.stringify(r)))
 });
+
+
+
 module.exports = router;
