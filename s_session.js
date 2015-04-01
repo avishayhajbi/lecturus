@@ -858,7 +858,7 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
           
           else if (docs.length)
           {
-              collection.update({sessionId:data.sessionId},{"_id":false},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+              collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                   if (err)
                   {
                     console.log("session not updated "+err);
@@ -1254,6 +1254,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
             else
             {
              if (docs.length)
+                delete docs[0]._id;
                 console.log("video found");
                 r.status = 1;
                 r.info = (docs.length)?docs[0]:[];
