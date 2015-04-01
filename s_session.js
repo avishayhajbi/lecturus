@@ -4,7 +4,6 @@ var multipartMiddleware = multipart();
 var formidable = require('formidable');
 var express = require('express');
 var fs = require("fs-extra");
-var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
 var cloudinary = require('cloudinary');

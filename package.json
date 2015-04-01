@@ -13,7 +13,6 @@
     "express": "~4.9.x",
     "formidable": "^1.0.17",
     "fs-extra": "^0.18.0",
-    "mkdir": "0.0.2",
     "mongodb": "^2.0.25",
     "multiparty": "^4.1.1",
     "mysql": "^2.6.1",
