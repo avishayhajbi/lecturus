@@ -681,19 +681,22 @@ function closeSessionFunction(elements){
       {
         elemTemp[tag.timestamp]={
           tags:[tag],
-          images:[]
+          image:''
         }
       }
   });
   (elements.images).forEach (function (image) 
   {
-       if (elemTemp[image.timestamp])
-        elemTemp[image.timestamp].tags.push(image)
+      if (elemTemp[image.timestamp])
+      {
+        if (elemTemp[image.timestamp] == '')
+          elemTemp[image.timestamp].image = image;
+      }
       else
       {
         elemTemp[image.timestamp]={
           tags:[],
-          images:[image]
+          image:image
         }
       }
   });
@@ -1085,171 +1088,49 @@ router.post('/session/uploadAudio', function(request, response) {
 */
 router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   
-  
-  try{
-
-    var temp = {
-     "videoId": "123",
-     "name":"חדוא 1",
-     "degree":30,
-     "course": 3000501,
-     "lecturer": "kimhi",
-     "description":"some desctiption about the video",
-     "totalSecondLength": 412,
-    "uploadBy": "iofirag@gmail.com",
-     "timestamp":"12/5/2015",
-     "praticipant": [
-       {
-         "user": "vandervidi@gmail.com",
-         "user": "avishayhajbi@gmail.com"
-       }
-     ],
-     "audio": [
-       {
-         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427673935/1427673892298127001.mp3",
-         "length": 214,
-         "startSecond": 0,
-         "user": "iofirag@gmail.com"
-       }, {
-         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427673985/1427673943456127001.mp3",
-         "length": 198,
-         "startSecond": 215,
-         "user": "iofirag@gmail.com"
-       }
-     ],
-     "elements": {
-       "6": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705186/1427705161151127001.jpg",
-           "user": "vandervidi@gmail.com"
-         },
-         "tag": {
-           "text": "this is tags 6",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "24": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705186/1427705161151127001.jpg",
-           "user": "vandervidi@gmail.com"
-         }
-       },
-       "210": {
-         "tag": {
-           "text": "audio-1 end",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "220": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705315/1427705288063127001.jpg",
-           "user": "vandervidi@gmail.com"
-         },
-         "tag": {
-           "text": "this is titles 220",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "379": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705343/1427705321466127001.jpg",
-           "user": "vandervidi@gmail.com"
-         },
-         "tag": {
-           "text": "this is titles 379",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "380": {
-         "tag": {
-           "text": "this is titles 380",
-           "user": "vandervidi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "381": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705356/1427705352145127001.jpg",
-           "user": "vandervidi@gmail.com"
-         },
-         "tag": {
-           "text": "this is titles 381",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "382": {
-         "tag": {
-           "text": "this is titles 382",
-           "user": "avishayhajbi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       },
-       "383": {
-         "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705356/1427705352145127001.jpg",
-           "user": "avishayhajbi@gmail.com"
-         },
-         "tag": {
-           "text": "this is titles 383",
-           "user": "vandervidi@gmail.com",
-           "rating":{"positive":{ "users":[] , "rate":0},"negative":{ "users":[], "rate":0} }
-         }
-       }
-     },
-     "status": 1
-   }
- 
-   temp.status=1;
-   res.send(JSON.stringify(temp));
-
-    /*var videoId = req.query.videoId;
+    var videoId = req.query.videoId;
     var edit = req.query.edit; //TODO handel pluse minus views counter
-  
-    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
-    {
-        console.log("Trying to connect to the db.");
-        var r ={};              
-        // if connection failed
-        if (err) 
-        {
-            console.log("MongoLab connection error: ", err);
-            r.uid = 0;
-            r.status = 0;
-            r.desc = "failed to connect to MongoLab.";
-            res.send((JSON.stringify(r)));
-            return;
-        }
-        console.log(JSON.stringify(videoId))
-        // get sessions collection 
-        var collection = db.collection('sessions');
-        //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-        collection.find( { sessionId:videoId }).toArray(function (err, docs)
-        { 
-          // failure while connecting to sessions collection
+    try{
+      MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
+      {
+          console.log("Trying to connect to the db.");
+          var r ={};              
+          // if connection failed
           if (err) 
           {
-              console.log("failure while trying close session, the error: ", err);
+              console.log("MongoLab connection error: ", err);
+              r.uid = 0;
               r.status = 0;
-              r.desc = "failure while trying close session.";
+              r.desc = "failed to connect to MongoLab.";
               res.send((JSON.stringify(r)));
               return;
           }
-          else
-          {
-           if (docs.length)
-              console.log("video found");
-              r.status = 1;
-              r.info = (docs.length)?docs[0]:[];
-              res.send((JSON.stringify(r)));
-              
-          }
-        });         
-    });*/
+          console.log(JSON.stringify(videoId))
+          // get sessions collection 
+          var collection = db.collection('sessions');
+          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+          collection.find( { sessionId:videoId }).toArray(function (err, docs)
+          { 
+            // failure while connecting to sessions collection
+            if (err) 
+            {
+                console.log("failure while trying close session, the error: ", err);
+                r.status = 0;
+                r.desc = "failure while trying close session.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            else
+            {
+             if (docs.length)
+                console.log("video found");
+                r.status = 1;
+                r.info = (docs.length)?docs[0]:[];
+                res.send((JSON.stringify(r)));
+                
+            }
+          });         
+      });
     }
     catch(err){
       console.log("failure while parsing the request, the error:", err);
