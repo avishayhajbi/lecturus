@@ -26,7 +26,7 @@ router.get('/session', function (req, res) {
 });
 
 /* /session/createSession -- precondition
- * json data with email, name, description, lecturer, degree, course, more data as wanted
+ * json data with email, name , description, lecturer, degree, course, more data as wanted
  *
  * /session/createSession -- postcondition
  *  create new session with and return the session id with timestamp and status 1/0
@@ -396,6 +396,88 @@ router.post("/session/getSessionInProgress", function(req, res )
   	var uniqueid = new Date().getTime()+userip;
 	  
  	res.send(JSON.stringify({"status":1,"desc":"success"}));
+});
+
+
+/* /session/getUserRelatedVideos -- precondition
+ * json data with email
+ *
+ * /session/getUserRelatedVideos -- postcondition
+ * return all the videos that the user was involved with like owner or participent  
+ * json data with status 1/0, all related videos  
+*/
+router.post("/session/getUserRelatedVideos",multipartMiddleware, function(req, res ) 
+{
+  //create new empty variables
+  var email;  //temporary variables
+  var r = {};              //response object 
+                
+  try
+  {
+    // try to parse the json data
+    email = req.body.email;
+    console.log(req.body,email)
+      if ( email && email != "" ) // if email property exists in the request and is not empty
+      {
+        // connect to mongodb
+        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
+        {
+          console.log("Trying to connect to the db.");
+                  
+          // if connection failed
+          if (err) 
+          {
+              console.log("MongoLab connection error: ", err);
+              r.uid = 0;
+              r.status = 0;
+              r.desc = "failed to connect to MongoLab.";
+              res.send((JSON.stringify(r)));
+              return;
+          }
+          
+          // get sessions collection 
+          var collection = db.collection('sessions');
+          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                  
+          
+          collection.find( { sessionId:123 }).toArray(function (err, docs)
+          { 
+            // failure while connecting to sessions collection
+            if (err) 
+            {
+                console.log("failure while trying close session, the error: ", err);
+                r.status = 0;
+                r.desc = "failure while trying close session.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            else
+            {
+              r.uid = 0;
+              r.info = docs;
+              r.status = 0;
+              r.desc = "failed to connect to MongoLab.";
+              res.send((JSON.stringify(r)));
+            }
+          });                  
+        });
+      }
+      else
+      {
+              console.log("email propery does not exist in the query or it is empty");
+              r.status = 0;
+              r.desc = "email propery does not exist in the query or it is empty";
+              res.send((JSON.stringify(r)));  
+              return;     
+    }
+  }                         
+  catch(err)
+  {
+    console.log("failure while parsing the request, the error:", err);
+      r.status = 0;
+      r.desc = "failure while parsing the request";
+      res.send((JSON.stringify(r)));
+      return;
+  } 
 });
 
 /* /session/updateSessionStatus -- precondition
@@ -1008,6 +1090,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
 
     var temp = {
      "videoId": "123aeEg",
+     "name":"חדוא 1",
      "degree":30,
      "course": 3000501,
      "lecturer": "kimhi",
@@ -1022,7 +1105,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
      ],
      "audio": [
        {
-         "sound": "https://cloudinary.com/console/media_library#/dialog/raw/upload/1427673892298127001.mp3",
+         "sound": "http://res.cloudinary.com/hakrhqyps/raw/upload/v1427673935/1427673892298127001.mp3",
          "length": 214,
          "startSecond": 0,
          "user": "iofirag@gmail.com"
