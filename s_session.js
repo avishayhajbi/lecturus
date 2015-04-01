@@ -821,8 +821,8 @@ function closeSessionFunction(elements){
  * update the session in mongo collection session
  * json data with status 1/0
 */
-router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
-  var data = req.body.data;
+router.post("/session/updateSession", function(req, res ) {
+  var data = req.body;
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   console.log(data)
