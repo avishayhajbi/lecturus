@@ -13,7 +13,7 @@ Db = require('mongodb').Db,
     GridStore = require('mongodb').GridStore,
     Grid = require('mongodb').Grid,
     Code = require('mongodb').Code,
-    BSON = require('mongodb').pure().BSON,
+    // BSON = require('mongodb').pure().BSON,
     assert = require('assert');
 
 app.use(express.static(path.join(__dirname ,'views')));

@@ -7,10 +7,20 @@
   },
   "dependencies": {
     "body-parser": "^1.11.0",
+    "cloudinary": "^1.1.2",
+    "connect-multiparty": "^1.2.5",
+    "daemon": "^1.1.0",
     "express": "~4.9.x",
-    "mysql": "",
+    "formidable": "^1.0.17",
+    "fs-extra": "^0.18.0",
+    "mkdir": "0.0.2",
+    "mongodb": "^2.0.25",
+    "multiparty": "^4.1.1",
+    "mysql": "^2.6.1",
+    "nodemon": "^1.3.7",
+    "path": "^0.11.14",
     "pg": "4.x",
-    "router":""
+    "router": "^1.0.0"
   },
   "engines": {
     "node": "0.10.x"
@@ -31,5 +41,12 @@
     "body-parser",
     "keyword-extractor"
   ],
-  "license": "SHENKAR"
+  "license": "SHENKAR",
+  "description": "shenkar lecturus project",
+  "bugs": {
+    "url": "https://github.com/avishayhajbi/lecturus/issues"
+  },
+  "homepage": "https://github.com/avishayhajbi/lecturus",
+  "devDependencies": {},
+  "author": "shenkar"
 }
