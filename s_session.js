@@ -825,7 +825,7 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
   var data = req.body.data;
   var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
-  
+  console.log(data)
   MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
   {
       console.log("Trying to connect to the db.");
