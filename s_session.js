@@ -1089,11 +1089,12 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
   try{
 
     var temp = {
-     "videoId": "123aeEg",
+     "videoId": "123",
      "name":"חדוא 1",
      "degree":30,
      "course": 3000501,
      "lecturer": "kimhi",
+     "description":"some desctiption about the video",
      "totalSecondLength": 412,
     "uploadBy": "iofirag@gmail.com",
      "timestamp":"12/5/2015",
@@ -1119,7 +1120,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res) {
      "elements": {
        "6": {
          "photo": {
-           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427416506/04_fo4yui.jpg",
+           "url": "http://res.cloudinary.com/hakrhqyps/image/upload/v1427705186/1427705161151127001.jpg",
            "user": "vandervidi@gmail.com"
          },
          "tag": {
