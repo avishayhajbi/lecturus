@@ -856,15 +856,34 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
               return;
           }
           
-          else
+          else if (docs.length)
           {
               collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                  console.log("session updated");
-                  r.status=1;
-                  r.desc="session updated";
-                  db.close(); /* TODO REMOVE */
-                  res.send((JSON.stringify(r)))
+                  if (err)
+                  {
+                    console.log("session not updated");
+                    r.status=0;
+                    r.desc="session not updated";
+                    db.close(); /* TODO REMOVE */
+                    res.send((JSON.stringify(r)))
+                  } 
+                  else 
+                  {
+                    console.log("session updated");
+                    r.status=1;
+                    r.desc="session updated";
+                    db.close(); /* TODO REMOVE */
+                    res.send((JSON.stringify(r)))
+                }
                });
+          }
+          else
+          {
+             console.log("session not found");
+            r.status=0;
+            r.desc="not found";
+            db.close(); /* TODO REMOVE */
+            res.send((JSON.stringify(r)))
           }
       });         
   }); 
