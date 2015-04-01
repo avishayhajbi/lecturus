@@ -861,7 +861,7 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
               collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                   if (err)
                   {
-                    console.log("session not updated");
+                    console.log("session not updated "+err);
                     r.status=0;
                     r.desc="session not updated";
                     db.close(); /* TODO REMOVE */
