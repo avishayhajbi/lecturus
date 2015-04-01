@@ -1,2 +1,2 @@
 .git
-!Resources/**/*.node_modules
+node_modules
