@@ -2,8 +2,10 @@ var express = require('express');
 var fs = require("fs-extra");
 var router = express.Router();
 
-router.get('/users', function (req, res) {
-	res.render('users',{
+router.get('/users', function (req, res) 
+{
+	res.render('users',
+	{
 		title:"Users API"
 	});
 	
@@ -16,61 +18,73 @@ router.get('/users', function (req, res) {
     insert new user into users collection in mongodb
   json data with status 1/0
 */
-router.post("/users/registerUser", function(req, res) {
-    try{
+router.post("/users/registerUser", function(req, res) 
+{
+	var r = { };
+	
+    try
+    {
         //try to parse json data
-    	var data = req.body; 
+    	var data = req.body;
+
         // check if the field email exist and not empty
-        if (data.email && data.email!="")
-        // connect to mongodb 
-        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-            var r={};
-            // if mongodb connection failed return error message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // if mongodb connection success asking for users collection
-            var collection = db.collection('users');
-            // find user id from users collection
-            collection.find({email:data.email}).toArray(function (err, docs) {
-                // if the user not exist register the user
-                if (!docs.length){
-                    // insert new user to users collection 
-                    collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) {
-                        console.log("register",data.email);
-                        r.uid=data.email;
-                        r.status=1;
-                        r.active = false;
-                        r.desc="register";
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                    });
-                }
-                 else {
-                        console.log("exist",data.email);
-                        r.uid=data.email;
-                        r.status=2;
-                        r.desc="user exist";
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                 }
-            });
-        });
-        else{ // if data.email not exist or empty
+        if (data.email && data.email!="")	// if data.email property exists in the request is not empty
+        	MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db)	// connect to mongodb 
+	        {	            
+	            // if mongodb connection failed return error message and exit
+	            if (err) 
+	            {               
+                    console.log("MongoLab connection error: ", err);
+               	 	r.uid = 0;
+                	r.status = 0;
+                	r.desc = "failed to connect to MongoLab.";
+                	res.send((JSON.stringify(r)));
+                	return;
+	            }
+	            
+	            // if mongodb connection success asking for users collection
+	            var collection = db.collection('users');
+	            
+	            // find user id from users collection
+	            collection.find({email:data.email}).toArray(function (err, docs) {
+	                // if the user not exist register the user
+	                if (!docs.length)
+	                {
+	                    // insert new user to users collection 
+	                    collection.insert(data, {upsert:true, safe:true , fsync: true}, function(err, result) 
+	                    {
+	                        console.log("register", data.email);
+	                        r.uid = data.email;
+	                        r.status = 1;
+	                        r.active = false;
+	                        r.desc = "register";
+	                        db.close();
+	                        res.send((JSON.stringify(r)));
+	                    });
+	                }
+	                 else {
+	                        console.log("exist",data.email);
+	                        r.uid=data.email;
+	                        r.status=2;
+	                        r.desc="user exist";
+	                        db.close();
+	                        res.send((JSON.stringify(r)));
+	                 }
+	            });
+	        });
+        else 	// if data.email not exist or empty
+        {
             r.status=0;
             r.desc="uid error";
             res.send((JSON.stringify(r)));     
         }
     // if the data parsing failed
-    }catch(err){
-        var r={};
-        r.status=0;
-        r.desc="data error";
+    }
+    catch(err)
+    {
+  		console.log("failure while parsing the request, the error:", err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
     	res.send((JSON.stringify(r)));
     }
 });

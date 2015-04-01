@@ -88,8 +88,28 @@
 				   	sessionId 			1427559374447127001
 				   	participants[1] 	somemail1@gmail.com
 				   	participants[2] 	somemail2@gmail.com 
-				   	participants[3] 	somemail3@gmail.com
+				   	participants[3]		somemail3@gmail.com
 				</p>
+            </li>
+            <li> 
+            	<h3> POST /session/getUserSessions </h3>
+            	<p>
+             		<h4> precondition </h4>
+			 		This function must receive json with email: userId
+			 				</p>
+				<p>
+			   		<h4> postcondition </h4>
+			 		This function will return json with status: 1 = success / 0 = failure 
+			 				</p>
+				<p>
+			  		<h4> description </h4>
+			 		This function will find all the 'session' documents in the 'sessions' collection by user id (email). 
+			  		This function searches for user id both in 'session' document's 'owner' and 'participants' properties.
+ 				</p>
+				<p>
+			  		<h4> example </h4>
+			   		email		vandervidi@gmail.com
+ 				</p>
             </li>
             <li class="notReady"> 
                 <h3> /session/getSessionInProgress -- precondition </h3>

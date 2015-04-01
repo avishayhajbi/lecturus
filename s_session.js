@@ -19,10 +19,12 @@ cloudinary.config({
 var files, clips = [], stream, currentfile, dhh;
 var _public='./';
 
-router.get('/session', function (req, res) {
-	res.render('session',{
-    title:"Session API"
-  });
+router.get('/session', function (req, res) 
+{
+	res.render('session',
+	{
+    	title:"Session API"
+  	});
 });
 
 /* /session/createSession -- precondition
@@ -35,23 +37,27 @@ router.get('/session', function (req, res) {
 router.post('/session/createSession', function (req, res) 
 {
 	// create timestamp and uniqeid
-  var date = new Date().getTime();
+  	var date = new Date().getTime();
  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = date + userip;
-  var r={};
-	try {
+  	var uniqueid = date + userip;
+  	var r = { };
+  	
+	try 
+	{
       // try to parse the json data
       var data = req.body;
       console.log("email is: " + req.body.email);
-      if ( data.email && data.email != "" )	{ // if data.email property exists in the request is not empty
+      
+      if ( data.email && data.email != "" )		// if data.email property exists in the request is not empty
+      { 
         // connect to mongodb
-        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {//TODO. REMOVE
+        MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 	//TODO. REMOVE
+        {
         	console.log("Trying to connect to db.");
-            
-            
+
             // if connection failed
-            if (err) {
-            
+            if (err) 
+            {
                 console.log("MongoLab connection error: ", err);
                 r.uid = 0;
                 r.status = 0;
@@ -177,12 +183,115 @@ router.post('/session/createSession', function (req, res)
           res.send((JSON.stringify(r)));     
       }
   } // if the json data parsing failed
-  catch(err){
-  	console.log("failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.send((JSON.stringify(r)));
-  }
+	catch(err)
+  	{
+  		console.log("failure while parsing the request, the error:", err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.send((JSON.stringify(r)));
+  	}
+});
+
+
+/* /session/getUserSessions -- precondition
+ *	This function must receive json with email: userId
+ *
+ * /session/getUserSessions -- postcondition
+ *	This function will return json with status: 1 = success / 0 = failure 
+ *
+ * /session/getUserSessions -- description
+ *	This function will find all the 'session' documents in the 'sessions' collection by user id (email). 
+ * 	This function searches for user id both in 'session' document's 'owner' and 'participants' properties.
+ *
+ * /session/getUserSessions -- example
+ *  email		vandervidi@gmail.com
+ */
+router.post("/session/getUserSessions", function( req, res)
+{
+	var userId, r= {};
+	
+	try
+	{
+        // try to parse the json data
+        data = req.body;
+        userId = req.body.email;
+	}
+	catch(err)
+	{
+  		console.log("failure while parsing the request, the error:", err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+	}
+	
+    if ( userId && userId != "" )	// if data.email property exists in the request is not empty
+    {
+    	console.log("user id is: " + userId);
+        	
+        // connect to mongodb
+        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
+		{
+			console.log("Trying to connect to the db.");
+				            
+            // if connection failed
+            if (err) 
+            {
+                console.log("MongoLab connection error: ", err);
+                r.uid = 0;
+                r.status = 0;
+                r.desc = "failed to connect to MongoLab.";
+                res.json(r);
+                return;
+            }
+            
+            // get sessions collection 
+            var collection = db.collection('sessions');
+            
+            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }  ).toArray( function (err, docs) 
+            {
+            	console.log("Searching for the session collection");
+            	
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while searching for a session, the error: ", err);
+                    r.uid = 0;
+                    r.status = 0;
+                    r.desc = "failure while searching for a session.";
+                    res.json(r);
+                    return;
+                }
+                
+                // no documents found
+                if ( !docs.length ) 
+                {
+                    console.log("user: " + userId + " did not participate in any session.");
+                    r.uid = 0;
+                    r.status = 0;
+                    r.desc = "user: " + userId + " did not participate in any session.";
+                    res.json(r);
+                    return; 
+                }
+                else
+                {
+                    console.log("sessions with user: " + userId + " participation: " + docs);
+                    r.status = 1;
+                    r.userRecordings = docs;
+                    r.desc = "sessions with user: " + userId + " participation.";
+                    db.close();		/* TODO REMOVE */
+                    res.json(r);		                	
+                }
+			});
+		});
+    }
+    else
+    {
+      	console.log("data.email propery does not exist in the query or it is empty");
+        r.status = 0;
+        r.desc = "data.email propery does not exist in the query or it is empty";
+        res.json(r);  
+        return;	  	
+    }
 });
 
 /* /session/addMembers -- precondition
