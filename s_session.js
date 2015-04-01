@@ -491,14 +491,20 @@ function arrayUnique( array )
     return a;
 };
 
-/* /session/getSessionInProgress -- precondition
- * json data with email
+/* 	/session/getUserSessionsInProgress -- precondition
+ *	This function must receive json with sessionId, participants: array[emails]
  *
- * /session/getSessionInProgress -- postcondition
- * return all the active settions with the same participants as the user previous sessions  
- * json data with status 1/0, all current active sesions that the user was participant 
+ * /session/getUserSessionsInProgress -- postcondition
+ *	This function will return json with array of sessions, status: 1 = success / 0 = failure 
+ *
+ * /session/getUserSessionsInProgress -- description
+ *	This function will find the 'session' documents in the 'sessions' collection by user email that will be received in the request.
+ *	This function will expract from those sessions all partisipans and check 
+ *
+ * /session/getUserSessionsInProgress -- example
+ *  email 	somemail1@gmail.com
 */
-router.post("/session/getSessionInProgress", function(req, res ) 
+router.post("/session/getUserSessionsInProgress", function(req, res ) 
 {
  	var sessionId = _public+req.body.sessionId[0];
   	var userip = req.connection.remoteAddress.replace(/\./g , '');
