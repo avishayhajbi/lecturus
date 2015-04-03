@@ -1,5 +1,5 @@
 var express = require('express');
-var mysql = require('mysql');
+//var mysql = require('mysql');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
@@ -52,7 +52,7 @@ app.set('view engine', 'ejs');
     mongoUrl:'mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705'
   }
 
-pool = mysql.createPool(config);
+//pool = mysql.createPool(config);
 
 app.listen(app.get('port'), function () {
     console.log('LecturuS Server running...'+app.get('port'));
