@@ -492,25 +492,160 @@ function arrayUnique( array )
 };
 
 /* 	/session/getUserSessionsInProgress -- precondition
- *	This function must receive json with sessionId, participants: array[emails]
+ *	This function must receive json with email: user id
  *
  * /session/getUserSessionsInProgress -- postcondition
  *	This function will return json with array of sessions, status: 1 = success / 0 = failure 
  *
  * /session/getUserSessionsInProgress -- description
  *	This function will find the 'session' documents in the 'sessions' collection by user email that will be received in the request.
- *	This function will expract from those sessions all partisipans and check 
+ *	This function will expract all the 'session' 'participants' from those sessions and jind all opened 'session' document with those users.
  *
  * /session/getUserSessionsInProgress -- example
  *  email 	somemail1@gmail.com
 */
 router.post("/session/getUserSessionsInProgress", function(req, res ) 
 {
- 	var sessionId = _public+req.body.sessionId[0];
-  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-  	var uniqueid = new Date().getTime()+userip;
-	  
- 	res.send(JSON.stringify({"status":1,"desc":"success"}));
+	var userId, r= {}, tempFriends = new Array(), tempSessions = new Array();
+	
+	try
+	{
+        // try to parse the json data
+        data = req.body;
+        userId = req.body.email;
+	}
+	catch(err)
+	{
+  		console.log("failure while parsing the request, the error:", err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+	}
+	
+    if ( userId && userId != "" )	// if data.email property exists in the request is not empty
+    {
+    	console.log("user id is: " + userId);
+        	
+        // connect to mongodb
+        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
+		{
+			console.log("1. Trying to connect to the db.");
+				            
+            // if connection failed
+            if (err) 
+            {
+                console.log("MongoLab connection error: ", err);
+                r.status = 0;
+                r.desc = "failed to connect to MongoLab.";
+                res.json(r);
+                return;
+            }
+            
+            // get sessions collection 
+            var collection = db.collection('sessions');
+            
+            // get all the 'session' documents where user was participating.
+            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }, { participants : true, _id : false } ).toArray( function (err, docs) 
+            {
+            	console.log("1. Searching for the session collections");
+            	
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while searching for a session, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while searching for a session.";
+                    res.json(r);
+                    return;
+                }
+                
+                // no documents found
+                if ( !docs.length ) 
+                {
+                    console.log("user: " + userId + " did not participate in any session.");
+                    r.status = 0;
+                    r.desc = "user: " + userId + " did not participate in any session.";
+                    res.json(r);
+                    return; 
+                }
+                else		//friends were found
+                {    
+                	console.log("user: " + userId + " did participate in at least one session.");
+                	        
+					(docs).forEach ( function(doc) 
+					{
+						(doc.participants).forEach ( function(friend)
+						{
+							console.log("Friend: " + friend);
+													
+				            collection.find( { $or: [ { owner : friend }, { participants: { $elemMatch: { user: friend } } } ] }).toArray( function (err, sessions) 
+				            {
+				            	console.log("2. Searching for the session collections.");
+				            	
+				                // failure while connecting to sessions collection
+				                if (err) 
+				                {
+				                    console.log("failure while searching for a session, the error: ", err);
+				                    r.status = 0;
+				                    r.desc = "failure while searching for a session.";
+				                    res.json(r);
+				                    return;
+				                }
+				                
+				                // at least one 'document' found
+				                if ( sessions.length ) 
+				                {
+				                    console.log("at least one session was found: " + sessions );
+				                    //r.uid = 0;
+				                    //r.status = 0;
+				                    //r.desc = "user: " + userId + " did not participate in any session.";
+				                    //res.json(r);
+				                    //return; 
+				                   	//tempSessions = tempSessions.concat( sessions );
+				                   	
+				                   	sessions.forEach ( function(ses) 
+									{	
+										tempSessions.push( ses );        
+										console.log("-->>session: " + ses.sessionId);
+									});
+				                }
+			             	});
+						});
+					});
+                	
+                	tempSessions = arrayUnique( tempSessions );	//array of friends
+               
+                }
+			});
+		});
+    }
+    else
+    {
+      	console.log("data.email propery does not exist in the query or it is empty");
+        r.status = 0;
+        r.desc = "data.email propery does not exist in the query or it is empty";
+        res.json(r);  
+        return;	  	
+    }
+    
+	console.log("FINISH!!!");
+	console.log("number of sessions found: " + tempSessions.length);
+/*
+	(tempSessions).forEach ( function(ses) 
+	{	
+		r.desc = "in loop";
+    
+			console.log("-->>session: " + ses.sessionId);
+	});
+*/	
+    //console.log("sessions with user: " + userId + " participation: " + docs);
+    r.status = 1;
+    //r.userRecordings = JSON.stringify(tempSessions);
+    //r.desc = "sessions with user: " + userId + " participation.";
+    //db.close();		/* TODO REMOVE */
+    res.json(r);
+    return;	    
+    
 });
 
 
