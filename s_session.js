@@ -1,13 +1,13 @@
+var express = require('express');
+var fs = require("fs-extra");
 var multiparty = require('multiparty');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var formidable = require('formidable');
-var express = require('express');
-var fs = require("fs-extra");
-var mkdirp = require('mkdirp');
 var router = express.Router();
 var path = require('path');
 var cloudinary = require('cloudinary');
+
 
 cloudinary.config({ 
   cloud_name: 'hakrhqyps', 
@@ -956,12 +956,11 @@ function closeSessionFunction(elements){
  * update the session in mongo collection session
  * json data with status 1/0
 */
-router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
-  var data = req.body.data;
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  console.log(data)
-  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
+router.post("/session/updateSession", function(req, res ) {
+  var data = req.body;
+  console.log("data.sessionId ",data.sessionId)
+
+  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
   {
       console.log("Trying to connect to the db.");
       var r ={};              
@@ -999,7 +998,7 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
                     console.log("session not updated "+err);
                     r.status=0;
                     r.desc="session not updated";
-                    db.close(); /* TODO REMOVE */
+                    db.close(); // TODO REMOVE 
                     res.send((JSON.stringify(r)))
                   } 
                   else 
@@ -1007,7 +1006,7 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
                     console.log("session updated");
                     r.status=1;
                     r.desc="session updated";
-                    db.close(); /* TODO REMOVE */
+                    db.close(); // TODO REMOVE 
                     res.send((JSON.stringify(r)))
                 }
                });
@@ -1017,12 +1016,11 @@ router.post("/session/updateSession",multipartMiddleware, function(req, res ) {
              console.log("session not found");
             r.status=0;
             r.desc="not found";
-            db.close(); /* TODO REMOVE */
+            db.close(); // TODO REMOVE 
             res.send((JSON.stringify(r)))
           }
       });         
-  }); 
- 
+  });
 });
 
 /* /session/updateSessionRating -- precondition

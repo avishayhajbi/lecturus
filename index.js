@@ -13,12 +13,14 @@ Db = require('mongodb').Db,
     GridStore = require('mongodb').GridStore,
     Grid = require('mongodb').Grid,
     Code = require('mongodb').Code,
-    BSON = require('mongodb').pure().BSON,
+    // BSON = require('mongodb').pure().BSON,
     assert = require('assert');
 
 app.use(express.static(path.join(__dirname ,'views')));
-app.use(bodyParser({limit: '50mb'}));
-app.use(bodyParser.urlencoded());
+app.use(bodyParser()); //{limit:"50mb"}
+// parse application/x-www-form-urlencoded 
+app.use(bodyParser.urlencoded({extended: false}));
+// parse application/json 
 app.use(bodyParser.json());
 
 app.use(function(req, res, next) {
