@@ -14,65 +14,109 @@
         </section>
         <ul>
             <li> 
-                <h3> /users/registerUser -- precondition </h3>
-                <p> 
-                    json data with email, any other fileds like active true/false
+            	<h3> POST /users/registerUser </h3>
+            	<p>
+ 					<h4> precondition </h4>
+					This function must receive json with email: user id, any other fields: active true/false.  
                 </p>
                 <p>
-                     json data with status 1/0
+					<h4> postcondition </h4>
+					This function will return json with status: 1 = success / 0 = failure.
                 </p>
+                <p>
+ 					<h4> description </h4>
+ 					This function goes through 'email' properties in 'user' documents and searches for a suitable email.
+					If an email, received in request, was not found, this function will insert new 'user' document into 'users' collection in mongodb.
+                </p>
+                <p>
+ 					<h4> example </h4>
+					email		vandervidi@gmail.com
+				</p>
             </li>
             <li> 
-                <h3> /users/getUser -- precondition </h3>
-                <p> 
-                    json data with email
+                <h3> POST /users/getUser </h3>
+                <p>
+ 					<h4> precondition </h4>
+					This function must receive json with email: user id, any other fields: active true/false.
                 </p>
                 <p>
-                     json data with status 1/0, all user data
-                </p>
+	  				<h4> postcondition </h4>
+					This function will return json with status: 1 = success / 0 = failure, and 'user' data.
+                 </p>
+                <p>
+	 				<h4> description </h4>
+	 				This function goes through 'email' properties in 'user' documents and searches for a suitable email.
+					If an email, received in request, was found, this function will return 'user' document's info.
+                 </p>
+                <p>
+	 				<h4> example </h4>
+					email		vandervidi@gmail.com
+				</p>
             </li>
             <li> 
-                <h3> /users/getActiveUsers -- precondition </h3>
+                <h3> POST /users/getActiveUsers </h3>
                 <p> 
-                    json data with email, org  
+ 					<h4> precondition </h4>
+ 					This function must receive json with org. 
                 </p>
                 <p>
-                     json data with status 1/0, all active users
+ 					<h4> postcondition </h4>
+ 					This function will return json with status: 1 = success / 0 = failure, users: array[all active users that belong to the organization].
+                </p>
+                <p>	
+					<h4> description </h4> 
+  					This function goes through 'org' properties in 'user' documents and searches for a suitable organization, it will return all active users from ( with active property set to 1 ).
+                </p>
+                <p>   	
+ 					<h4> example </h4>
+  					org		shenkar
                 </p>
             </li>
-            <li> 
-                <h3> /users/updateUser -- precondition </h3>
-                <p> 
-                    json data with email, any other fields
+            <li>
+				<h3> POST /users/updateUser </h3 
+  					<h4> precondition </h4>
+					This function must receive json with email: user id, any other fields: active true/false.  
                 </p>
                 <p>
-                     json data with status 1/0
-                </p>
-            </li>
-            <li> 
-                <h3> /users/updateUser -- precondition </h3>
-                <p> 
-                    json data with email, any other fields
+  					<h4> postcondition </h4>
+					This function will return json with status: 1 = success / 0 = failure.
                 </p>
                 <p>
-                     json data with status 1/0
+  					<h4> description </h4>
+ 					This function goes through 'email' properties in 'user' documents and searches for a suitable email.
+					If an email, received in request, was found, this function will update 'user' document with new information.
                 </p>
+                <p>
+  					<h4> example </h4>
+					email		vandervidi@gmail.com
+				</p>
             </li>
             <hr>
             <li> 
-                <h3> /session/createSession -- precondition </h3>
-                <p> 
-                    json data with email, name , description, lecturer, degree, course, more data as wanted
+                <h3> POST /session/createSession </h3>
+                <p>
+					<h4> precondition </h4>
+ 					This function will receive json with user email, any other fields: name , description, lecturer, degree, course, more data as wanted.
                 </p>
                 <p>
-                    json data with sessionId, server timestamp, status 1/0
+					<h4> postcondition </h4>
+  					This function will return json with sessionId: the id of new created session, timestamp: session creation time at the server, status: 1 = success / 0 = failure.
                 </p>
+                <p> 
+					<h4> description </h4>
+					This function will create new 'session' document in the 'sessions' collection, it will assign email assession owner. 
+ 					This function will set all the data, received in the request, in the new created session. 
+                </p>
+                <p>
+					<h4> example </h4>
+					email		vandervidi@gmail.com
+				</p>
             </li>
             <li> 
             	<h3> POST /session/addMembers </h3>
                 <p> 
                 	<h4> precondition </h4>
-                  	This function must receive json with sessionId, participants: array[emails]
+                  	This function must receive json with sessionId, participants: array[emails].
                 </p>
                 <p>
 					<h4> postcondition </h4>
@@ -80,7 +124,7 @@
 				</p>
 				<p>
 				 	<h4> description </h4>
-				 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
+				 	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request.
 				 	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
 				</p>
 				<p>
@@ -95,12 +139,12 @@
             	<h3> POST /session/getUserSessions </h3>
             	<p>
              		<h4> precondition </h4>
-			 		This function must receive json with email: userId
-			 				</p>
+			 		This function must receive json with email: userId.
+ 				</p>
 				<p>
 			   		<h4> postcondition </h4>
-			 		This function will return json with status: 1 = success / 0 = failure 
-			 				</p>
+			 		This function will return json with status: 1 = success / 0 = failure. 
+ 				</p>
 				<p>
 			  		<h4> description </h4>
 			 		This function will find all the 'session' documents in the 'sessions' collection by user id (email). 
@@ -132,7 +176,7 @@
                 </p>
                 <p>					   
   					<h4> description </h4>
-   					This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request 
+   					This function will find the suitable session according to 'sessionId' passed in the request, check if email passed in the request.
   					belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
                 </p>
                 <p>
@@ -197,13 +241,24 @@
                 </p>
             </li>
             <li> 
-                <h3> /session/getVideoById/?videoId & edit -- precondition </h3>
+                <h3> GET /session/getVideoById/?videoId & edit </h3>
                 <p> 
-                   data with videoId, edit true/false (info for data views conter)
+					<h4> precondition </h4>
+ 					This function will receive json with user videoId, edit: true = add 1 to view counter / false = dont add 1 to view counter.
                 </p>
                 <p>
-                     json data with status 1/0, all session data
+ 					<h4> postcondition </h4>
+  					This function will return json with info, status: 1 = success / 0 = failure.
                 </p>
+                <p> 
+					<h4> description </h4>
+					This function will find 'session' document in the 'sessions' collection, accordint to the sessionId received in the request. 
+ 					This function will increase session view counter only if edit property, received in the request, is true. 
+                </p>
+                <p>
+					<h4> example </h4>
+					email		vandervidi@gmail.com                
+				</p>             	  
             </li>
             <hr>
             <li> 
