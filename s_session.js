@@ -629,16 +629,16 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
 						counter = 0;
 					});
                 	
-                	tempSessions = arrayUnique( tempSessions );	//array of friends
-               		console.log("number of sessions found: " + tempSessions.length);
-               		console.log("FINISH!!!");
-               		console.log("session in progress: " + tempSessions);
-                    r.status = 1;
-                    r.desc = "user: " + userId + " session in progress are: " + tempSessions;
-                    res.json(r);
-                    return; 
-                   	//tempSessions = tempSessions.concat( sessions )
-                }
+          	tempSessions = arrayUnique( tempSessions );	//array of friends
+         		console.log("number of sessions found: " + tempSessions.length);
+         		console.log("FINISH!!!");
+         		console.log("session in progress: " + tempSessions);
+              r.status = 1;
+              r.desc = "user: " + userId + " session in progress are: " + tempSessions;
+              res.json(r);
+              return; 
+             	//tempSessions = tempSessions.concat( sessions )
+          }
 			});
 		});
     }
@@ -682,9 +682,9 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
  *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
  * 
  * /session/updateSessionStatus -- example
- *  sessionId	1427559374447127001
- *  email		somemail1@gmail.com	
- *	status		1
+ *  sessionId	  1427559374447127001
+ *  email		    somemail1@gmail.com	
+ *	status	    0 (stop) or 1 (start)
 */
 router.post("/session/updateSessionStatus",multipartMiddleware, function(req, res ) 
 {
@@ -781,31 +781,40 @@ router.post("/session/updateSessionStatus",multipartMiddleware, function(req, re
   		}
   		else
   		{
-              console.log("data.sessionId propery does not exist in the query or it is empty");
-              r.status = 0;
-              r.desc = "data.sessionId propery does not exist in the query or it is empty";
-              res.send((JSON.stringify(r)));  
-              return;			
+        console.log("data.sessionId propery does not exist in the query or it is empty");
+        r.status = 0;
+        r.desc = "data.sessionId propery does not exist in the query or it is empty";
+        res.send((JSON.stringify(r)));  
+        return;			
 		}
 	}	                        
   catch(err)
   {
   	console.log("failure while parsing the request, the error:", err);
-      r.status = 0;
-      r.desc = "failure while parsing the request";
-      res.send((JSON.stringify(r)));
-      return;
+    r.status = 0;
+    r.desc = "failure while parsing the request";
+    res.send((JSON.stringify(r)));
+    return;
   }                   
 });
 
 /* /session/stopRecording -- precondition
  * json data with sessionId, email, recording true/fale, timestamp
  *
- * /session/stopRecording -- postcondition
- *  store the information inside mongodb session collection like session.recordStarts and 
- *  uploading an audio and image and tags disable iff its false
- *  and to manage elements order by timestamp for the website audio query
- * json data with status 1/0
+ * /session/updateSessionStatus -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /session/stopRecording -- description
+ *  1.store the information inside mongodb session collection like session.recordStarts 
+ *  2.and updating the images and tags array to be like they should be.
+ *  3.manage elements order by timestamp for the website audio query
+ *
+ * /session/updateSessionStatus -- example
+ * sessionId  123
+ * email      user@user.com
+ * recording  true/fale
+ * timestamp  13245679
+ *
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
 {
@@ -878,7 +887,7 @@ function closeSessionFunction(elements){
   {
       if (elemTemp[image.timestamp])
       {
-          elemTemp[image.timestamp].photo = image;
+          elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
       }
       else
       {
@@ -891,23 +900,21 @@ function closeSessionFunction(elements){
 }
 
 /* /session/updateSession -- precondition
- *  json data with session detailes
+ *  json data with session details as the cliet receive
  * 
  * /session/updateSession -- postcondition
- * update the session in mongo collection session
  * json data with status 1/0
+ *
+ * /session/updateSession -- descrition
+ * update the session in mongo collection session
+ *
+ * /session/updateSession -- example
+ *  
 */
-<<<<<<< HEAD
-router.post("/session/updateSession", function(req, res ) {
-  var data = req.body;
-  
-  console.log("data ",data)
-=======
 router.post("/session/updateSession", function(req, res ) 
 {
   	var data = req.body;
   	console.log("data.sessionId ",data.sessionId)
->>>>>>> b22a727c9ea2e53e9442e12bdb2ab559d5c6a261
 
   MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
   {
@@ -973,11 +980,15 @@ router.post("/session/updateSession", function(req, res )
 });
 
 /* /session/updateSessionRating -- precondition
-  json data with sessionId, email, rating true/false (positive/negative)
-*/
-/* /session/updateSessionRating -- postcondition
-  check if the user not exist in votes (positive and negative) 
-  json data with status 1/0
+ * json data with sessionId, email, rating true/false (positive/negative)
+ *
+ * /session/updateSessionRating -- postcondition
+ * json data with status 1/0
+ *
+ * /session/updateSessionRating -- description
+ * check if the user not exist in votes (positive and negative) and update the session ratring
+ * is the user already exist in the other state he will removed else if the user
+ * is already in the same state nothing will be done
 */
 router.post("/session/updateSessionRating",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
@@ -988,11 +999,13 @@ router.post("/session/updateSessionRating",multipartMiddleware, function(req, re
 });
 
 /* /session/updateViews -- precondition
-  json data with sessionId
-*/
-/* /session/updateViews -- postcondition
-  update session views to ++ in the session collection
-  json data with status 1/0
+ * json data with sessionId
+ *
+ * /session/updateViews -- postcondition
+ * json data with status 1/0
+ *
+ * /session/updateViews -- description
+ * update session views to ++ in the session collection
 */
 router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
@@ -1003,11 +1016,13 @@ router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
 });
 
 /* /session/uploadTag -- precondition
-  json data with sessionId, tags[json data {timestamp ,text, email}]
-*/
-/* /session/uploadTag -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ * json data with sessionId, tags[json data {timestamp ,text, email}]
+ *
+ * /session/uploadTag -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadTag -- postcondition
+ * if recordStarts true can insert tags into session id
 */
 router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   var sessionId = req.body.sessionId;
@@ -1064,12 +1079,15 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   });
 });
 
+
 /* /session/uploadImage -- precondition
-  json data with file, sessionId, timestamp, email
-*/
-/* /session/uploadImage -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ *  json data with file, sessionId, timestamp, email
+ *
+ * /session/uploadImage -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadImage -- postcondition
+ * if recordStarts true can insert image into session id
 */
 router.post('/session/uploadImage', function(request, response) {
   var userip = request.connection.remoteAddress.replace(/\./g , '');
@@ -1179,11 +1197,13 @@ router.post('/session/uploadImage', function(request, response) {
 });
 
 /* /session/uploadAudio -- precondition
-  json data with file, sessionId, timestamp, email
-*/
-/* /session/uploadAudio -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ *  json data with file, sessionId, timestamp, email
+ *
+ * /session/uploadAudio -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadAudio -- postcondition
+ * if recordStarts true can insert image into session id
 */
 router.post('/session/uploadAudio', function(request, response) {
   var userip = request.connection.remoteAddress.replace(/\./g , '');

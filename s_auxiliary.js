@@ -127,22 +127,6 @@ router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req,
                 }
             });         
         });
-
-
-
-        /*var r ={
-        status:1,
-        videos:[{
-                title:"אוטומטים ושפות ופרמאליות",
-                owner:"avishay",
-                description:"description",
-                participants:["ofir","vidran"],
-                length:15895,
-                sessionId: 1426236025252127001
-            }]
-        }
-        res.send((JSON.stringify(r)))*/
-
     }catch(err){
         var r ={
         status:0,
