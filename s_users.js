@@ -37,7 +37,7 @@ router.post("/users/registerUser", function(req, res)
         if ( data.email && data.email != "" )	// if data.email property exists in the request is not empty
         {
         	// connect to mongodb 
-        	MongoClient.connect( config.mongoUrl, { native_parser : true} , function(err, db )	//TODO. res.json
+        	MongoClient.connect( config.mongoUrl, { native_parser : true } , function( err, db )	//TODO. res.json
 	        {	            
 	            // if mongodb connection failed, return error message and exit
 	            if (err) 
@@ -391,7 +391,7 @@ router.post("/users/updateUser", function(req, res)
                 else
                 {
                 	// update user info
-                     collection.update( { email : data.email }, { $set : data }, { upsert:true, safe : true, fsync : true}, function( err, result ) 
+                     collection.update( { email : data.email }, { $set : data }, { upsert : true, safe : true, fsync : true}, function( err, result ) 
                      {  
 						// failure while updating user document
 		                if (err) 
