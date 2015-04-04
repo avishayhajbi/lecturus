@@ -121,7 +121,7 @@ router.post('/session/createSession', function (req, res)
                     
                     // set session owner
                     data.owner = data.email;
-                    data.length = 0;
+                    data.totalSecondLength = 0;
                     data.rating = 
                     {
                       	positive : 
@@ -823,7 +823,8 @@ function closeSessionFunction(elements){
 */
 router.post("/session/updateSession", function(req, res ) {
   var data = req.body;
-  console.log("data.sessionId ",data.sessionId)
+  
+  console.log("data ",data)
 
   MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
   {
@@ -1175,9 +1176,9 @@ router.post('/session/uploadAudio', function(request, response) {
                       url: result.url,
                       startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
-                    docs[0].length+=file.size;
+                    docs[0].totalSecondLength+=file.size;
                     // insert new user to users collection 
-                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , length: docs[0].length}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("audio list updated");
                         r.status=1;
                         r.desc="audio uploaded";
