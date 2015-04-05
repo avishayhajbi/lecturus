@@ -144,7 +144,7 @@ router.post('/session/createSession', function( req, res )
                         	users : []	//<<---shouldn't we call them voters?
                       	},
                     };
-                    data.participants = [];
+                    data.participants = []; // strings
                     data.audios = []; // {email, url, length, startAt}
                     data.elements = {
                         	//time : { // integer
@@ -540,113 +540,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
     if ( userId && userId != "" )	// if data.email property exists in the request is not empty
     {
     	console.log("user id is: " + userId);
-<<<<<<< HEAD
-        	
-        // connect to mongodb
-        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
-		{
-			console.log("1. Trying to connect to the db.");
-				            
-            // if connection failed
-            if (err) 
-            {
-                console.log("MongoLab connection error: ", err);
-                r.status = 0;
-                r.desc = "failed to connect to MongoLab.";
-                res.json(r);
-                return;
-            }
-            
-            // get sessions collection 
-            var collection = db.collection('sessions');
-            
-            // get all the 'session' documents where user was participating.
-            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }, { participants : true, _id : false } ).toArray( function (err, docs) 
-            {
-            	console.log("1. Searching for the session collections");
-            	
-                // failure while connecting to sessions collection
-                if (err) 
-                {
-                    console.log("failure while searching for a session, the error: ", err);
-                    r.status = 0;
-                    r.desc = "failure while searching for a session.";
-                    res.json(r);
-                    return;
-                }
-                
-                // no documents found
-                if ( !docs.length ) 
-                {
-                    console.log("user: " + userId + " did not participate in any session.");
-                    r.status = 0;
-                    r.desc = "user: " + userId + " did not participate in any session.";
-                    res.json(r);
-                    return; 
-                }
-                else		//friends were found
-                {    
-                	console.log("user: " + userId + " did participate in at least one session.");
-                	        
-					(docs).forEach ( function(doc) 
-					{
-						(doc.participants).forEach ( function(friend)
-						{
-							console.log("Friend: " + friend);
-													
-				            collection.find( { $or: [ { owner : friend }, { participants: { $elemMatch: { user: friend } } } ] }).toArray( function (err, sessions) 
-				            {
-				            	console.log("2. Searching for the session collections.");
-				            	
-				            	++counter;
-				            	
-				                // failure while connecting to sessions collection
-				                if (err) 
-				                {
-				                    console.log("failure while searching for a session, the error: ", err);
-				                    r.status = 0;
-				                    r.desc = "failure while searching for a session.";
-				                    res.json(r);
-				                    return;
-				                }
-				                
-				                // at least one 'document' found
-				                if ( sessions.length ) 
-				                {
-				                    console.log("at least one session was found: " + sessions );
-				                    //r.uid = 0;
-				                    //r.status = 0;
-				                    //r.desc = "user: " + userId + " did not participate in any session.";
-				                    //res.json(r);
-				                    //return; 
-				                   	//tempSessions = tempSessions.concat( sessions );
-				                   	
-				                   	sessions.forEach ( function(ses) 
-									{	
-										tempSessions.push( ses );        
-										console.log("-->>session: " + ses.sessionId);
-									});
-				                }
-			             	});
-						});
-						
-						while (counter < doc.participants.length) console.log("W");
-						counter = 0;
-					});
-                	
-          	tempSessions = arrayUnique( tempSessions );	//array of friends
-         		console.log("number of sessions found: " + tempSessions.length);
-         		console.log("FINISH!!!");
-         		console.log("session in progress: " + tempSessions);
-              r.status = 1;
-              r.desc = "user: " + userId + " session in progress are: " + tempSessions;
-              res.json(r);
-              return; 
-             	//tempSessions = tempSessions.concat( sessions )
-          }
-			});
-		});
-=======
+
         
        	var promise = getUserAcquaintances( userId, function( friends )
     	{
@@ -685,7 +579,6 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
     		});
         });
 
->>>>>>> 6371f99f69070f9e30d850b311207f67f947d952
     }
     else
     {
