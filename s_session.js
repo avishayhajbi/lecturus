@@ -7,6 +7,7 @@ var formidable = require('formidable');
 var router = express.Router();
 var path = require('path');
 var cloudinary = require('cloudinary');
+var Q = require('q');
 
 
 cloudinary.config({ 
@@ -305,6 +306,7 @@ router.post("/session/getUserSessions", function( req, res)
     }
 });
 
+
 /* /session/addMembers -- precondition
  *	This function must receive json with sessionId, participants: array[emails]
  *
@@ -483,6 +485,7 @@ router.post("/session/addMembers", function(req, res )
 
 });
 
+
 /*
  * This function will receive an array and delete all duplicate entries.
  */
@@ -490,9 +493,9 @@ function arrayUnique( array )
 {
     var a = array.concat();
     
-    for(var i=0; i<a.length; ++i) 
+    for(var i = 0; i < a.length; ++i) 
     {
-        for(var j=i+1; j<a.length; ++j) 
+        for(var j = i + 1; j < a.length; ++j) 
         {
             if(a[i] === a[j])
             	a.splice(j--, 1);
@@ -501,6 +504,7 @@ function arrayUnique( array )
 
     return a;
 };
+
 
 /* 	/session/getUserSessionsInProgress -- precondition
  *	This function must receive json with email: user id
@@ -515,9 +519,9 @@ function arrayUnique( array )
  * /session/getUserSessionsInProgress -- example
  *  email 	somemail1@gmail.com
 */
-router.post("/session/getUserSessionsInProgress", function(req, res ) 
+router.post("/session/getUserSessionsInProgress", function(req, res) 
 {
-	var userId, r = {}, tempFriends = new Array(), tempSessions = new Array();
+	var userId, r = { }, tempFriends = new Array(), tempParticipants = new Array();
 	var counter = 0;
 	try
 	{
@@ -536,6 +540,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
     if ( userId && userId != "" )	// if data.email property exists in the request is not empty
     {
     	console.log("user id is: " + userId);
+<<<<<<< HEAD
         	
         // connect to mongodb
         MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
@@ -641,6 +646,46 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
           }
 			});
 		});
+=======
+        
+       	var promise = getUserAcquaintances( userId, function( friends )
+    	{
+    		console.log("2. friends are: " + promise);
+    		
+    		db.model('sessions').find(	{ $or: [ { owner : { $in : friends } }, { participants: { $elemMatch: { user : { $in : friends } } } } ] }, { sessionId : true, _id : false }, function (err, result)
+    		{
+	        	if (err) 
+	        	{
+	        		console.log("-->getUserSessionsInProgress<-- Err: " + err);
+	        		// TODO.
+	    		}
+	    		
+	    	 	if (result)
+	 			{
+	 				console.log("the result is: " + result);
+	 				/*
+        			(result).forEach(function(currdocument)
+        			{
+		        		console.log("owner is " + currdocument.owner);
+		        		tempFriends = tempFriends.concat( currdocument.owner );
+		        		console.log("participants are: " + currdocument.participants);
+		        		(currdocument.participants).forEach( function(participant)
+		        		{
+		        			tempFriends = tempFriends.concat( participant.user );
+		        		});
+        			});
+        			*/
+	        	}
+	        	else
+	        	{
+	        		console.log("-->getUserSessionsInProgress<-- No session in progress were found.");
+	        		//TODO.
+	        	}  
+	    		      			
+    		});
+        });
+
+>>>>>>> 6371f99f69070f9e30d850b311207f67f947d952
     }
     else
     {
@@ -649,27 +694,50 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
         r.desc = "data.email propery does not exist in the query or it is empty";
         res.json(r);  
         return;	  	
-    }
-    
-	//console.log("FINISH!!!");
-	//console.log("number of sessions found: " + tempSessions.length);
-/*
-	(tempSessions).forEach ( function(ses) 
-	{	
-		r.desc = "in loop";
-    
-			console.log("-->>session: " + ses.sessionId);
-	});
-*/	
-    //console.log("sessions with user: " + userId + " participation: " + docs);
-    //r.status = 1;
-    //r.userRecordings = JSON.stringify(tempSessions);
-    //r.desc = "sessions with user: " + userId + " participation.";
-    //db.close();		/* TODO REMOVE */
-    //res.json(r);
-    //return;	    
-    
+    }    
 });
+
+function getUserAcquaintances( userId )
+{
+	var tempFriends = new Array();
+	console.log("user id is: " + userId);
+    
+    db.model('sessions').find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }, { owner : true, participants : true, _id : false }, function (err, result)
+    {
+    	if (err) 
+    	{
+    		console.log("-->getUserAcquaintances<-- Err occured: " + err);
+    		return new Array();
+		}
+    		
+	 	if (result)
+	 	{
+	 		console.log("result is: " + result);
+	 		
+        	(result).forEach(function(currdocument)
+        	{
+        		console.log("owner is: " + currdocument.owner);
+        		tempFriends = tempFriends.concat( currdocument.owner );
+        		console.log("participants are: " + currdocument.participants);
+        		(currdocument.participants).forEach( function(participant)
+        		{
+        			tempFriends = tempFriends.concat( participant.user );
+        		});
+        	});
+        	console.log("1. friends are: " + tempFriends);
+        	return tempFriends;
+    	}
+    	else
+    	{
+    		console.log("-->getUserAcquaintances<-- No acquintances were found. ");
+    		return new Array();
+    	}
+    	
+    	tempFriends = arrayUnique( tempFriends );	
+	});	
+	
+	return new Array();
+}
 
 /* /session/updateSessionStatus -- precondition
  *  This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
@@ -686,7 +754,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res )
  *  email		    somemail1@gmail.com	
  *	status	    0 (stop) or 1 (start)
 */
-router.post("/session/updateSessionStatus",multipartMiddleware, function(req, res ) 
+router.post("/session/updateSessionStatus", function(req, res ) 
 {
 	//create new empty variables
 	var reqOwner, reqSession, reqStatus;	//temporary variables

@@ -75,7 +75,7 @@ var connect = function ()
 // connect to MongoLab using Mongoose
 connect();
 
-// make gloval connection variable
+// make global connection variable
 db = mongoose.connection;
 
 // create event handlers for Mongoose
