@@ -1352,4 +1352,118 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res)
 });
 
 
+/* /session/getAllVideos -- precondition
+ *  This function will receive json with email.
+ *
+ * /session/getAllVideos -- postcondition
+ *  This function will return json with info:, status: 1 = success / 0 = failure and all related videos.
+ * 
+ * /session/getAllVideos -- description
+ *  This function will find 'user' document in the 'users' collection, accordint to the email received in the request. 
+ *  This function will return all sessions by the user organization. 
+ *
+ * /session/getAllVideos -- example
+ *  email   vandervidi@gmail.com
+ */
+router.get('/session/getAllVideos/:email?', function (req, res) 
+{
+  var r = { };
+
+    try
+    {
+      var email = req.query.email;
+    
+    MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
+        {
+            console.log("Trying to connect to the db.");
+                        
+            // if connection failed
+      if (err) 
+      {
+        console.log("MongoLab connection error: ", err);
+        r.uid = 0;
+        r.status = 0;
+        r.desc = "failed to connect to MongoLab.";
+        db.close();
+        res.send((JSON.stringify(r)));  //TODO. res.json()
+        return;
+      }
+          
+         
+          
+          // get sessions collection 
+          var collection = db.collection('users');
+          
+          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+          collection.find( { email : email } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
+          { 
+              // failure while connecting to sessions collection
+              if (err) 
+              {
+                  console.log("failure while searching for the user email, the error: ", err);
+                  r.status = 0;
+                  r.desc = "failure while searching for the user email.";
+                  db.close();
+                  res.send((JSON.stringify(r)));    //TODO. res.json()
+                  return;
+              }
+              else
+              {
+                if (docs.length)
+                {
+                  // get sessions collection 
+                  var collection = db.collection('sessions');
+                  
+                  //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+                  collection.find( { org : docs[0].org } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
+                  { 
+                      // failure while connecting to sessions collection
+                      if (err) 
+                      {
+                          console.log("failure while searching for the videos , the error: ", err);
+                          r.status = 0;
+                          r.desc = "failure while searching for the videos.";
+                          db.close();
+                          res.send((JSON.stringify(r)));    //TODO. res.json()
+                          return;
+                      }
+                      else
+                      {
+                        
+                            console.log("user videos was found.");
+                            r.status = 1;
+                            r.info = (docs.length)?docs:[];  // TODO. what is this???
+                            r.desc = "the videos was found.";
+                            db.close();
+                            res.send((JSON.stringify(r)));    //TODO. res.json()
+                            return;
+                        
+                      }
+                  });
+
+                    
+                }
+                else {
+                    console.log("the user email: " + email + " was found.");
+                    r.status = 0;
+                    r.info = [];  // TODO. what is this???
+                    r.desc = "the user: " + email + " related videos is empty.";
+                    db.close();
+                    res.send((JSON.stringify(r)));    //TODO. res.json()
+                    return;
+                } 
+              }
+          });         
+    });
+    }
+    catch(err)
+    {
+        console.log("failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.send((JSON.stringify(r)));    //TODO. res.json()
+        return;
+    } 
+});
+
 module.exports = router;
