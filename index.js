@@ -37,24 +37,14 @@ var port = process.env.PORT || 8080;
 app.set('port', port);
 app.set('view engine', 'ejs');
 
-(port == false/*8080*/) ?
-  config = {
-  	host:"127.0.0.1",
-  	user:"root",
-  	password:"",
-  	database:"lecturus",
-  	port: 3306,
-    mongoUrl:'mongodb://localhost:27017/lecturus'
-  }
-:
-  config = {
-  	host: "us-cdbr-iron-east-01.cleardb.net",
-    user: "b23c6d0f964532",
-    password: "1fc1c4ed",
-    database: "heroku_f00102faee97288",
-    port: 3306,
-    mongoUrl:'mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705'
-  };
+config = {
+	host: "us-cdbr-iron-east-01.cleardb.net",
+  user: "b23c6d0f964532",
+  password: "1fc1c4ed",
+  database: "heroku_f00102faee97288",
+  port: 3306,
+  mongoUrl:'mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705'
+};
 
 //pool = mysql.createPool(config);
 
@@ -79,7 +69,7 @@ var connect = function ()
 	//options.server.socketOptions = options.replset.socketOptions = { keepAlive : true };
 	options.server.socketOptions = { keepAlive : true, connectTimeoutMS : 30000 };
 	
-  	mongoose.connect('mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705', options);
+  mongoose.connect('mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705', options);
 };
 
 // connect to MongoLab using Mongoose

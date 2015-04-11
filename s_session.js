@@ -130,7 +130,7 @@ router.post('/session/createSession', function( req, res )
                     
                     // set session owner
                     data.owner = data.email;
-                    data.length = 0;
+                    data.totalSecondLength = 0;
                     data.rating = 
                     {
                       	positive : 
@@ -144,7 +144,7 @@ router.post('/session/createSession', function( req, res )
                         	users : []	//<<---shouldn't we call them voters?
                       	},
                     };
-                    data.participants = [];
+                    data.participants = []; // strings
                     data.audios = []; // {email, url, length, startAt}
                     data.elements = {
                         	//time : { // integer
@@ -540,6 +540,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
     if ( userId && userId != "" )	// if data.email property exists in the request is not empty
     {
     	console.log("user id is: " + userId);
+
         
        	//var promise = Q.fcall(getUserAcquaintances( userId));
        	
@@ -645,9 +646,9 @@ function getUserAcquaintances( userId )
  *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
  * 
  * /session/updateSessionStatus -- example
- *  sessionId	1427559374447127001
- *  email		somemail1@gmail.com	
- *	status		1
+ *  sessionId	  1427559374447127001
+ *  email		    somemail1@gmail.com	
+ *	status	    0 (stop) or 1 (start)
 */
 router.post("/session/updateSessionStatus", function(req, res ) 
 {
@@ -744,31 +745,40 @@ router.post("/session/updateSessionStatus", function(req, res )
   		}
   		else
   		{
-              console.log("data.sessionId propery does not exist in the query or it is empty");
-              r.status = 0;
-              r.desc = "data.sessionId propery does not exist in the query or it is empty";
-              res.send((JSON.stringify(r)));  
-              return;			
+        console.log("data.sessionId propery does not exist in the query or it is empty");
+        r.status = 0;
+        r.desc = "data.sessionId propery does not exist in the query or it is empty";
+        res.send((JSON.stringify(r)));  
+        return;			
 		}
 	}	                        
   catch(err)
   {
   	console.log("failure while parsing the request, the error:", err);
-      r.status = 0;
-      r.desc = "failure while parsing the request";
-      res.send((JSON.stringify(r)));
-      return;
+    r.status = 0;
+    r.desc = "failure while parsing the request";
+    res.send((JSON.stringify(r)));
+    return;
   }                   
 });
 
 /* /session/stopRecording -- precondition
  * json data with sessionId, email, recording true/fale, timestamp
  *
- * /session/stopRecording -- postcondition
- *  store the information inside mongodb session collection like session.recordStarts and 
- *  uploading an audio and image and tags disable iff its false
- *  and to manage elements order by timestamp for the website audio query
- * json data with status 1/0
+ * /session/updateSessionStatus -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /session/stopRecording -- description
+ *  1.store the information inside mongodb session collection like session.recordStarts 
+ *  2.and updating the images and tags array to be like they should be.
+ *  3.manage elements order by timestamp for the website audio query
+ *
+ * /session/updateSessionStatus -- example
+ * sessionId  123
+ * email      user@user.com
+ * recording  true/fale
+ * timestamp  13245679
+ *
 */
 router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
 {
@@ -841,7 +851,7 @@ function closeSessionFunction(elements){
   {
       if (elemTemp[image.timestamp])
       {
-          elemTemp[image.timestamp].photo = image;
+          elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
       }
       else
       {
@@ -854,11 +864,16 @@ function closeSessionFunction(elements){
 }
 
 /* /session/updateSession -- precondition
- *  json data with session detailes
+ *  json data with session details as the cliet receive
  * 
  * /session/updateSession -- postcondition
- * update the session in mongo collection session
  * json data with status 1/0
+ *
+ * /session/updateSession -- descrition
+ * update the session in mongo collection session
+ *
+ * /session/updateSession -- example
+ *  
 */
 router.post("/session/updateSession", function(req, res ) 
 {
@@ -929,11 +944,15 @@ router.post("/session/updateSession", function(req, res )
 });
 
 /* /session/updateSessionRating -- precondition
-  json data with sessionId, email, rating true/false (positive/negative)
-*/
-/* /session/updateSessionRating -- postcondition
-  check if the user not exist in votes (positive and negative) 
-  json data with status 1/0
+ * json data with sessionId, email, rating true/false (positive/negative)
+ *
+ * /session/updateSessionRating -- postcondition
+ * json data with status 1/0
+ *
+ * /session/updateSessionRating -- description
+ * check if the user not exist in votes (positive and negative) and update the session ratring
+ * is the user already exist in the other state he will removed else if the user
+ * is already in the same state nothing will be done
 */
 router.post("/session/updateSessionRating",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
@@ -944,11 +963,13 @@ router.post("/session/updateSessionRating",multipartMiddleware, function(req, re
 });
 
 /* /session/updateViews -- precondition
-  json data with sessionId
-*/
-/* /session/updateViews -- postcondition
-  update session views to ++ in the session collection
-  json data with status 1/0
+ * json data with sessionId
+ *
+ * /session/updateViews -- postcondition
+ * json data with status 1/0
+ *
+ * /session/updateViews -- description
+ * update session views to ++ in the session collection
 */
 router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
   var sessionId = _public+req.body.sessionId[0];
@@ -959,11 +980,13 @@ router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
 });
 
 /* /session/uploadTag -- precondition
-  json data with sessionId, tags[json data {timestamp ,text, email}]
-*/
-/* /session/uploadTag -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ * json data with sessionId, tags[json data {timestamp ,text, email}]
+ *
+ * /session/uploadTag -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadTag -- postcondition
+ * if recordStarts true can insert tags into session id
 */
 router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   var sessionId = req.body.sessionId;
@@ -1020,12 +1043,15 @@ router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
   });
 });
 
+
 /* /session/uploadImage -- precondition
-  json data with file, sessionId, timestamp, email
-*/
-/* /session/uploadImage -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ *  json data with file, sessionId, timestamp, email
+ *
+ * /session/uploadImage -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadImage -- postcondition
+ * if recordStarts true can insert image into session id
 */
 router.post('/session/uploadImage', function(request, response) {
   var userip = request.connection.remoteAddress.replace(/\./g , '');
@@ -1135,11 +1161,13 @@ router.post('/session/uploadImage', function(request, response) {
 });
 
 /* /session/uploadAudio -- precondition
-  json data with file, sessionId, timestamp, email
-*/
-/* /session/uploadAudio -- postcondition
-  if recordStarts true can insert tags into session id
-  json data with status 1/0
+ *  json data with file, sessionId, timestamp, email
+ *
+ * /session/uploadAudio -- postcondition
+ * json data with status 1/0
+ *
+ * /session/uploadAudio -- postcondition
+ * if recordStarts true can insert image into session id
 */
 router.post('/session/uploadAudio', function(request, response) {
   var userip = request.connection.remoteAddress.replace(/\./g , '');
@@ -1215,9 +1243,9 @@ router.post('/session/uploadAudio', function(request, response) {
                       url: result.url,
                       startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
-                    docs[0].length+=file.size;
+                    docs[0].totalSecondLength+=file.size;
                     // insert new user to users collection 
-                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , length: docs[0].length}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("audio list updated");
                         r.status=1;
                         r.desc="audio uploaded";
@@ -1326,5 +1354,119 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res)
     } 
 });
 
+
+/* /session/getAllVideos -- precondition
+ *  This function will receive json with email.
+ *
+ * /session/getAllVideos -- postcondition
+ *  This function will return json with info:, status: 1 = success / 0 = failure and all related videos.
+ * 
+ * /session/getAllVideos -- description
+ *  This function will find 'user' document in the 'users' collection, accordint to the email received in the request. 
+ *  This function will return all sessions by the user organization. 
+ *
+ * /session/getAllVideos -- example
+ *  email   vandervidi@gmail.com
+ */
+router.get('/session/getAllVideos/:email?', function (req, res) 
+{
+  var r = { };
+
+    try
+    {
+      var email = req.query.email;
+    
+    MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
+        {
+            console.log("Trying to connect to the db.");
+                        
+            // if connection failed
+      if (err) 
+      {
+        console.log("MongoLab connection error: ", err);
+        r.uid = 0;
+        r.status = 0;
+        r.desc = "failed to connect to MongoLab.";
+        db.close();
+        res.send((JSON.stringify(r)));  //TODO. res.json()
+        return;
+      }
+          
+         
+          
+          // get sessions collection 
+          var collection = db.collection('users');
+          
+          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+          collection.find( { email : email } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
+          { 
+              // failure while connecting to sessions collection
+              if (err) 
+              {
+                  console.log("failure while searching for the user email, the error: ", err);
+                  r.status = 0;
+                  r.desc = "failure while searching for the user email.";
+                  db.close();
+                  res.send((JSON.stringify(r)));    //TODO. res.json()
+                  return;
+              }
+              else
+              {
+                if (docs.length)
+                {
+                  // get sessions collection 
+                  var collection = db.collection('sessions');
+                  
+                  //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+                  collection.find( { org : docs[0].org } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
+                  { 
+                      // failure while connecting to sessions collection
+                      if (err) 
+                      {
+                          console.log("failure while searching for the videos , the error: ", err);
+                          r.status = 0;
+                          r.desc = "failure while searching for the videos.";
+                          db.close();
+                          res.send((JSON.stringify(r)));    //TODO. res.json()
+                          return;
+                      }
+                      else
+                      {
+                        
+                            console.log("user videos was found.");
+                            r.status = 1;
+                            r.info = (docs.length)?docs:[];  // TODO. what is this???
+                            r.desc = "the videos was found.";
+                            db.close();
+                            res.send((JSON.stringify(r)));    //TODO. res.json()
+                            return;
+                        
+                      }
+                  });
+
+                    
+                }
+                else {
+                    console.log("the user email: " + email + " was found.");
+                    r.status = 0;
+                    r.info = [];  // TODO. what is this???
+                    r.desc = "the user: " + email + " related videos is empty.";
+                    db.close();
+                    res.send((JSON.stringify(r)));    //TODO. res.json()
+                    return;
+                } 
+              }
+          });         
+    });
+    }
+    catch(err)
+    {
+        console.log("failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.send((JSON.stringify(r)));    //TODO. res.json()
+        return;
+    } 
+});
 
 module.exports = router;
