@@ -1469,4 +1469,137 @@ router.get('/session/getAllVideos/:email?', function (req, res)
     } 
 });
 
+/* /session/getMembers -- precondition
+ *	This function must receive json with sessionId, email: that belongs to one of the participants
+ *
+ * /session/getMembers -- postcondition
+ *	This function will return json with status: 1 = success / 0 = failure, participants: []
+ *
+ * /session/getMembers -- description
+ *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request.
+ *	This function will extract all the emails from 'participants' property in the 'session' document.
+ *
+ * /session/getMembers -- example
+ *  sessionId 			1427559374447127001
+ *  email			 	somemail1@gmail.com
+*/
+router.post("/session/getMembers", function(req, res ) 
+{  	
+  	 //create new empty variables
+  	var participants = Array();
+  	var participantsEmails = Array();
+	var r = { };	//response object	
+  		        	
+	try
+  	{
+        // try to parse the json data
+        data = req.body;
+                 
+        if ( data.sessionId && data.sessionId != "" )	// if data.sessionId property exists in the request is not empty
+        {
+        	console.log("Session id is: " + data.sessionId);
+        	
+	        // connect to mongodb
+	        MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, db) /* TODO. REMOVE */
+			{
+				console.log("Trying to connect to the db.");
+					            
+	            // if connection failed
+	            if (err) 
+	            {
+	                console.log("MongoLab connection error: ", err);
+	                r.uid = 0;
+	                r.status = 0;
+	                r.desc = "failed to connect to MongoLab.";
+	                res.json(r);
+	                return;
+	            }
+	            
+	            // get sessions collection 
+	            var collection = db.collection('sessions');
+	            
+	            collection.find( { sessionId : data.sessionId } ).toArray( function (err, docs) 
+	            {
+	            	console.log("Searching for the session collection");
+	            	
+	                // failure while connecting to sessions collection
+	                if (err) 
+	                {
+	                    console.log("failure while searching for a session, the error: ", err);
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "failure while searching for a session.";
+	                    res.json(r);
+	                    return;
+	                }
+	                
+	                // the session do not exist
+	                if ( !docs.length ) 
+	                {
+	                    console.log("session: " + data.sessionId + " do not exist.");
+	                    r.uid = 0;
+	                    r.status = 0;
+	                    r.desc = "session: " + data.sessionId + " was not found.";
+	                    res.json(r);
+	                    return; 
+	                }
+	                else
+	                {
+	                	// there is only one session with this sessionId
+	                	//TODO. add validation for existance or received email in the session document
+	                	/*
+
+						*/
+						participants = docs[0].participants;
+						
+						console.log("participants: " + participants);
+						
+        				(participants).forEach (function (participant) 
+						{
+						  	console.log("session participants: " + participant.user);
+						  	// we get an array of existing participants
+						  	participantsEmails.push( participant.user );
+						});
+						
+						//exclude email received in the request from the result
+						var index = participantsEmails.indexOf(data.email);
+						if (index > -1) 
+						{
+							console.log("email belongs to one of the participants.");
+    						participantsEmails.splice(index, 1);
+						}
+						
+						//newParticipants = arrayUnique(oldParticipants.concat(newParticipants));
+	                
+                        console.log("session participants were found.");
+                        r.status = 1;
+                        r.participants = participantsEmails;
+                        r.desc = "session participants were found.";
+                        db.close();		/* TODO REMOVE */
+                        res.json(r);		                	
+			         }
+                       
+             	});
+			});
+		}
+		else
+		{
+            console.log("data.sessionId propery does not exist in the query or it is empty");
+            r.status = 0;
+            r.desc = "data.sessionId propery does not exist in the query or it is empty";
+            res.json(r);  
+            return;			
+		}
+	}	                        
+    catch(err)
+    {
+    	console.log("failure while parsing the request, the error:", err);
+        
+        r.desc = "failure while parsing the request";
+        res.json(r);
+       
+    }
+
+});
+
 module.exports = router;

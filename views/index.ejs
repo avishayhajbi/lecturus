@@ -259,6 +259,28 @@
 					email		vandervidi@gmail.com                
 				</p>             	  
             </li>
+			<li> 
+            	<h3> POST /session/getMembers </h3>
+                <p> 
+					<h4> precondition </h4>
+ 					This function must receive json with sessionId, email: that belongs to one of the participants.
+                </p>
+                <p>
+ 					<h4> postcondition </h4>
+  					This function will return json with status: 1 = success / 0 = failure, participants: [those users agreed to participate in the current session].
+                </p>
+                <p> 
+					<h4> description </h4>
+ 					This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request.
+ 					This function will extract all the emails from 'participants' property in the 'session' document.
+                </p>
+                <p>
+					<h4> example </h4>
+ 					sessionId 			1427559374447127001
+					email			 	somemail1@gmail.com              
+				</p>             	  
+			</li>          
+            
             <hr>
             <li> 
                 <h3> /auxiliary/getVideosByCourse/? email & degree & course -- precondition </h3>
