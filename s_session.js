@@ -541,11 +541,13 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
     {
     	console.log("user id is: " + userId);
         
-       	var promise = getUserAcquaintances( userId, function( friends )
+       	//var promise = Q.fcall(getUserAcquaintances( userId));
+       	
+       	getUserAcquaintances( userId ).then( function( friends )
     	{
-    		console.log("2. friends are: " + promise);
+    		console.log("2. friends are: " + tempFriends);
     		
-    		db.model('sessions').find(	{ $or: [ { owner : { $in : friends } }, { participants: { $elemMatch: { user : { $in : friends } } } } ] }, { sessionId : true, _id : false }, function (err, result)
+    		db.model('sessions').find(	{ $or: [ { owner : { $in : tempFriends } }, { participants: { $elemMatch: { user : { $in : tempFriends } } } } ] }, { sessionId : true, _id : false }, function (err, result)
     		{
 	        	if (err) 
 	        	{
@@ -577,7 +579,6 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
 	    		      			
     		});
         });
-
     }
     else
     {
@@ -592,6 +593,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
 function getUserAcquaintances( userId )
 {
 	var tempFriends = new Array();
+	var deferred = Q.defer();
 	console.log("user id is: " + userId);
     
     db.model('sessions').find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }, { owner : true, participants : true, _id : false }, function (err, result)
@@ -617,7 +619,8 @@ function getUserAcquaintances( userId )
         		});
         	});
         	console.log("1. friends are: " + tempFriends);
-        	return tempFriends;
+        	deferred.resolve = tempFriends;
+
     	}
     	else
     	{
@@ -628,7 +631,7 @@ function getUserAcquaintances( userId )
     	tempFriends = arrayUnique( tempFriends );	
 	});	
 	
-	return new Array();
+	return deferred.promise;
 }
 
 /* /session/updateSessionStatus -- precondition
