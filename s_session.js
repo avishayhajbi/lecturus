@@ -1418,7 +1418,8 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                   var collection = db.collection('sessions');
                   
                   //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-                  collection.find( { org : docs[0].org } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
+                  collection.find( { org : docs[0].org } , 
+                  {name : true,description:true, participants:true, owner:true, sessionId:true, length:true , _id:false}).toArray(function( err, docs )   //TODO. use findOne ?
                   { 
                       // failure while connecting to sessions collection
                       if (err) 
