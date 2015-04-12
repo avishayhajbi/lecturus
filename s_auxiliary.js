@@ -103,7 +103,7 @@ router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req,
             var collection = db.collection('sessions');
             //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
             collection.find( { degree : data.degreeId , course : data.courseId || {$exists:true} }
-                , {name : true,description:true, participants:true, owner:true, sessionId:true, length:true , _id:false}).toArray(function (err, docs)
+                , {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false}).toArray(function (err, docs)
             { 
                 // failure while connecting to sessions collection
                 if (err) 

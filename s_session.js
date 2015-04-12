@@ -259,7 +259,8 @@ router.post("/session/getUserSessions", function( req, res)
             // get sessions collection 
             var collection = db.collection('sessions');
             
-            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }  ).toArray( function (err, docs) 
+            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] } ,
+              {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ).toArray( function (err, docs) 
             {
             	console.log("Searching for the session collection");
             	
@@ -1419,7 +1420,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                   
                   //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
                   collection.find( { org : docs[0].org } , 
-                  { _id:false}).toArray(function( err, docs )   //TODO. use findOne ? yes name : true,description:true, participants:true, owner:true, sessionId:true, length:true ,
+                  { name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false}).toArray(function( err, docs )   //TODO. use findOne ? yes
                   { 
                       // failure while connecting to sessions collection
                       if (err) 
