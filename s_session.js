@@ -1388,7 +1388,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
         r.status = 0;
         r.desc = "failed to connect to MongoLab.";
         db.close();
-        res.send((JSON.stringify(r)));  //TODO. res.json()
+       res.json(r) 
         return;
       }
           
@@ -1407,7 +1407,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                   r.status = 0;
                   r.desc = "failure while searching for the user email.";
                   db.close();
-                  res.send((JSON.stringify(r)));    //TODO. res.json()
+                  res.json(r)    
                   return;
               }
               else
@@ -1428,7 +1428,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                           r.status = 0;
                           r.desc = "failure while searching for the videos.";
                           db.close();
-                          res.send((JSON.stringify(r)));    //TODO. res.json()
+                         res.json(r) 
                           return;
                       }
                       else
@@ -1439,7 +1439,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                             r.info = (docs.length)?docs:[];  // TODO. what is this???
                             r.desc = "the videos was found.";
                             db.close();
-                            res.send((JSON.stringify(r)));    //TODO. res.json()
+                           res.json(r) 
                             return;
                         
                       }
@@ -1453,7 +1453,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                     r.info = [];  // TODO. what is this???
                     r.desc = "the user: " + email + " related videos is empty.";
                     db.close();
-                    res.send((JSON.stringify(r)));    //TODO. res.json()
+                    res.json(r) 
                     return;
                 } 
               }
@@ -1465,7 +1465,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
         console.log("failure while parsing the request, the error:", err);
         r.status = 0;
         r.desc = "failure while parsing the request";
-        res.send((JSON.stringify(r)));    //TODO. res.json()
+        res.json(r) 
         return;
     } 
 });
