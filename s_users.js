@@ -266,7 +266,7 @@ router.post("/users/getActiveUsers", function( req, res )
 	            var collection = db.collection('users');
 	            
 	            // try to find user id 
-	            collection.find( { org : data.org, active : true } ).toArray( function( err, docs ) 
+	            collection.find( { org : data.org, active : true } , { _id : false} ).toArray( function( err, docs ) 
 	            {
 	            	// failure during user search
 	                if (err) 
