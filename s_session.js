@@ -1187,7 +1187,7 @@ router.post('/session/uploadAudio', function(request, response) {
         sessionId= fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
-        audioLength = fields.audioLength;
+        audioLength = parseInt(fields.audioLength,10);
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
