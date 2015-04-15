@@ -1174,8 +1174,7 @@ router.post('/session/uploadAudio', function(request, response) {
   var userip = request.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
-  var timestamp, email,file;
-  var audioLength=30;//shound be received from the application
+  var timestamp, email,file, audioLength;
     console.log('-->UPLOAD AUDIO<--');
     var form = new formidable.IncomingForm();
    
@@ -1188,6 +1187,7 @@ router.post('/session/uploadAudio', function(request, response) {
         sessionId= fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
+        audioLength = fields.audioLength;
     });
     
     form.on('progress', function(bytesReceived, bytesExpected) 
@@ -1238,13 +1238,13 @@ router.post('/session/uploadAudio', function(request, response) {
                     delete docs[0]._id;
                     //email url startAt length
                     docs[0].audios.push({
-                      length: file.size,
+                      length: audioLength,
                       timestamp:timestamp,
                       email: email,
                       url: result.url,
                       startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
-                    docs[0].totalSecondLength+=file.size;
+                    docs[0].totalSecondLength+=audioLength;
                     // insert new user to users collection 
                     collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
                         console.log("audio list updated");
