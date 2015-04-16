@@ -1217,6 +1217,7 @@ router.post('/session/uploadAudio', function(request, response) {
         //var stream = cloudinary.uploader.upload_stream(function(result) 
          cloudinary.uploader.upload(temp_path ,function(result)
         { 
+          console.log(result)
            var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
             {
