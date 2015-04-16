@@ -1214,7 +1214,8 @@ router.post('/session/uploadAudio', function(request, response) {
         var file_name = this.openedFiles[0].name;
         console.log("file_name: " + file_name);
             
-        var stream = cloudinary.uploader.upload_stream(function(result) 
+        //var stream = cloudinary.uploader.upload_stream(function(result) 
+         cloudinary.uploader.upload(temp_path ,function(result)
         { 
            var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
@@ -1272,7 +1273,7 @@ router.post('/session/uploadAudio', function(request, response) {
           tags: [sessionId, 'lecturus']
         }      
       );
-      var file_reader = fs.createReadStream(temp_path).pipe(stream);
+      //var file_reader = fs.createReadStream(temp_path).pipe(stream);
     });
     
 });
