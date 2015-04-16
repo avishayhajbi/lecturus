@@ -1143,7 +1143,7 @@ router.post('/session/uploadImage', function(request, response) {
                     response.send((JSON.stringify(r)))
              }
           });
-      });
+        });
       },
       {
         public_id: uniqueid, 
@@ -1214,8 +1214,9 @@ router.post('/session/uploadAudio', function(request, response) {
         var file_name = this.openedFiles[0].name;
         console.log("file_name: " + file_name);
             
-        var stream = cloudinary.uploader.upload_stream(function(result) { 
-           var r={};
+        var stream = cloudinary.uploader.upload_stream(function(result) 
+        { 
+           /*var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
             {
             
@@ -1260,9 +1261,11 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.desc="session not exist";
                         db.close();
                         response.send((JSON.stringify(r)))
-                 }
+                 
+
             });
-        });
+          });}*/
+        response.json(result)
         },
         {
           public_id: uniqueid, 
