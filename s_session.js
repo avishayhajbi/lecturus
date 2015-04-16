@@ -1267,7 +1267,7 @@ router.post('/session/uploadAudio', function(request, response) {
         },
         {
           public_id: uniqueid, 
-          resource_type: 'auto',
+          resource_type: 'raw',
           format: 'mp3',
           tags: [sessionId, 'lecturus']
         }      
