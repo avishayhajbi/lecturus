@@ -1216,7 +1216,7 @@ router.post('/session/uploadAudio', function(request, response) {
             
         var stream = cloudinary.uploader.upload_stream(function(result) 
         { 
-           /*var r={};
+           var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
             {
             
@@ -1261,15 +1261,13 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.desc="session not exist";
                         db.close();
                         response.send((JSON.stringify(r)))
-                 
-
+                 }
             });
-          });}*/
-        response.json(result)
+          });
         },
         {
           public_id: uniqueid, 
-          resource_type: 'raw',
+          resource_type: 'auto',
           format: 'mp3',
           tags: [sessionId, 'lecturus']
         }      
