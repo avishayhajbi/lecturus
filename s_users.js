@@ -100,7 +100,7 @@ router.post("/users/registerUser", function(req, res)
 					{
 						console.log("user: " + data.email + " already exists in the system.");
 						r.uid = data.email;					//TODO. remove
-						r.status = 0;
+						r.status = 2;
 						r.desc = "user: " + data.email + " already exists in the system.";
 						db.close();							//TODO. remove
 						res.send((JSON.stringify(r)));		//TODO. res.json
