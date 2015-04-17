@@ -54,7 +54,7 @@ router.post("/users/registerUser", function(req, res)
 	            var collection = db.collection('users');
 	            
 	            // find user id from users collection
-	            collection.find( { email : data.email } ).toArray( function( err, docs ) 
+	            collection.find( { email : data.email },{_id:false , active:false} ).toArray( function( err, docs ) 
 	            {
                 	// failure during user search
                     if (err) 
@@ -99,7 +99,8 @@ router.post("/users/registerUser", function(req, res)
 					else 
 					{
 						console.log("user: " + data.email + " already exists in the system.");
-						r.uid = data.email;					//TODO. remove
+						r.uid = data.email;
+						r.info = docs[0];					
 						r.status = 2;
 						r.desc = "user: " + data.email + " already exists in the system.";
 						db.close();							//TODO. remove
