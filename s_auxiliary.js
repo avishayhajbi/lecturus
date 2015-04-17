@@ -167,7 +167,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
                 else {
                     if (docs[0].check == data.check)
                     r ={
-                        status:0,
+                        status:2,
                         desc:'no courses changes'
                         //info: docs[0]
                         //degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
