@@ -88,7 +88,7 @@ router.post("/users/registerUser", function(req, res)
 		                        console.log("user: " + data.email + " has completed successfully.");
 		                        r.uid = data.email;				//TODO. remove
 		                        r.status = 1;
-		                        r.active = false;				//TODO. remove
+		                        r.active = true;				//TODO. remove
 		                        r.desc = "user: " + data.email + " has completed successfully.";
 		                        db.close();						//TODO. remove
 		                        res.send((JSON.stringify(r)));	//TODO. res.json	                        	
