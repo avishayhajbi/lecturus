@@ -335,7 +335,7 @@ router.post("/session/addMembers", function(req, res )
   	{
         // try to parse the json data
         data = req.body;
-        newParticipants = req.body.participants;
+        newParticipants = data.participants;
         
         if ( newParticipants.length == 0 )
         {

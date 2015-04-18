@@ -7,8 +7,10 @@ var sessionsSchema = new Schema(
 	name : String,			//Should not be named title???
 	description : String,
 	lecturer : String,
-	degree : Number,
-	course : Number,
+	degreeId : Number,
+	courseId : Number,
+	degree : String,
+	course : String,
 	owner : String,
 	recordStarts : Boolean,	//TODO. change the property, so we could understand what it is related to....
 	startTime: Number,
@@ -24,9 +26,7 @@ var sessionsSchema = new Schema(
         	users : { type : Array , "default" : [] }
     	}
 	},
-	participants : [
-    	{ user : String }
-		],
+	participants :  { type : Array , "default" : [] },
 	audios : [ { lenght : Number, email : String, url : String, startAt : Number } ],
 	elements : {},			//TODO. Add properties here
 	views : Number,

@@ -5,7 +5,7 @@ var usersSchema = new Schema(
 	{
 		email : String,
 		org : String,
-		active : Boolean,
+		active : Boolean
 		
 	});
 	
