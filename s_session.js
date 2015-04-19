@@ -178,6 +178,7 @@ router.post('/session/createSession', function( req, res )
                         console.log("new session: " + result + " was created.");
                         r.sessionId = uniqueid;
                         r.timestamp = date;
+                        r.owner = data.owner;
                         r.status = 1;
                         r.desc = "new session: " + uniqueid + " was created.";
                         db.close();		//TODO. REMOVE 
