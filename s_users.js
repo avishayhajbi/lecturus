@@ -36,6 +36,7 @@ router.post("/users/registerUser", function(req, res)
         // check if the field email exist and not empty
         if ( data.email && data.email != "" )	// if data.email property exists in the request is not empty
         {
+
         	// connect to mongodb 
         	MongoClient.connect( config.mongoUrl, { native_parser : true } , function( err, db )	//TODO. res.json
 	        {	            
@@ -54,7 +55,7 @@ router.post("/users/registerUser", function(req, res)
 	            var collection = db.collection('users');
 	            
 	            // find user id from users collection
-	            collection.find( { email : data.email },{_id:false , active:false} ).toArray( function( err, docs ) 
+	            collection.find( { email : data.email },{_id:false , active:false, timestamp:false} ).toArray( function( err, docs ) 
 	            {
                 	// failure during user search
                     if (err) 
@@ -70,6 +71,8 @@ router.post("/users/registerUser", function(req, res)
 	                // if the user do not exist, register the user
 	                if ( !docs.length )
 	                {
+	                	data.timestamp = new Date().getTime();
+	                	data.active = true;
 	                    // insert new user to users collection 
 	                    collection.insert( data, { upsert : true, safe : true , fsync : true }, function( err, result ) 
 	                    {
@@ -169,7 +172,7 @@ router.post("/users/getUser", function( req, res )
 	            var collection = db.collection('users');
 	            
 	            // try to find user id 
-	            collection.find( { email : data.email } ).toArray( function( err, docs ) 
+	            collection.find( { email : data.email },{_id:false, active:false,timestamp:false} ).toArray( function( err, docs ) 
 	            {
 	            	// failure during user search
 	                if (err) 
@@ -195,8 +198,7 @@ router.post("/users/getUser", function( req, res )
 	                // if the user exists
 	                else 
 	                {
-	                	// remove indternal mongodb id
-	                    delete docs[0]._id;
+	                	
 	                    // set all user's indo			
 	                    r.info = docs[0];
 	                    r.status = 1;
@@ -267,7 +269,7 @@ router.post("/users/getActiveUsers", function( req, res )
 	            var collection = db.collection('users');
 	            
 	            // try to find user id 
-	            collection.find( { org : data.org, active : true } , { _id : false} ).toArray( function( err, docs ) 
+	            collection.find( { org : data.org, active : true } , {_id:false, active:false,timestamp:false} ).toArray( function( err, docs ) 
 	            {
 	            	// failure during user search
 	                if (err) 
@@ -391,6 +393,7 @@ router.post("/users/updateUser", function(req, res)
                 // if the user exist update the user data
                 else
                 {
+                	data.timestamp = new Date().getTime();
                 	// update user info
                      collection.update( { email : data.email }, { $set : data }, { upsert : true, safe : true, fsync : true}, function( err, result ) 
                      {  
