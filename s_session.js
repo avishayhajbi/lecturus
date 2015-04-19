@@ -334,14 +334,14 @@ router.post("/session/addMembers", function(req, res )
   		        	
 	try
   	{
+       console.log(req.body)
         // try to parse the json data
         data = req.body;
         newParticipants = data.participants;
-        
+       
         if ( newParticipants.length == 0 )
         {
         	console.log("no participants were sent.");
-            r.uid = 0;
             r.status = 0;
             r.desc = "no participants were sent.";
             res.send((JSON.stringify(r)));
@@ -368,7 +368,6 @@ router.post("/session/addMembers", function(req, res )
 	            if (err) 
 	            {
 	                console.log("MongoLab connection error: ", err);
-	                r.uid = 0;
 	                r.status = 0;
 	                r.desc = "failed to connect to MongoLab.";
 	                res.send((JSON.stringify(r)));
@@ -386,7 +385,6 @@ router.post("/session/addMembers", function(req, res )
 	                if (err) 
 	                {
 	                    console.log("failure while searching for a session, the error: ", err);
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "failure while searching for a session.";
 	                    res.send((JSON.stringify(r)));
@@ -397,7 +395,6 @@ router.post("/session/addMembers", function(req, res )
 	                if ( !docs.length ) 
 	                {
 	                    console.log("session: " + data.sessionId + " do not exist.");
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "session: " + data.sessionId + " was not found.";
 	                    res.send((JSON.stringify(r)));
@@ -423,7 +420,6 @@ router.post("/session/addMembers", function(req, res )
 			                if (err) 
 			                {
 			                    console.log("filure while update session participants, the error: ", err);
-			                    r.uid = 0;
 			                    r.status = 0;
 			                    r.desc = "filure while update session participants.";
 			                    res.send((JSON.stringify(r)));
@@ -479,7 +475,7 @@ router.post("/session/addMembers", function(req, res )
     catch(err)
     {
     	console.log("failure while parsing the request, the error:", err);
-        
+        r.status = 0;
         r.desc = "failure while parsing the request";
         res.send((JSON.stringify(r)));
        
