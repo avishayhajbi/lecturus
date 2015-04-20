@@ -165,6 +165,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
                 }
                 // if the user exist return organization courses
                 else {
+                    data.check = data.check || 0;
                     if (docs[0].check == data.check)
                     r ={
                         status:2,
