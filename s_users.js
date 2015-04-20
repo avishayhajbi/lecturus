@@ -32,101 +32,84 @@ router.post("/users/registerUser", function(req, res)
     {
         //try to parse json data
     	var data = req.body;
-
-        // check if the field email exist and not empty
-        if ( data.email && data.email != "" )	// if data.email property exists in the request is not empty
-        {
-
-        	// connect to mongodb 
-        	MongoClient.connect( config.mongoUrl, { native_parser : true } , function( err, db )	//TODO. res.json
-	        {	            
-	            // if mongodb connection failed, return error message and exit
-	            if (err) 
-	            {               
-                    console.log("MongoLab connection error: ", err);
-               	 	r.uid = 0;							//TODO. res.json
-                	r.status = 0;
-                	r.desc = "failed to connect to MongoLab.";
-                	res.send((JSON.stringify(r)));		//TODO. res.json
-                	return;
-	            }
-	            
-	            // if mongodb connection success asking for users collection
-	            var collection = db.collection('users');
-	            
-	            // find user id from users collection
-	            collection.find( { email : data.email },{_id:false , active:false, timestamp:false} ).toArray( function( err, docs ) 
-	            {
-                	// failure during user search
-                    if (err) 
-                    {
-                     	console.log("failure during user search, the error: ", err);
-                     	r.uid = 0;
-                      	r.status = 0;
-                      	r.desc = "failure during user search";
-                     	res.send((JSON.stringify(r)));	//TODO. res.json
-                      	return;
-                    }
-                    
-	                // if the user do not exist, register the user
-	                if ( !docs.length )
-	                {
-	                	data.timestamp = new Date().getTime();
-	                	data.active = true;
-	                    // insert new user to users collection 
-	                    collection.insert( data, { upsert : true, safe : true , fsync : true }, function( err, result ) 
-	                    {
-	                    	// failure during insertion of new user
-	                        if (err) 
-	                        {
-	                         	console.log("failure during insertion of new user, the error: ", err);
-	                         	r.uid = 0;
-	                          	r.status = 0;
-	                          	r.desc = "failure during insertion of new user";
-	                         	res.send((JSON.stringify(r)));	//TODO. res.json
-	                          	return;
-	                        }
-	                        else
-	                        {
-		                        console.log("user: " + data.email + " has completed successfully.");
-		                        r.uid = data.email;				//TODO. remove
-		                        r.status = 1;
-		                        r.active = true;				//TODO. remove
-		                        r.desc = "user: " + data.email + " has completed successfully.";
-		                        db.close();						//TODO. remove
-		                        res.send((JSON.stringify(r)));	//TODO. res.json	                        	
-	                        }
-	                    });
-	                }
-	                // the user exists, function returns 0 (failure)
-					else 
-					{
-						console.log("user: " + data.email + " already exists in the system.");
-						r.uid = data.email;
-						r.info = docs[0];					
-						r.status = 2;
-						r.desc = "user: " + data.email + " already exists in the system.";
-						db.close();							//TODO. remove
-						res.send((JSON.stringify(r)));		//TODO. res.json
-					}
-	            });
-	        });
-		}
-        else 	// if data.email was not received or empty
-        {
-            r.status = 0;	
-            r.desc = "request must contain a property email";
-            res.send((JSON.stringify(r)));   //TODO. res.json  
-        }
-    // if the data parsing failed
     }
-    catch( err )
+     catch( err )
     {
   		console.log("failure while parsing the request, the error:" + err);
     	r.status = 0;
     	r.desc = "failure while parsing the request";
-    	res.send((JSON.stringify(r)));		//TODO. res.json
+    	res.json(r);
+    	return;
     }
+    if ( !data.email && data.email == "" && !data.org && data.org == "" )	// if data.email and data.org property exists in the request is not empty
+    {
+    	r.status = 0;	
+        r.desc = "request must contain a property email";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').find( { email : data.email },
+    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
+    function (err, result)
+    {
+    	// failure during user search
+        if (err) 
+        {
+         	console.log("failure during user search, the error: ", err);
+         	r.uid = 0;
+          	r.status = 0;
+          	r.desc = "failure during user search";
+         	res.json(r);	
+          	return;
+        }
+        
+        // if the user do not exist, register the user
+        if (!result.length)
+        {
+        	//console.log("result ",result)
+        	data.timestamp = new Date().getTime();
+        	data.active = true;
+        	
+        	console.log("register new user "+data.email)
+            // insert new user to users collection 
+            var newUser =  new Users(data);
+			newUser.save(function (err) {
+			  	// saved!
+			  	// failure during insertion of new user
+                if (err) 
+                {
+                 	console.log("failure during insertion of new user, the error: ", err);
+                 	r.uid = 0;
+                  	r.status = 0;
+                  	r.desc = "failure during insertion of new user";
+                 	res.json(r);
+                  	return;
+                }
+                else
+                {
+                    console.log("user: " + data.email + " has completed successfully.");
+                    r.uid = data.email;
+                    r.status = 1;
+                    r.desc = "user: " + data.email + " has completed successfully.";
+                    res.json(r);
+                    return;	                        	
+                }
+			});
+			
+        }
+		else // the user exists, function returns 2 (exist)
+		{
+			console.log("user: " + data.email + " already exists in the system.");
+			r.uid = data.email;
+			r.info = result[0];					
+			r.status = 2;
+			r.desc = "user: " + data.email + " already exists in the system.";
+			res.json(r);
+			return;
+		}
+    });
+
 });
 
 /* /users/getUser -- precondition
@@ -149,82 +132,61 @@ router.post("/users/getUser", function( req, res )
     try
     {
         //try to parse json data
-        var data = req.body; 
-        
-        // check if the field email exist and not empty
-        if ( data.email && data.email != "" )
-        {
-	        // try to connect to mongodb
-	        MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) 
-	        {
-	            // if mongodb connection failed, return error message and exit
-	            if (err) 
-	            {               
-	                console.log("MongoLab connection error: ", err);
-	           	 	r.uid = 0;							//TODO. res.json
-	            	r.status = 0;
-	            	r.desc = "failed to connect to MongoLab.";
-	            	res.send((JSON.stringify(r)));		//TODO. res.json
-	            	return;
-	            }
-	            
-	            // if mongodb connection success asking for users collection
-	            var collection = db.collection('users');
-	            
-	            // try to find user id 
-	            collection.find( { email : data.email },{_id:false, active:false,timestamp:false} ).toArray( function( err, docs ) 
-	            {
-	            	// failure during user search
-	                if (err) 
-	                {
-	                 	console.log("failure during user search, the error: ", err);
-	                 	r.uid = 0;
-	                  	r.status = 0;
-	                  	r.desc = "failure during user search";
-	                 	res.send((JSON.stringify(r)));	//TODO. res.json
-	                  	return;
-	                }
-	                
-	                // if the user do not exist, return 0 (failure)
-	                if (!docs.length) 
-	                {
-						console.log("user: " + data.email + " do not exist in the system.");
-						r.uid = data.email;					//TODO. remove
-						r.status = 0;
-						r.desc = "user: " + data.email + " do not exist in the system.";
-						db.close();							//TODO. remove
-						res.send((JSON.stringify(r)));		//TODO. res.json
-	                }
-	                // if the user exists
-	                else 
-	                {
-	                	
-	                    // set all user's indo			
-	                    r.info = docs[0];
-	                    r.status = 1;
-						r.desc = "user: " + data.email + " was found in the system.";
-						db.close();							//TODO. remove
-						res.send((JSON.stringify(r)));		//TODO. res.json
-	                 }
-	            });
-	        });
-       	}
-        // if data.email not exist or empty
-        else
-        {
-            r.status = 0;	
-            r.desc = "request must contain a property email";
-            res.send((JSON.stringify(r)));   //TODO. res.json     
-        }
-    // if the parsing failed
+    	var data = req.body;
     }
-    catch( err )
+     catch( err )
     {
   		console.log("failure while parsing the request, the error:" + err);
     	r.status = 0;
     	r.desc = "failure while parsing the request";
-    	res.send((JSON.stringify(r)));		//TODO. res.json
-    }   
+    	res.json(r);
+    	return;
+    }
+    if ( !data.email && data.email == "" )	// if data.email property exists in the request is not empty
+    {
+    	r.status = 0;	
+        r.desc = "request must contain a property email";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').find( { email : data.email },
+    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
+    function (err, result)
+    {
+    	// failure during user search
+        if (err) 
+        {
+         	console.log("failure during user search, the error: ", err);
+         	r.uid = 0;
+          	r.status = 0;
+          	r.desc = "failure during user search";
+         	res.json(r);	
+          	return;
+        }
+        
+        // if the user do not exist, register the user
+        if (result.length)
+        {
+        	console.log("user: " + data.email + " already exists in the system.");
+			r.uid = data.email;
+			r.info = result[0];					
+			r.status = 2;
+			r.desc = "user: " + data.email + " already exists in the system.";
+			res.json(r);
+			return;
+			
+        }
+		else // the user not exist, function returns 0
+		{
+			console.log("user: " + data.email + " not exist in the system.");
+			r.uid = data.email;
+			r.status = 0;
+			r.desc = "user: " + data.email + " not exist in the system.";
+			res.json(r);
+			return;
+		}
+    });   
 });
 
 /* /users/getActiveUsers -- precondition
@@ -241,86 +203,65 @@ router.post("/users/getUser", function( req, res )
 */
 router.post("/users/getActiveUsers", function( req, res ) 
 {
+
 	var r = { };
 	
     try
     {
         //try to parse json data
-        var data = req.body;
-        
-        // check if the field email exist and not empty
-        if ( data.org && data.org != "")
-        {
-	        // try to connect to mongodb
-	        MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) 
-	        {
-	            // if connection failed
-	            if (err) 
-	            {
-	                console.log("MongoLab connection error: ", err);
-	                r.uid = 0;
-	                r.status = 0;
-	                r.desc = "failed to connect to MongoLab.";
-	                res.send((JSON.stringify(r)));
-	                return;
-	            }
-	            
-	            // ask for users collection
-	            var collection = db.collection('users');
-	            
-	            // try to find user id 
-	            collection.find( { org : data.org, active : true } , {_id:false, active:false,timestamp:false} ).toArray( function( err, docs ) 
-	            {
-	            	// failure during user search
-	                if (err) 
-	                {
-	                 	console.log("failure during user search, the error: ", err);
-	                 	r.uid = 0;
-	                  	r.status = 0;
-	                  	r.desc = "failure during user search";
-	                 	res.send((JSON.stringify(r)));	//TODO. res.json
-	                  	return;
-	                }
-		                
-	                // no documents found
-	                if ( !docs.length ) 
-	                {
-	                    console.log("no active users were find in this: " + data.org + " ogranization.");
-	                    r.status = 0;
-	                    r.desc = "no active users were find in this: " + data.org + " ogranization.";
-	                    res.json(r);
-	                    return; 
-	                }
-	                else
-	                {
-	                    console.log("active users: " + docs + " were found in this: " + data.org + " organization.");
-	                    r.status = 1;
-	                    // set all found active users 
-	                    r.users = docs;
-	                    r.desc = "active users were find in this: " + data.org + " ogranization.";
-	                    db.close();						// TODO. remove
-	                    res.send((JSON.stringify(r)));	// TODO. res.json(r);		                	
-	                }                
-	                 
-	                 
-	            });
-	        });
-	    }
-        // if data.org not exist or empty
-        else
-        {
-            r.status = 0;	
-            r.desc = "request must contain a property org";
-            res.send((JSON.stringify(r)));   //TODO. res.json      
-        }
-    // if the parsing failed
+    	var data = req.body;
     }
-    catch(err)
+     catch( err )
     {
-        r.status=0;
-        r.desc="data error";
-        res.send((JSON.stringify(r)));
-    }  
+  		console.log("failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    if ( !data.org && data.org == "" )	// if data.org property exists in the request is not empty
+    {
+    	r.status = 0;	
+        r.desc = "request must contain a property org";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').find( { org : data.org, active : true },
+    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
+    function (err, result)
+    {
+    	// failure during user search
+        if (err) 
+        {
+         	console.log("failure during user search, the error: ", err);
+         	r.uid = 0;
+          	r.status = 0;
+          	r.desc = "failure during user search";
+         	res.json(r);	
+          	return;
+        }
+        
+        // if the user do not exist, register the user
+        if (result.length)
+        {
+        	console.log("active users: " + result + " were found in this: " + data.org + " organization.");
+            r.status = 1;
+            r.users = result;
+            r.desc = "active users were find in this: " + data.org + " ogranization.";
+            res.json(r);
+			return;
+			
+        }
+		else // the user not exist, function returns 0
+		{
+			console.log("no active users were find in this: " + data.org + " ogranization.");
+            r.status = 0;
+            r.desc = "no active users were find in this: " + data.org + " ogranization.";
+            res.json(r);
+			return;
+		}
+    }); 
 });
 
 /* /users/updateUser -- precondition
@@ -338,106 +279,64 @@ router.post("/users/getActiveUsers", function( req, res )
 */
 router.post("/users/updateUser", function(req, res) 
 {
+
 	var r = { };
 	
     try
     {
         //try to parse json data
-        var data = req.body; 
-        
-        // check if the field email exist and not empty
-        if ( data.email && data.email != "")
-        
-        // connect to mongodb 
-        MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) 
-        {          
-            // if connection failed
-            if (err) 
-            {
-                console.log("MongoLab connection error: ", err);
-                r.uid = 0;
-                r.status = 0;
-                r.desc = "failed to connect to MongoLab.";
-                res.send((JSON.stringify(r)));
-                return;
-            }
-            
-            // if mongodb connection success asking for users collection
-            var collection = db.collection('users');
-            
-            // find user id from users collection
-            collection.find( { email : data.email } ).toArray( function ( err, docs ) // TODO. Replace with findAndModify
-            {
-            	// failure during user search
-                if (err) 
-                {
-                 	console.log("failure during user search, the error: ", err);
-                 	r.uid = 0;
-                  	r.status = 0;
-                  	r.desc = "failure during user search";
-                 	res.send((JSON.stringify(r)));	//TODO. res.json
-                  	return;
-                }
-                
-                // if the user do not exist, return 0 (failure)
-                if (!docs.length) 
-                {
-					console.log("user: " + data.email + " do not exist in the system.");
-					r.uid = data.email;					//TODO. remove
-					r.status = 0;
-					r.desc = "user: " + data.email + " do not exist in the system.";
-					db.close();							//TODO. remove
-					res.send((JSON.stringify(r)));		//TODO. res.json
-                }
-             
-                // if the user exist update the user data
-                else
-                {
-                	data.timestamp = new Date().getTime();
-                	// update user info
-                     collection.update( { email : data.email }, { $set : data }, { upsert : true, safe : true, fsync : true}, function( err, result ) 
-                     {  
-						// failure while updating user document
-		                if (err) 
-		                {
-		                    console.log("filure while updating user info, the error: ", err);
-		                    r.uid = 0;							// TODO. remove
-		                    r.status = 0;
-		                    r.desc = "filure while updating user info.";
-		                    res.send((JSON.stringify(r)));
-		                    return;
-		                }
-		                else
-		                {
-	                        console.log("user: " +  data.email + " was updated successfully.");
-	                        r.uid=data.email;					// TODO. remove
-	                        r.status = 1;
-	                        r.desc = "user: " +  data.email + " was updated successfully.";
-	                        db.close();							// TODO. remove
-	                        res.send((JSON.stringify(r)));		//TODO. res.json	                	
-		                }
-                     });
-                 }
-            });
-        });
-        // if data.email not exist or empty
-        else
-        { 
-            r.status = 0;	
-            r.desc = "request must contain a property email";
-            res.send((JSON.stringify(r)));   //TODO. res.json       
-        }
+    	var data = req.body;
     }
-    // if the data parsing has failed
-    catch(err)
+     catch( err )
     {
   		console.log("failure while parsing the request, the error:" + err);
     	r.status = 0;
     	r.desc = "failure while parsing the request";
-    	res.send((JSON.stringify(r)));		//TODO. res.json
+    	res.json(r);
+    	return;
     }
+    if ( !data.email && data.email == "" )	// if data.email property exists in the request is not empty
+    {
+    	r.status = 0;	
+        r.desc = "request must contain a property org";
+        res.json(r); 
+        return;
+    }
+
+	db.model('users').findOneAndUpdate({email: data.email}, data , {upsert:false},
+    function (err, result)
+    {
+    	console.log(result)
+    	// failure during user search
+        if (err) 
+        {
+         	console.log("failure during user search, the error: ", err);
+         	r.uid = 0;
+          	r.status = 0;
+          	r.desc = "failure during user search";
+         	res.json(r);	
+          	return;
+        }
+        else if (result)
+        {
+        	console.log("updated user: " + data.email);
+            r.status = 1;
+            r.desc = "updated user successfully";
+            res.json(r);
+			return;
+			
+        }
+        else
+        {
+        	console.log("user was not found: " + data.email);
+            r.status = 0;
+            r.desc = "user was not found";
+            res.json(r);
+			return;
+			
+        }
+		
+    }); 
 });
-
-
 
 module.exports = router;

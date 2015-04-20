@@ -5,8 +5,19 @@ var usersSchema = new Schema(
 	{
 		email : String,
 		org : String,
-		active : Boolean
-		
+		name: { type : String , "default" : '' },
+		lastName: { type : String , "default" : '' },
+		image:{ type : String , "default" : '' },
+		active : Boolean,
+		timestamp: Number,
+		favorites:  [{
+		 name : String,description:String, participants:{ type : Array , "default" : [] }, owner:String,course:String,
+         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, title:String, views:Number , "default" : [] 
+		}],
+		owner:  [{
+		 name : String,description:String, participants:{ type : Array , "default" : [] }, owner:String,course:String,
+         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, title:String, views:Number , "default" : [] 
+		}]
 	});
 	
-mongoose.model('users', usersSchema);
+Users = mongoose.model('users', usersSchema);
