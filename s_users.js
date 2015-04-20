@@ -41,7 +41,7 @@ router.post("/users/registerUser", function(req, res)
     	res.json(r);
     	return;
     }
-    if ( !data.email && data.email == "" && !data.org && data.org == "" )	// if data.email and data.org property exists in the request is not empty
+    if ( !data.email || data.email == "" || !data.org || data.org == "" )	// if data.email and data.org property exists in the request is not empty
     {
     	r.status = 0;	
         r.desc = "request must contain a property email";
@@ -73,7 +73,7 @@ router.post("/users/registerUser", function(req, res)
         	
         	console.log("register new user "+data.email)
             // insert new user to users collection 
-            var newUser =  new Users(data);
+            var newUser =  new User(data);
 			newUser.save(function (err) {
 			  	// saved!
 			  	// failure during insertion of new user
@@ -109,7 +109,6 @@ router.post("/users/registerUser", function(req, res)
 			return;
 		}
     });
-
 });
 
 /* /users/getUser -- precondition
@@ -142,7 +141,7 @@ router.post("/users/getUser", function( req, res )
     	res.json(r);
     	return;
     }
-    if ( !data.email && data.email == "" )	// if data.email property exists in the request is not empty
+    if ( !data.email || data.email == "" )	// if data.email property exists in the request is not empty
     {
     	r.status = 0;	
         r.desc = "request must contain a property email";
@@ -219,7 +218,7 @@ router.post("/users/getActiveUsers", function( req, res )
     	res.json(r);
     	return;
     }
-    if ( !data.org && data.org == "" )	// if data.org property exists in the request is not empty
+    if ( !data.org || data.org == "" )	// if data.org property exists in the request is not empty
     {
     	r.status = 0;	
         r.desc = "request must contain a property org";
@@ -295,7 +294,7 @@ router.post("/users/updateUser", function(req, res)
     	res.json(r);
     	return;
     }
-    if ( !data.email && data.email == "" )	// if data.email property exists in the request is not empty
+    if ( !data.email || data.email == "" )	// if data.email property exists in the request is not empty
     {
     	r.status = 0;	
         r.desc = "request must contain a property org";

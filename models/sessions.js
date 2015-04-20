@@ -3,37 +3,40 @@ var Schema = mongoose.Schema;
 
 var sessionsSchema = new Schema( 
 {
-	sessionId : Number,
-	name : String,			//Should not be named title???
-	description : String,
-	lecturer : String,
-	degreeId : Number,
-	courseId : Number,
-	degree : String,
-	course : String,
-	owner : String,
-	recordStarts : Boolean,	//TODO. change the property, so we could understand what it is related to....
-	startTime: Number,
-	stopTime: Number,
-	totalSecondLength : Number,		//TODO. length of what???
+	sessionId : String,
+	org : String,
+	name :  { type : String , default : '' },
+	description : { type : String , default : '' },
+	lecturer : { type : String , default : '' },
+	degreeId : { type : Number , default : 0 },
+	courseId : { type : Number , default : 0 },
+	degree : { type : String , default : '' },
+	course : { type : String , default : '' },
+	owner : { type : String , default : '' },
+	recordStarts : { type : Boolean , default : false },
+	startTime: { type : Number , default : 0 },
+	stopTime:  { type : Number , default : 0 },
+	totalSecondLength : { type : Number , default : 0 },
 	rating : {
     	positive : {
-        	value : Number,
-        	users : { type : Array , "default" : [] }
+        	value :  { type : Number , default : 0 },
+        	users : { type : Array , default : [] }
     },
     	negative : {
-        	value : Number,
-        	users : { type : Array , "default" : [] }
+        	value : { type : Number , default : 0 },
+        	users : { type : Array , default : [] }
     	}
 	},
-	participants :  { type : Array , "default" : [] },
-	audios : [ { lenght : Number, email : String, url : String, startAt : Number } ],
-	elements : {},			//TODO. Add properties here
-	views : Number,
-	active : Boolean,		//TODO. what is it for?
-	public : Boolean,
-	timestamp : Number		//TODO. what is it for?
-	
+	participants :  { type : Array , default : [] },
+	audios : [ { lenght : Number, email : String, url : String, startAt : Number ,  default : [] } ],
+	elements : {
+		tags : { type : Array , default : [] },
+		images : { type : Array , default : [] }
+	},
+	views : { type : Number , default : 0 },
+	active : { type : Boolean , default : true },
+	public :{ type : Boolean , default : true },
+	timestamp : Number
 });
 	
-mongoose.model('sessions', sessionsSchema);
+Session = mongoose.model('sessions', sessionsSchema);

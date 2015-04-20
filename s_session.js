@@ -44,165 +44,87 @@ router.get('/session', function( req, res )
 router.post('/session/createSession', function( req, res ) 
 {
 	// create timestamp and uniqeid
-  	var date = new Date().getTime();
+  var date = new Date().getTime();
  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-  	var uniqueid = date + userip;
-  	var r = { };
-  	
-	try 
-	{
-	    // try to parse the json data
-	    var data = req.body;
-		console.log("email is: " + req.body.email);
-	      
-		if ( data.email && data.email != "" )		// if data.email property exists in the request is not empty
-		{ 
-			// connect to mongodb
-			MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) 	//TODO. REMOVE
-			{
-				console.log("Trying to connect to db.");
-			
-			    // if connection failed
-			    if (err) 
-			    {
-			        console.log("MongoLab connection error: ", err);
-			        r.uid = 0;
-			        r.status = 0;
-			        r.desc = "failed to connect to MongoLab.";
-			        res.send((JSON.stringify(r)));
-			        return;
-			    }
-            
-            // get users collection 
-			var collection = db.collection('users');
-            
-            collection.find( { email : data.email } ).toArray( function (err, docs) 
-            {
-               	console.log("Trying to find the user in the db.");
-            	
-                // failure while connecting to users collection
-                if (err) 
-                {                
-                    console.log("filure while searching for a user, the error: ", err);
-                    r.uid = 0;
-                    r.status = 0;
-                    r.desc = "filure while searching for a user.";
-                    res.send((JSON.stringify(r)));
-                    return;
-                }
+	var uniqueid = date + userip;
+	var r = { };
+  
+  try
+  {
+    //try to parse json data
+    var data = req.body;
+  }
+   catch( err )
+  {
+    console.log("failure while parsing the request, the error:" + err);
+    r.status = 0;
+    r.desc = "failure while parsing the request";
+    res.json(r);
+    return;
+  }
+  if ( !data.email || data.email == "" || !data.org || data.org == "" ) // if data.email and data.org property exists in the request is not empty
+  {
+    r.status = 0; 
+    r.desc = "request must contain a property email";
+    res.json(r); 
+    return;
+  }
 
-                // the user do not exist
-                if ( !docs.length ) 
-                {              
-                    console.log("user: " + data.email + " do not exist.");
-                    r.uid = 0;
-                    r.status = 0;
-                    r.desc = "user: " + data.email + " was not found.";
-                    res.send((JSON.stringify(r)));
-                    return; 
-                }
-
-                // get session collection (only if the user exists)
-                var collection = db.collection('sessions');
-                
-                collection.find( { sessionId : uniqueid } ).toArray(function (err, docs) 
-                {
-                	console.log("Trying to find the session in the db.");
-                	
-                    // failure while connecting to session collection 
-                    if (err)
-                    { 
-                      console.log("filure while searching for a session, the error: ", err);
-                      r.uid = 0;
-                      r.status = 0;
-                      r.desc = "filure while searching for a session";
-                      res.send((JSON.stringify(r)));
-                      return;
-                    }
-                    
-                    // if the session exists 
-                    if ( docs.length )
-                        // create another session id because the last one was taken
-                        uniqueid += new Date().getTime();
-                    
-                    // set session id  
-                    data.sessionId = uniqueid;
-                    
-                    // set session owner
-                    data.owner = data.email;
-                    data.totalSecondLength = 0;
-                    data.rating = 
-                    {
-                      	positive : 
-                      	{
-                        	value : 0,
-                        	users : []	//<<---shouldn't we call them voters?
-                      	},
-                      	negative : 
-                      	{
-                        	value : 0,
-                        	users : []	//<<---shouldn't we call them voters?
-                      	},
-                    };
-                    data.participants = []; // strings
-                    data.audios = []; // {email, url, length, startAt}
-                    data.elements = {
-                        	//time : { // integer
-                            	tags : [], // {timestamp, email, text, rating {positive:{ users[] , rate},negative:{ users[], rate} } }
-                            	images : [] // {timestamp, email, url}
-                        	//}
-                      	};
-                    data.views = 0;
-                    data.recordStarts = false;
-                    data.active = true;
-                    data.public = false;
-                    data.timestamp = date;
-                    delete data.email;
-
-                    // insert new session into db
-                    collection.insert( data, {upsert:true, safe:true , fsync: true}, function( err, result ) 
-                    {
-                    	console.log("Trying to insert new session into the db.");
-                        // failure during insertion of new session
-                        if (err) 
-                        {
-                         	console.log("failure during insertion of new session, the error: ", err);
-                         	r.uid = 0;
-                          	r.status = 0;
-                          	r.desc = "failure during insertion of new session";
-                         	res.send((JSON.stringify(r)));
-                          	return;
-                        }
-
-			          	// succeeded to insert new session
-                        console.log("new session: " + result + " was created.");
-                        r.sessionId = uniqueid;
-                        r.timestamp = date;
-                        r.owner = data.owner;
-                        r.status = 1;
-                        r.desc = "new session: " + uniqueid + " was created.";
-                        db.close();		//TODO. REMOVE 
-                        res.send((JSON.stringify(r)));
-                    });
-                });
-            });
+  db.model('users').find( { email : data.email },
+  { _id:false },
+  function (err, result)
+  {
+    // failure during user search
+    if (err) 
+    {
+      console.log("failure during user search, the error: ", err);
+      r.uid = 0;
+      r.status = 0;
+      r.desc = "failure during user search";
+      res.json(r);  
+        return;
+    }
+    
+    // if the user do not exist, register the user
+    if (!result.length)
+    {
+      console.log("the user does not exist: "+data.email);
+      r.uid = 0;
+      r.status = 0;
+      r.desc = "the user does not exist: "+data.email;
+      res.json(r);
+      return;
+    }
+    else{
+        data.sessionId = uniqueid;
+        data.owner = data.email;
+        date.timestamp = date;
+        delete data.email;
+        var newSession =  new Session(data);
+        newSession.save(function (err) {
+          if (err) 
+          {
+            console.log("failure during insertion of new session, the error: ", err);
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "failure during insertion of new session";
+            res.json(r);
+            return;
+          }
+          else
+          {
+              console.log("session: " + data.sessionId + " has completed successfully.");
+              r.sessionId = data.sessionId;
+              r.timestamp = date;
+              r.owner = data.owner;
+              r.status = 1;
+              r.desc = "session: " + data.sessionId + " has completed successfully.";
+              res.json(r);
+              return;                           
+          }
         });
-      } 
-      else	// if data.email does not exist or empty
-      {	
-          console.log("data.email propery does not exist in the query or it is empty");
-          r.status = 0;
-          r.desc = "data.email propery does not exist in the query or it is empty";
-          res.send((JSON.stringify(r)));     
       }
-  	} // if the json data parsing failed
-	catch(err)
-  	{
-  		console.log("failure while parsing the request, the error:", err);
-    	r.status = 0;
-    	r.desc = "failure while parsing the request";
-    	res.send((JSON.stringify(r)));
-  	}
+  });
 });
 
 
