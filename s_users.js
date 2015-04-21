@@ -164,14 +164,14 @@ router.post("/users/getUser", function( req, res )
           	return;
         }
         
-        // if the user do not exist, register the user
+        
         if (result.length)
         {
-        	console.log("user: " + data.email + " already exists in the system.");
+        	console.log("user: " + data.email + " exists in the system.");
 			r.uid = data.email;
 			r.info = result[0];					
-			r.status = 2;
-			r.desc = "user: " + data.email + " already exists in the system.";
+			r.status = 1;
+			r.desc = "user: " + data.email + " exists in the system.";
 			res.json(r);
 			return;
 			
