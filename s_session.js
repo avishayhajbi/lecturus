@@ -85,7 +85,7 @@ router.post('/session/createSession', function( req, res )
         return;
     }
     
-    // if the user do not exist, register the user
+    // if the user do not exist
     if (!result.length)
     {
       console.log("the user does not exist: "+data.email);
@@ -249,9 +249,10 @@ router.post("/session/getUserSessions", function( req, res)
 */
 router.post("/session/addMembers", function(req, res ) 
 {  	
+    // TODD change all participants to json object with user: email , image:imageUrl
   	 //create new empty variables
   	var newParticipants = Array();
-  	var oldParticipants, data;
+  	var oldParticipants, data; 
 	var r = { };	//response object	
   		        	
 	try

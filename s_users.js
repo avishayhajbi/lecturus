@@ -150,7 +150,7 @@ router.post("/users/getUser", function( req, res )
     }
 
     db.model('users').find( { email : data.email },
-    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
+    { _id:false ,name:true, lastName:true, image:true, email:true },
     function (err, result)
     {
     	// failure during user search
@@ -227,7 +227,7 @@ router.post("/users/getActiveUsers", function( req, res )
     }
 
     db.model('users').find( { org : data.org, active : true },
-    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
+    { _id:false ,name:true, lastName:true, image:true, email:true },
     function (err, result)
     {
     	// failure during user search
