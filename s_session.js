@@ -257,10 +257,9 @@ router.post("/session/addMembers", function(req, res )
   		        	
 	try
   	{
-       console.log(req.body)
         // try to parse the json data
         data = req.body;
-        newParticipants = data.participants;
+        newParticipants = data.participants; // participans = array
        
         if ( newParticipants.length == 0 )
         {
@@ -326,7 +325,7 @@ router.post("/session/addMembers", function(req, res )
 	                else
 	                {
 	                	// there is only one session with this sessionId
-	                	
+	                	//oldParticipants = docs[0].participants; //TODO. check this and remove forEach loop
         				(docs).forEach (function (currDoc) 
 						{
 						  	console.log("session participants: " + currDoc.participants);
@@ -524,9 +523,10 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
  *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
  * 
  * /session/updateSessionStatus -- example
- *  sessionId	  1427559374447127001
+ *  sessionId	  	1427559374447127001
  *  email		    somemail1@gmail.com	
- *	status	    0 (stop) or 1 (start)
+ *	status	    	0 (stop) or 1 (start)
+ * 	timestamp		1023103210
 */
 router.post("/session/updateSessionStatus", function(req, res ) 
 {
@@ -534,198 +534,227 @@ router.post("/session/updateSessionStatus", function(req, res )
 	var reqOwner, reqSession, reqStatus;	//temporary variables
 	var r = { };							//response object	
   		        	
-  try
-  {
-    // try to parse the json data
-    reqSession = req.body.sessionId;
-    reqOwner = req.body.email;
-    reqStatus = req.body.status;
-               
-      if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
-      {
-      	console.log("Owner is: " + reqOwner);
-      	console.log("Session id is: " + reqSession);
-      	console.log("Session status is: " + reqStatus);
-      	
-        // connect to mongodb
-        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-  			{
-  				console.log("Trying to connect to the db.");
-  		            
-          // if connection failed
-          if (err) 
-          {
-              console.log("MongoLab connection error: ", err);
-              r.uid = 0;
-              r.status = 0;
-              r.desc = "failed to connect to MongoLab.";
-              res.send((JSON.stringify(r)));
-              return;
-          }
-          
-          // get sessions collection 
-          var collection = db.collection('sessions');
-          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.	                
-  				
-          collection.find( { sessionId:reqSession }).toArray(function (err, docs)
-          { 
-            // failure while connecting to sessions collection
-            if (err) 
-            {
-                console.log("failure while trying close session, the error: ", err);
-                r.status = 0;
-                r.desc = "failure while trying close session.";
-                res.send((JSON.stringify(r)));
-                return;
-            }
-            else
-            {
-              if (docs.length)
-              {
-                // elements:closeSessionFunction(docs[0].elements)
-                  collection.update( { 
-                  $and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
-                  { $set : { recordStarts : reqStatus , elements: (reqStatus==1) ? closeSessionFunction(docs[0].elements) : docs[0].elements } }, function( err, result ) 
-                  { 
-                  // failure while connecting to sessions collection
-                    if (err) 
-                    {
-                        console.log("failure while update session status, the error: ", err);
-                        r.uid = 0;
-                        r.status = 0;
-                        r.desc = "failure while update session status.";
-                        res.send((JSON.stringify(r)));
-                        return;
-                    }
-                    
-                    if (result === 0)
-                    {
-                        console.log("failed to find suitable session, the error: ", err);
-                        r.uid = 0;
-                        r.status = 0;
-                        r.desc = "failed to find suitable session.";
-                        res.send((JSON.stringify(r)));
-                        return;
-                    }
-                    else
-                    {
-                          console.log("session status was updated, the result is: " + result);
-                          r.status = 1;
-                          r.desc = "session status was updated.";
-                          db.close();   /* TODO REMOVE */
-                          res.send((JSON.stringify(r)));                      
-                    }
-                });
-              }
-            }
-          });                  
-  			});
-  		}
-  		else
-  		{
-        console.log("data.sessionId propery does not exist in the query or it is empty");
+  	try
+  	{
+    	// try to parse the json data
+    	reqSession = req.body.sessionId;
+    	reqOwner = req.body.email;
+    	reqStatus = req.body.status;
+    	reqTimestamp = req.body.timestamp;
+   	}
+	catch(err)
+	{
+	 	console.log("UPDATESESSIONSTATUS:failure while parsing the request, the error:", err);
+	    r.status = 0;
+	    r.desc = "failure while parsing the request";
+	    res.json(r);
+	    return;
+	} 
+	              
+	if (  	typeof reqSession === 'undefined' || reqSession == null || reqSession == "" ||
+			typeof reqOwner === 'undefined' || reqOwner == null || reqOwner == "" ||
+			typeof reqTimestamp === 'undefined' || reqTimestamp == null || reqTimestamp == "" ||
+			typeof reqStatus === 'undefined' || reqStatus == null || reqStatus == ""	)	// if one of the property do not exists in the request and it is empty
+    {
+        console.log("UPDATESESSIONSTATUS:request must contain following properties: sessionId, email, status and timestamp.");
         r.status = 0;
-        r.desc = "data.sessionId propery does not exist in the query or it is empty";
-        res.send((JSON.stringify(r)));  
-        return;			
-		}
-	}	                        
-  catch(err)
-  {
-  	console.log("failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.send((JSON.stringify(r)));
-    return;
-  }                   
-});
-
-/* /session/stopRecording -- precondition
- * json data with sessionId, email, recording true/fale, timestamp
- *
- * /session/updateSessionStatus -- postcondition
- *  This function will return json with status: 1 = success / 0 = failure.
- *
- * /session/stopRecording -- description
- *  1.store the information inside mongodb session collection like session.recordStarts 
- *  2.and updating the images and tags array to be like they should be.
- *  3.manage elements order by timestamp for the website audio query
- *
- * /session/updateSessionStatus -- example
- * sessionId  123
- * email      user@user.com
- * recording  true/fale
- * timestamp  13245679
- *
-*/
-router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
-{
-	var sessionId = req.body.sessionId;
-	var userip = req.connection.remoteAddress.replace(/\./g , '');
-	var uniqueid = new Date().getTime()+userip;
-  
-  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-  {
-      console.log("Trying to connect to the db.");
-      var r ={};              
-      // if connection failed
-      if (err) 
-      {
-          console.log("MongoLab connection error: ", err);
-          r.uid = 0;
-          r.status = 0;
-          r.desc = "failed to connect to MongoLab.";
-          res.send((JSON.stringify(r)));
-          return;
-      }
-      console.log(JSON.stringify(sessionId))
-      // get sessions collection 
-      var collection = db.collection('sessions');
-      //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-      collection.find( { sessionId:sessionId }).toArray(function (err, docs)
-      { 
-        // failure while connecting to sessions collection
+        r.desc = "request must contain following properties: sessionId, email, status and timestamp.";
+        res.json(r);  
+        return;	
+ 	}
+	
+	// TODO. remove 
+  	console.log("session owner is: " + reqOwner);
+  	console.log("Session id is: " + reqSession);
+  	console.log("Session status is: " + reqStatus);
+  	console.log("Session timestamp is: " + reqTimestamp);  
+ 
+    db.model('sessions').findOne( { sessionId : reqSession },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+    	//console.log("result: " + result);
         if (err) 
         {
-            console.log("failure while trying close session, the error: ", err);
+         	console.log("UPDATESESSIONSTATUS:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was not found");
             r.status = 0;
-            r.desc = "failure while trying close session.";
-            res.send((JSON.stringify(r)));
-            return;
+            r.desc = "session: " + reqSession + " was not found";
+            res.json(r);
+			return;
         }
         else
         {
-          if (docs.length)
-            collection.update({sessionId:sessionId},{ $set : {elements:closeSessionFunction(docs[0].elements)} }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                console.log("session closed");
-                r.status=1;
-                r.desc="session closed";
-                db.close(); /* TODO REMOVE */
-                res.send((JSON.stringify(r)))
-             });
+        	if (result.owner == reqOwner )
+        	{
+				if (reqStatus == 1)
+				{
+					if (result.startTime != 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not restart session: " + reqSession);
+			          	r.status = 0;
+			          	r.desc = "can not restart session: " + reqSession;
+			         	res.json(r);	
+			          	return; 						
+					}
+					getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
+					result.recordStarts = true;
+					result.startTime = reqTimestamp;
+	        		result.save(function(err, obj) 
+        			{ 
+		    			if (err)
+		    			{
+		        			console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				          	r.status = 0;
+				          	r.desc = "failure session save";
+				         	res.json(r);	
+				          	return;     			
+		    			}
+		    			
+		    			//console.log("obj is: " + obj); object after the update
+		 	        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
+			            r.status = 1;
+			            r.desc = "session: " + reqSession + " was started successfully.";
+			            res.json(r);
+						return; 
+        			}); 
+				}
+				if (reqStatus == 0)
+				{
+					if (result.startTime == 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
+			          	r.status = 0;
+			          	r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
+			         	res.json(r);	
+			          	return; 						
+					}
+					if (result.stopTime != 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
+			          	r.status = 0;
+			          	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
+			         	res.json(r);	
+			          	return; 						
+					}
+					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
+					result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
+					result.stopTime = reqTimestamp;
+	        		result.save(function(err, obj) 
+        			{ 
+		    			if (err)
+		    			{
+		        			console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				          	r.status = 0;
+				          	r.desc = "failure session save";
+				         	res.json(r);	
+				          	return;     			
+		    			}
+		    			
+		    			//console.log("obj is: " + obj); object after the update
+		 	        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
+			            r.status = 1;
+			            r.desc = "session: " + reqSession + " was stopped successfully.";
+			            res.json(r);
+						return; 
+        			}); 					
+				}
+        	}
+        	else
+        	{
+	        	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
+	            r.status = 0;
+	            r.desc = "user: " + reqOwner + " is not a session owner.";
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPDATESESSIONSTATUS:result: " + result);
         }
-      });         
-  }); 
-  	
+    });                 	              
 });
 
 /*
- * create the session format as the client want
+ * This function will create a ;ist of user friends from the session participants.
 */
-function closeSessionFunction(elements){
-  var elemTemp={};
-  (elements.tags).forEach (function (tag) 
-  {
-      if (elemTemp[tag.timestamp])
-        elemTemp[tag.timestamp].tags.push(tag)
-      else
-      {
-        elemTemp[tag.timestamp]={
-          tags:[tag]
+function getUserFriends( owner, participants )
+{
+	var friends = new Array(), tempFriends = new Array();
+	console.log("owner is: " + owner);
+	console.log("participants are: " + participants);
+	
+	participants.push(owner);
+	friends = arrayUnique(participants);
+	
+	(friends).forEach( function(friend)
+	{
+		tempFriends = participants.slice(); // TODO. shallow copy, would it work???
+		
+	    db.model('users').findOne( { email : friend },
+	    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+	    function (err, result)
+	    {
+	    	//console.log("result: " + result);
+	        if (err) 
+	        {
+	         	console.log("GETUSERFRIENDS:failure during session search, the error: ", err);
+	          	return;
+	        }
+	        if ( !result )
+	        {
+	        	console.log("GETUSERFRIENDS:user: " + friend + " was not found");
+	        }
+	        else
+	        {
+	        	//find the email of the currect person in the friends array
+	        	var index = tempFriends.indexOf(friend);
+	        	//remove the email from the friends array
+	        	if (index > -1) 
+	        	{
+					tempFriends.splice(index, 1);
+				}
+				
+	        	result.friends = arrayUnique( result.friends.concat( tempFriends ) );
+    			result.save(function(err, obj) 
+    			{ 
+	    			if (err)
+	    			{
+	        			console.log("GETUSERFRIENDS:failure user save, the error: ", err);  			
+	    			}
+	    			
+	    			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("GETUSERFRIENDS:user: " + friend + " was saved successfully."); 
+    			});
+	        }	
+		});	
+	});
+}
+/*
+ * This function will reagange session events according to their timestamp and so will create the session format for web site use.
+*/
+function closeSessionFunction(elements)
+{
+	var elemTemp = { };
+  	(elements.tags).forEach(function (tag) 
+  	{
+      	if (elemTemp[tag.timestamp])
+      	{
+        	elemTemp[tag.timestamp].tags.push(tag);
         }
-      }
+      	else
+      	{
+        	elemTemp[tag.timestamp] = {
+          	tags:[tag]
+        	};
+		}
   });
-  (elements.images).forEach (function (image) 
+  (elements.images).forEach(function (image) 
   {
       if (elemTemp[image.timestamp])
       {
@@ -733,9 +762,9 @@ function closeSessionFunction(elements){
       }
       else
       {
-        elemTemp[image.timestamp]={
+        elemTemp[image.timestamp] = {
           photo:image
-        }
+        };
       }
   });
   return elemTemp;
