@@ -1,13 +1,119 @@
 <!DOCTYPE html>
 <!DOCTYPE html>
 <html>
-    <head>
-        <script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
-        <script src="js/index.js" type="text/javascript"></script>
-        <title>lecturus</title>
-    </head>
-    <body >
-        <h1> <%=title %> </h1>
-       
-    </body>
+<head>
+	<script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
+	<script src="js/index.js" type="text/javascript"></script>
+	<title>lecturus</title>
+</head>
+<body >
+	<h1> <%=title %> </h1>
+
+	<section>
+		<article>
+			POST method createSession <br>
+			if error occured return status 0<br>
+			if sesssion created return status 1 <br>
+			return {"status":'' ,"session":"","desc":"","timestamp":''}
+		</article>
+		<article>
+			$.post("/session/createSession",  <br>
+			function(temp) { <br>
+			console.log("result: "+temp)<br>
+		});
+	</article>
+</section>
+<br><br>
+
+<section>
+		<article>
+			POST method uploadImage recieve sessionId:sessionid and data:file <br>
+			if error occured return status 0<br>
+			if file saved return status 1 <br>
+			return {"status":'',"desc":""}
+		</article>
+		<article>
+			$.ajax({<br>
+                url : "http://lecturus.herokuapp.com/session/uploadImage",<br>
+                type : 'post',<br>
+                data: {data:'thefile',sessionId:''}, //you can use form through js <br>
+                cache: false,<br>
+                contentType: false,<br>
+                processData: false,<br>
+                success : function(data) {<br>
+                    console.log("data", data);<br>
+                },<br>
+                error :  function(objRequest, errortype) {<br>
+                        console.log('error',errortype)<br>
+                }<br>
+            });
+	</article>
+</section>
+<br><br>
+<section>
+		<article>
+			POST method uploadAudio recieve sessionId:sessionid and data:file<br>
+			if error occured return status 0<br>
+			if file saved return status 1 <br>
+			return {"status":'',"desc":""}
+		</article>
+		<article>
+			$.ajax({<br>
+                url : "http://lecturus.herokuapp.com/session/uploadAudio",<br>
+                type : 'post',<br>
+                data: {data:'thefile',sessionId:''}, //you can use form through js<br>
+                cache: false,<br>
+                contentType: false,<br>
+                processData: false,<br>
+                success : function(data) {<br>
+                    console.log("data", data);<br>
+                },<br>
+                error :  function(objRequest, errortype) {<br>
+                        console.log('error',errortype)<br>
+                }<br>
+            });
+	</article>
+</section>
+<br><br>
+<section>
+		<article>
+			GET method getVideoId <br>
+			if error occured return status 0<br>
+			if seccuss return status 1 <br>
+			return {"status":'',"desc":""}
+		</article>
+		<article>
+			$.get("/session/getVideoId/?videoId=''",  <br>
+			function(temp) { <br>
+			console.log("result: "+temp)<br>
+		});
+	</article>
+</section>
+<br><br>
+<section>
+		<article>
+			TEST::
+			POST method uploadAudio2 recieve sessionId:sessionid and data:file<br>
+			if error occured return status 0<br>
+			if file saved return status 1 <br>
+			return {"status":'',"desc":""}
+		</article>
+		<article>
+			$.ajax({<br>
+                url : "http://lecturus.herokuapp.com/session/uploadAudio2",<br>
+                type : 'post',<br>
+                data: {data:'thefile',sessionId:''}, //you can use form through js<br>
+                cache: false,<br>
+                contentType: false,<br>
+                processData: false,<br>
+                success : function(data) {<br>
+                    console.log("data", data);<br>
+                },<br>
+                error :  function(objRequest, errortype) {<br>
+                        console.log('error',errortype)<br>
+                }<br>
+            });
+	</article>
+</section>
+</body>
 </html>
