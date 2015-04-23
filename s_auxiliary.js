@@ -106,8 +106,8 @@ router.post("/auxiliary/getCoursesByOrg", function(req, res) {
                 else {
                     r ={
                         status:1,
-                        info: docs[0]
-                        //degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
+                        check: docs[0].check,
+                        degrees: docs[0][org]
                     }
                     db.close();
                     res.send((JSON.stringify(r)))
@@ -176,12 +176,11 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
                     else 
                         r ={
                             status:1,
-                            info: docs[0]
-                            //info: docs[0]
-                            //degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
+                            check: docs[0].check,
+                            degrees: docs[0][data.org]  
                         }
-                    db.close();
-                    res.send((JSON.stringify(r)))
+                      db.close();
+                     res.send((JSON.stringify(r)))
                  }
             });
         });
