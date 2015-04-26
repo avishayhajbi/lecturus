@@ -850,22 +850,190 @@ router.post("/session/updateSession", function(req, res )
 });
 
 /* /session/updateSessionRating -- precondition
- * json data with sessionId, email, rating true/false (positive/negative)
+ * 	This function will receive json with sessionId, email: user's id, rating: 0 = decrease / 1 = increase.
  *
  * /session/updateSessionRating -- postcondition
- * json data with status 1/0
+ *  This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/updateSessionRating -- description
- * check if the user not exist in votes (positive and negative) and update the session ratring
- * is the user already exist in the other state he will removed else if the user
- * is already in the same state nothing will be done
+ * 	This function will find the needed session and check if the user participates in it.
+ * 	It will update the rating and the voters list according to the rating property, received in the request.
+ * 	If the user already voted oposite to his current vote, the function will remove him from the oposite list and reduce the oposite rating by 1.
+ * 	If his has voted similarmy to his current vote, nothing will be changed in the rating.
+ * 
+ * /session/updateSessionRating -- example
+ *  sessionId		142964947916810933728
+ * 	email			somemail1@gmail.com
+ * 	rating 			1	
 */
-router.post("/session/updateSessionRating",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
+router.post("/session/updateSessionRating", function(req, res ) 
+{
+  	var r = { };
+  	var votedBefore = -1;
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+	try
+	{
+		var sessionId = req.body.sessionId;
+		var rating = req.body.rating;
+		var email = req.body.email;
+	}  
+    catch( err )
+    {
+  		console.log("UPDATESESSIONRATING: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+    //TODO. Remove
+    console.log("session id: " + sessionId);
+    console.log("user email: " + email);
+    console.log("session rating: " + rating);
+    
+	if (  	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+			typeof rating === 'undefined' || rating == null || rating == "" ||		
+			typeof email === 'undefined' || email == null || email == ""	)		// if one of the properties do not exists in the request or it is empty
+    {
+    	console.log("UPDATESESSIONRATING:request must contain sessionId, email and rating properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId, email and rating properties.";
+        res.json(r); 
+        return;
+    }
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+        if (err) 
+        {
+         	console.log("UPDATESESSIONRATING:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATESESSIONRATING:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if ( result.stopTime == 0 )
+        	{
+	        	console.log("UPDATESESSIONRATING:session: " + sessionId + " still in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " still in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	if ( result.participants.indexOf(email) != -1 || result.owner == email )
+        	{
+        		//check if this user woted before
+        		if ( result.rating.positive.users.indexOf(email) != -1)		//voted positive
+        		{
+        			votedBefore = 1;
+        		}
+        		if ( result.rating.negative.users.indexOf(email) != -1)		//voted negative
+        		{
+        			votedBefore = 0;
+        		}
+        		
+				if (rating == 0)	//decrease case
+				{
+					if ( votedBefore == 0 )
+					{
+            			console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
+			          	r.status = 0;
+			          	r.desc = "user: " + email + " has already voted down.";
+			         	res.json(r);	
+			          	return;  						
+					}
+					
+					//increase the negative rating of the session by 1
+					++result.rating.negative.value;
+					
+					//add to the negative votes list
+					result.rating.negative.users.push(email);
+					
+					//if voted positive before, remove the user from positive voters list and update the positive rating value 
+					if ( votedBefore == 0 )
+					{
+						//decrease the positive rating of the session by 1
+						--result.rating.positive.value; 
+						
+						//remove from positive voters list
+						result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);
+					}
+				}
+				
+				if (rating == 1)	//increase case
+				{
+					if ( votedBefore == 1 )
+					{
+            			console.log("UPDATESESSIONRATING:user: " + email + " has already voted up.");
+			          	r.status = 0;
+			          	r.desc = "user: " + email + " has already voted up.";
+			         	res.json(r);	
+			          	return;  						
+					}
+					
+					//increase the positive rating of the session by 1
+					++result.rating.positive.value; 
+					
+					//add the user to the positive voters lists
+					result.rating.positive.users.push(email);	
+					
+					//if voted negative before, remove the user from negative voters list and update the rating value 
+					if ( votedBefore == 0 )
+					{
+						//decrease the negative rating of the session by 1
+						--result.rating.negative.value; 
+						
+						//remove from negative voters list
+						result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1);
+					}	
+				}
+		        
+        		//result.markModified('participants');
+        		result.save(function(err, obj) 
+        		{ 
+        			if (err)
+        			{
+            			console.log("UPDATESESSIONRATING:failure session save, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure session save";
+			         	res.json(r);	
+			          	return;     			
+        			}
+        			
+        			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("UPDATESESSIONRATING:user: " + email + " vote for session: " + sessionId + " was successfully received.");
+		            r.status = 1;
+		            r.desc = "user: " + email + " vote for session: " + sessionId + " was successfully received.";
+		            res.json(r);
+					return; 
+        		});
+      		
+        	}
+        	else
+        	{
+	        	console.log("UPDATESESSIONRATING:user: " + email + " does not participate in the session: " + sessionId);
+	            r.status = 0;
+	            r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPLOADTAGS:result: " + result);
+        }    
+    }); 
+    
 });
 
 /* /session/updateViews -- precondition
@@ -944,7 +1112,6 @@ router.post("/session/uploadTags", function( req, res )
         if (err) 
         {
          	console.log("UPLOADTAGS:failure during session search, the error: ", err);
-         	r.uid = 0;
           	r.status = 0;
           	r.desc = "failure during session search";
          	res.json(r);	
