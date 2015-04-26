@@ -249,7 +249,7 @@ router.post("/session/getUserSessions", function( req, res)
 */
 router.post("/session/addMembers", function(req, res ) 
 {  	
-    // TODD change all participants to json object with user: email , image:imageUrl
+    // TODO change all participants to json object with user: email , image:imageUrl
   	 //create new empty variables
   	var newParticipants = Array();
   	var oldParticipants, data; 
@@ -525,7 +525,7 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
  * /session/updateSessionStatus -- example
  *  sessionId	  	1427559374447127001
  *  email		    somemail1@gmail.com	
- *	status	    	0 (stop) or 1 (start)
+ *	status	    	0 (stop) or 1 (start) // TODO. check why does not work with booleans
  * 	timestamp		1023103210
 */
 router.post("/session/updateSessionStatus", function(req, res ) 
@@ -780,7 +780,6 @@ function closeSessionFunction(elements)
  * update the session in mongo collection session
  *
  * /session/updateSession -- example
- *  
 */
 router.post("/session/updateSession", function(req, res ) 
 {
@@ -886,68 +885,136 @@ router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
   res.send(JSON.stringify({"status":1,"desc":"success"}));
 });
 
-/* /session/uploadTag -- precondition
- * json data with sessionId, tags[json data {timestamp ,text, email}]
+/* /session/uploadTags -- precondition
+ * This function will receive json with sessionId, email: uploader's id and tags: an array oj JSON objects [{timestamp ,text}].
  *
- * /session/uploadTag -- postcondition
- * json data with status 1/0
+ * /session/uploadTags -- postcondition
+ * This function will return json with status 1/0.
  *
- * /session/uploadTag -- postcondition
- * if recordStarts true can insert tags into session id
+ * /session/uploadTags -- description
+ * This function will find the suitable 'session' document in 'sessions' collection. 
+ * Tags could be uploaded only after the session was stated and until it was ended.
+ * 
+ * /session/uploadTags -- example
+ *  sessionId				142964947916810933728
+ * 	email					somemail1@gmail.com
+ * 	tags[0][timestamp]		11
+ * 	tags[0][text]			tag1
+ * 	tags[1][timestamp]		36
+ * 	tags[1][text]			tag2
 */
-router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
-  var sessionId = req.body.sessionId;
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  var tags = req.body.tags;
-  console.log(req.body,sessionId,tags)
-  var r={};
-  MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
-  {
-    // if mongodb connection failed return error message and exit
-    if (err) 
+router.post("/session/uploadTags", function( req, res ) 
+{
+  	var r = { };
+  
+	try
+	{
+		var sessionId = req.body.sessionId;
+		var tags = req.body.tags;
+		var email = req.body.email;
+	}  
+    catch( err )
     {
-        console.log("connection error ",err);
-        r.status=0;
-        r.desc="err db";
-        res.send((JSON.stringify(r)))
+  		console.log("UPLOADTAGS: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+    //TODO. Remove
+    //console.log("session id: " + sessionId);
+    //console.log("user email: " + email);
+    //console.log("session tags: " + tags);
+    
+	if (  	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+			typeof tags === 'undefined' || tags == null || tags == "" ||		//TODO. add validation for array correctness
+			typeof email === 'undefined' || email == null || email == ""	)		// if one of the properties do not exists in the request and it is empty
+    {
+    	console.log("UPLOADTAGS:request must contain sessionId, email and tags: [] properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId, email and tags: [] properties.";
+        res.json(r); 
         return;
     }
-    // if mongodb connection success asking for users collection
-    var collection = db.collection('sessions');
-    // find user id from users collection
-    collection.find({sessionId:sessionId}).toArray(function (err, docs) 
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
     {
-      // if the session exist update
-      if (docs.length)
-      {
-        (tags).forEach (function (tag) 
+        if (err) 
         {
-          tag.rating = {positive:{ users:[] , rate:0},negative:{ users:[], rate:0} };
-          console.log(tag)
-          docs[0].elements.tags.push(tag);
-        });
-        delete docs[0]._id;
-        // insert new user to users collection 
-        collection.update({sessionId:sessionId},{ $set : {elements:docs[0].elements} }, {upsert:true ,safe:true , fsync: true}, function(err, result)
-        { 
-            console.log("tags list updated");
-            r.status=1;
-            r.desc="tags uploaded";
-            db.close();
-            res.send((JSON.stringify(r)))
-        });
-      }
-      else 
-      { // if the session does not exist return status 0
-            console.log("session not exist",sessionId);
-            r.status=0;
-            r.desc="session not exist";
-            db.close();
-            res.send((JSON.stringify(r)))
-      }
+         	console.log("UPLOADTAGS:failure during session search, the error: ", err);
+         	r.uid = 0;
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPLOADTAGS:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if (result.startTime == 0 || result.stopTime != 0)
+        	{
+	        	console.log("UPLOADTAGS:session: " + sessionId + " is not in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " is not in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	if (result.participants.indexOf(email) != -1 || result.owner == email )
+        	{
+		        (tags).forEach (function (tag) 
+		        {
+		        	console.log("UPLOADTAGS:tag1: " + tag);	
+		        	console.log("UPLOADTAGS:tag1:timestamp: " + tag.timestamp);
+		        	console.log("UPLOADTAGS:tag1:text: " + tag.text);
+		          	tag.rating = { positive : { users : [], rate : 0 }, negative : { users : [], rate : 0 } };
+		          	console.log("UPLOADTAGS:tag2: " + tag);
+		          	result.elements.tags.push(tag);
+		        });
+		        
+        		//result.markModified('participants');
+        		result.save(function(err, obj) 
+        		{ 
+        			console.log("UPLOADTAGS: save");
+        			if (err)
+        			{
+            			console.log("UPLOADTAGS:failure session save, the error: ", err);
+			         	r.uid = 0;
+			          	r.status = 0;
+			          	r.desc = "failure session save";
+			         	res.json(r);	
+			          	return;     			
+        			}
+        			
+        			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
+		            r.status = 1;
+		            r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
+		            res.json(r);
+					return; 
+        		});
+      		
+        	}
+        	else
+        	{
+	        	console.log("UPLOADTAGS:user: " + email + " does not participate in the session: " + sessionId);
+	            r.status = 0;
+	            r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPLOADTAGS:result: " + result);
+        }    
     });
-  });
 });
 
 
@@ -1593,7 +1660,7 @@ router.post("/session/joinSession", function(req, res )
         			//console.log("obj is: " + obj); object after the update
 	 	        	console.log("JOINSESSION:user: " + data.email + " was joined to the session");
 		            r.status = 1;
-		            r.desc = "JOINSESSION:user: " + data.email + " was joined to the session";
+		            r.desc = "user: " + data.email + " was joined to the session";
 		            res.json(r);
 					return; 
         		});
@@ -1603,7 +1670,7 @@ router.post("/session/joinSession", function(req, res )
         	{
 	        	console.log("JOINSESSION:user: " + data.email + " already exists in the session");
 	            r.status = 1;
-	            r.desc = "JOINSESSION:user: " + data.email + " already exists in the session";
+	            r.desc = "user: " + data.email + " already exists in the session";
 	            res.json(r);
 				return;
         	}
