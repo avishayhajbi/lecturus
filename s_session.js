@@ -1037,20 +1037,98 @@ router.post("/session/updateSessionRating", function(req, res )
 });
 
 /* /session/updateViews -- precondition
- * json data with sessionId
+ * 	This function will receive json with sessionId.
  *
  * /session/updateViews -- postcondition
- * json data with status 1/0
+ * 	This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/updateViews -- description
- * update session views to ++ in the session collection
+ * 	This function will update session views counter. The session must be completed.
+ * 
+ * /session/updateViews -- example
+ *  sessionId				142964947916810933728
 */
-router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
+router.post("/session/updateViews", function(req, res )
+{
+  	var r = { };
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+	try
+	{
+		var sessionId = req.body.sessionId;
+	}
+    catch( err )
+    {
+  		console.log("UPDATEVIEWS: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+	if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )		// if one the propertiey do not exists in the request and it is empty
+    {
+    	console.log("UPDATEVIEWS:request must contain sessionId property.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId property.";
+        res.json(r); 
+        return;
+    }
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+        if (err) 
+        {
+         	console.log("UPDATEVIEWS:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATEVIEWS:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if ( result.stopTime == 0 )
+        	{
+	        	console.log("UPDATEVIEWS:session: " + sessionId + " is still in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " is still in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	//update views value in the session document (++)
+			++result.views;
+			
+    		//result.markModified('participants');
+    		result.save(function(err, obj) 
+    		{ 
+    			console.log("UPLOADTAGS: save");
+    			if (err)
+    			{
+        			console.log("UPDATEVIEWS:failure session save, the error: ", err);
+		          	r.status = 0;
+		          	r.desc = "failure session save";
+		         	res.json(r);	
+		          	return;     			
+    			}
+        			
+	        	console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
+	            r.status = 1;
+	            r.desc = "session: " + sessionId + " views counter was updated";
+	            res.json(r);
+				return;
+    		});			        		
+        }
+    });	
 });
 
 /* /session/uploadTags -- precondition
@@ -1156,7 +1234,6 @@ router.post("/session/uploadTags", function( req, res )
         			if (err)
         			{
             			console.log("UPLOADTAGS:failure session save, the error: ", err);
-			         	r.uid = 0;
 			          	r.status = 0;
 			          	r.desc = "failure session save";
 			         	res.json(r);	
@@ -1671,7 +1748,6 @@ router.post("/session/getMembers", function(req, res )
 	                if (err) 
 	                {
 	                    console.log("failure while searching for a session, the error: ", err);
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "failure while searching for a session.";
 	                    res.json(r);
@@ -1682,7 +1758,6 @@ router.post("/session/getMembers", function(req, res )
 	                if ( !docs.length ) 
 	                {
 	                    console.log("session: " + data.sessionId + " do not exist.");
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "session: " + data.sessionId + " was not found.";
 	                    res.json(r);
@@ -1793,7 +1868,6 @@ router.post("/session/joinSession", function(req, res )
         if (err) 
         {
          	console.log("JOINSESSION:failure during session search, the error: ", err);
-         	r.uid = 0;
           	r.status = 0;
           	r.desc = "failure during session search";
          	res.json(r);	
@@ -1818,7 +1892,6 @@ router.post("/session/joinSession", function(req, res )
         			if (err)
         			{
             			console.log("JOINSESSION:failure session save, the error: ", err);
-			         	r.uid = 0;
 			          	r.status = 0;
 			          	r.desc = "failure session save";
 			         	res.json(r);	
