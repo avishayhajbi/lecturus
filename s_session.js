@@ -1054,14 +1054,14 @@ router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
 });
 
 /* /session/uploadTags -- precondition
- * This function will receive json with sessionId, email: uploader's id and tags: an array oj JSON objects [{timestamp ,text}].
+ * 	This function will receive json with sessionId, email: uploader's id and tags: an array oj JSON objects [{timestamp ,text}].
  *
  * /session/uploadTags -- postcondition
- * This function will return json with status 1/0.
+ * 	This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/uploadTags -- description
- * This function will find the suitable 'session' document in 'sessions' collection. 
- * Tags could be uploaded only after the session was stated and until it was ended.
+ * 	This function will find the suitable 'session' document in 'sessions' collection. 
+ * 	Tags could be uploaded only after the session was stated and until it was ended.
  * 
  * /session/uploadTags -- example
  *  sessionId				142964947916810933728
@@ -1141,8 +1141,9 @@ router.post("/session/uploadTags", function( req, res )
 		        (tags).forEach (function (tag) 
 		        {
 		        	console.log("UPLOADTAGS:tag1: " + tag);	
-		        	console.log("UPLOADTAGS:tag1:timestamp: " + tag.timestamp);
-		        	console.log("UPLOADTAGS:tag1:text: " + tag.text);
+		        	//console.log("UPLOADTAGS:tag1:timestamp: " + tag.timestamp);
+		        	//console.log("UPLOADTAGS:tag1:text: " + tag.text);
+		        	tag.email = email;
 		          	tag.rating = { positive : { users : [], rate : 0 }, negative : { users : [], rate : 0 } };
 		          	console.log("UPLOADTAGS:tag2: " + tag);
 		          	result.elements.tags.push(tag);
