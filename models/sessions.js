@@ -19,15 +19,16 @@ var sessionsSchema = new Schema(
 	totalSecondLength : { type : Number , default : 0 },
 	rating : {
     	positive : {
-        	value :  { type : Number , default : 0 },
+        	value : { type : Number , default : 0 },
         	users : { type : Array , default : [] }
-    },
+    	},
     	negative : {
         	value : { type : Number , default : 0 },
         	users : { type : Array , default : [] }
     	}
-	},
-	participants :  [{ user:String, image:String , default : [] }],
+    },
+	//participants :  [ { user : String, image : String , default : [] } ],
+	participants :  [ String ],
 	audios : [ { lenght : Number, email : String, url : String, startAt : Number ,  default : [] } ],
 	elements : {
 		tags : { type : Array , default : [] },
@@ -35,7 +36,7 @@ var sessionsSchema = new Schema(
 	},
 	views : { type : Number , default : 0 },
 	active : { type : Boolean , default : true },
-	public :{ type : Boolean , default : true },
+	public : { type : Boolean , default : true },
 	timestamp : Number
 });
 	

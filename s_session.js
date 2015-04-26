@@ -249,7 +249,7 @@ router.post("/session/getUserSessions", function( req, res)
 */
 router.post("/session/addMembers", function(req, res ) 
 {  	
-    // TODD change all participants to json object with user: email , image:imageUrl
+    // TODO change all participants to json object with user: email , image:imageUrl
   	 //create new empty variables
   	var newParticipants = Array();
   	var oldParticipants, data; 
@@ -257,10 +257,9 @@ router.post("/session/addMembers", function(req, res )
   		        	
 	try
   	{
-       console.log(req.body)
         // try to parse the json data
         data = req.body;
-        newParticipants = data.participants;
+        newParticipants = data.participants; // participans = array
        
         if ( newParticipants.length == 0 )
         {
@@ -327,7 +326,7 @@ router.post("/session/addMembers", function(req, res )
 	                else
 	                {
 	                	// there is only one session with this sessionId
-	                	
+	                	//oldParticipants = docs[0].participants; //TODO. check this and remove forEach loop
         				(docs).forEach (function (currDoc) 
 						{
 						  	console.log("session participants: " + currDoc.participants);
@@ -513,49 +512,6 @@ router.post("/session/getUserSessionsInProgress", function(req, res)
     }    
 });
 
-function getUserAcquaintances( userId )
-{
-	var tempFriends = new Array();
-	var deferred = Q.defer();
-	console.log("user id is: " + userId);
-    
-    db.model('sessions').find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] }, { owner : true, participants : true, _id : false }, function (err, result)
-    {
-    	if (err) 
-    	{
-    		console.log("-->getUserAcquaintances<-- Err occured: " + err);
-    		return new Array();
-		}
-    		
-	 	if (result)
-	 	{
-	 		console.log("result is: " + result);
-	 		
-        	(result).forEach(function(currdocument)
-        	{
-        		console.log("owner is: " + currdocument.owner);
-        		tempFriends = tempFriends.concat( currdocument.owner );
-        		console.log("participants are: " + currdocument.participants);
-        		(currdocument.participants).forEach( function(participant)
-        		{
-        			tempFriends = tempFriends.concat( participant.user );
-        		});
-        	});
-        	console.log("1. friends are: " + tempFriends);
-        	deferred.resolve = tempFriends;
-
-    	}
-    	else
-    	{
-    		console.log("-->getUserAcquaintances<-- No acquintances were found. ");
-    		return new Array();
-    	}
-    	
-    	tempFriends = arrayUnique( tempFriends );	
-	});	
-	
-	return deferred.promise;
-}
 
 /* /session/updateSessionStatus -- precondition
  *  This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
@@ -568,9 +524,10 @@ function getUserAcquaintances( userId )
  *  belongs to the session 'owner', if yes it will alter session property 'recordStarts' to needed one in the 'sessions' collection.
  * 
  * /session/updateSessionStatus -- example
- *  sessionId	  1427559374447127001
+ *  sessionId	  	1427559374447127001
  *  email		    somemail1@gmail.com	
- *	status	    0 (stop) or 1 (start)
+ *	status	    	0 (stop) or 1 (start) // TODO. check why does not work with booleans
+ * 	timestamp		1023103210
 */
 router.post("/session/updateSessionStatus", function(req, res ) 
 {
@@ -578,198 +535,227 @@ router.post("/session/updateSessionStatus", function(req, res )
 	var reqOwner, reqSession, reqStatus;	//temporary variables
 	var r = { };							//response object	
   		        	
-  try
-  {
-    // try to parse the json data
-    reqSession = req.body.sessionId;
-    reqOwner = req.body.email;
-    reqStatus = req.body.status;
-               
-      if ( reqSession && reqSession != "" )	// if data.sessionId property exists in the request and is not empty
-      {
-      	console.log("Owner is: " + reqOwner);
-      	console.log("Session id is: " + reqSession);
-      	console.log("Session status is: " + reqStatus);
-      	
-        // connect to mongodb
-        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-  			{
-  				console.log("Trying to connect to the db.");
-  		            
-          // if connection failed
-          if (err) 
-          {
-              console.log("MongoLab connection error: ", err);
-              r.uid = 0;
-              r.status = 0;
-              r.desc = "failed to connect to MongoLab.";
-              res.send((JSON.stringify(r)));
-              return;
-          }
-          
-          // get sessions collection 
-          var collection = db.collection('sessions');
-          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.	                
-  				
-          collection.find( { sessionId:reqSession }).toArray(function (err, docs)
-          { 
-            // failure while connecting to sessions collection
-            if (err) 
-            {
-                console.log("failure while trying close session, the error: ", err);
-                r.status = 0;
-                r.desc = "failure while trying close session.";
-                res.send((JSON.stringify(r)));
-                return;
-            }
-            else
-            {
-              if (docs.length)
-              {
-                // elements:closeSessionFunction(docs[0].elements)
-                  collection.update( { 
-                  $and : [ { sessionId : reqSession }, { owner : reqOwner } ] }, 
-                  { $set : { recordStarts : reqStatus , elements: (reqStatus==1) ? closeSessionFunction(docs[0].elements) : docs[0].elements } }, function( err, result ) 
-                  { 
-                  // failure while connecting to sessions collection
-                    if (err) 
-                    {
-                        console.log("failure while update session status, the error: ", err);
-                        r.uid = 0;
-                        r.status = 0;
-                        r.desc = "failure while update session status.";
-                        res.send((JSON.stringify(r)));
-                        return;
-                    }
-                    
-                    if (result === 0)
-                    {
-                        console.log("failed to find suitable session, the error: ", err);
-                        r.uid = 0;
-                        r.status = 0;
-                        r.desc = "failed to find suitable session.";
-                        res.send((JSON.stringify(r)));
-                        return;
-                    }
-                    else
-                    {
-                          console.log("session status was updated, the result is: " + result);
-                          r.status = 1;
-                          r.desc = "session status was updated.";
-                          db.close();   /* TODO REMOVE */
-                          res.send((JSON.stringify(r)));                      
-                    }
-                });
-              }
-            }
-          });                  
-  			});
-  		}
-  		else
-  		{
-        console.log("data.sessionId propery does not exist in the query or it is empty");
+  	try
+  	{
+    	// try to parse the json data
+    	reqSession = req.body.sessionId;
+    	reqOwner = req.body.email;
+    	reqStatus = req.body.status;
+    	reqTimestamp = req.body.timestamp;
+   	}
+	catch(err)
+	{
+	 	console.log("UPDATESESSIONSTATUS:failure while parsing the request, the error:", err);
+	    r.status = 0;
+	    r.desc = "failure while parsing the request";
+	    res.json(r);
+	    return;
+	} 
+	              
+	if (  	typeof reqSession === 'undefined' || reqSession == null || reqSession == "" ||
+			typeof reqOwner === 'undefined' || reqOwner == null || reqOwner == "" ||
+			typeof reqTimestamp === 'undefined' || reqTimestamp == null || reqTimestamp == "" ||
+			typeof reqStatus === 'undefined' || reqStatus == null || reqStatus == ""	)	// if one of the property do not exists in the request and it is empty
+    {
+        console.log("UPDATESESSIONSTATUS:request must contain following properties: sessionId, email, status and timestamp.");
         r.status = 0;
-        r.desc = "data.sessionId propery does not exist in the query or it is empty";
-        res.send((JSON.stringify(r)));  
-        return;			
-		}
-	}	                        
-  catch(err)
-  {
-  	console.log("failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.send((JSON.stringify(r)));
-    return;
-  }                   
-});
-
-/* /session/stopRecording -- precondition
- * json data with sessionId, email, recording true/fale, timestamp
- *
- * /session/updateSessionStatus -- postcondition
- *  This function will return json with status: 1 = success / 0 = failure.
- *
- * /session/stopRecording -- description
- *  1.store the information inside mongodb session collection like session.recordStarts 
- *  2.and updating the images and tags array to be like they should be.
- *  3.manage elements order by timestamp for the website audio query
- *
- * /session/updateSessionStatus -- example
- * sessionId  123
- * email      user@user.com
- * recording  true/fale
- * timestamp  13245679
- *
-*/
-router.post("/session/stopRecording",multipartMiddleware, function(req, res ) 
-{
-	var sessionId = req.body.sessionId;
-	var userip = req.connection.remoteAddress.replace(/\./g , '');
-	var uniqueid = new Date().getTime()+userip;
-  
-  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-  {
-      console.log("Trying to connect to the db.");
-      var r ={};              
-      // if connection failed
-      if (err) 
-      {
-          console.log("MongoLab connection error: ", err);
-          r.uid = 0;
-          r.status = 0;
-          r.desc = "failed to connect to MongoLab.";
-          res.send((JSON.stringify(r)));
-          return;
-      }
-      console.log(JSON.stringify(sessionId))
-      // get sessions collection 
-      var collection = db.collection('sessions');
-      //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-      collection.find( { sessionId:sessionId }).toArray(function (err, docs)
-      { 
-        // failure while connecting to sessions collection
+        r.desc = "request must contain following properties: sessionId, email, status and timestamp.";
+        res.json(r);  
+        return;	
+ 	}
+	
+	// TODO. remove 
+  	console.log("session owner is: " + reqOwner);
+  	console.log("Session id is: " + reqSession);
+  	console.log("Session status is: " + reqStatus);
+  	console.log("Session timestamp is: " + reqTimestamp);  
+ 
+    db.model('sessions').findOne( { sessionId : reqSession },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+    	//console.log("result: " + result);
         if (err) 
         {
-            console.log("failure while trying close session, the error: ", err);
+         	console.log("UPDATESESSIONSTATUS:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was not found");
             r.status = 0;
-            r.desc = "failure while trying close session.";
-            res.send((JSON.stringify(r)));
-            return;
+            r.desc = "session: " + reqSession + " was not found";
+            res.json(r);
+			return;
         }
         else
         {
-          if (docs.length)
-            collection.update({sessionId:sessionId},{ $set : {elements:closeSessionFunction(docs[0].elements)} }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                console.log("session closed");
-                r.status=1;
-                r.desc="session closed";
-                db.close(); /* TODO REMOVE */
-                res.send((JSON.stringify(r)))
-             });
+        	if (result.owner == reqOwner )
+        	{
+				if (reqStatus == 1)
+				{
+					if (result.startTime != 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not restart session: " + reqSession);
+			          	r.status = 0;
+			          	r.desc = "can not restart session: " + reqSession;
+			         	res.json(r);	
+			          	return; 						
+					}
+					getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
+					result.recordStarts = true;
+					result.startTime = reqTimestamp;
+	        		result.save(function(err, obj) 
+        			{ 
+		    			if (err)
+		    			{
+		        			console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				          	r.status = 0;
+				          	r.desc = "failure session save";
+				         	res.json(r);	
+				          	return;     			
+		    			}
+		    			
+		    			//console.log("obj is: " + obj); object after the update
+		 	        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
+			            r.status = 1;
+			            r.desc = "session: " + reqSession + " was started successfully.";
+			            res.json(r);
+						return; 
+        			}); 
+				}
+				if (reqStatus == 0)
+				{
+					if (result.startTime == 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
+			          	r.status = 0;
+			          	r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
+			         	res.json(r);	
+			          	return; 						
+					}
+					if (result.stopTime != 0 )
+					{
+            			console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
+			          	r.status = 0;
+			          	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
+			         	res.json(r);	
+			          	return; 						
+					}
+					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
+					result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
+					result.stopTime = reqTimestamp;
+	        		result.save(function(err, obj) 
+        			{ 
+		    			if (err)
+		    			{
+		        			console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				          	r.status = 0;
+				          	r.desc = "failure session save";
+				         	res.json(r);	
+				          	return;     			
+		    			}
+		    			
+		    			//console.log("obj is: " + obj); object after the update
+		 	        	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
+			            r.status = 1;
+			            r.desc = "session: " + reqSession + " was stopped successfully.";
+			            res.json(r);
+						return; 
+        			}); 					
+				}
+        	}
+        	else
+        	{
+	        	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
+	            r.status = 0;
+	            r.desc = "user: " + reqOwner + " is not a session owner.";
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPDATESESSIONSTATUS:result: " + result);
         }
-      });         
-  }); 
-  	
+    });                 	              
 });
 
 /*
- * create the session format as the client want
+ * This function will create a ;ist of user friends from the session participants.
 */
-function closeSessionFunction(elements){
-  var elemTemp={};
-  (elements.tags).forEach (function (tag) 
-  {
-      if (elemTemp[tag.timestamp])
-        elemTemp[tag.timestamp].tags.push(tag)
-      else
-      {
-        elemTemp[tag.timestamp]={
-          tags:[tag]
+function getUserFriends( owner, participants )
+{
+	var friends = new Array(), tempFriends = new Array();
+	console.log("owner is: " + owner);
+	console.log("participants are: " + participants);
+	
+	participants.push(owner);
+	friends = arrayUnique(participants);
+	
+	(friends).forEach( function(friend)
+	{
+		tempFriends = participants.slice(); // TODO. shallow copy, would it work???
+		
+	    db.model('users').findOne( { email : friend },
+	    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+	    function (err, result)
+	    {
+	    	//console.log("result: " + result);
+	        if (err) 
+	        {
+	         	console.log("GETUSERFRIENDS:failure during session search, the error: ", err);
+	          	return;
+	        }
+	        if ( !result )
+	        {
+	        	console.log("GETUSERFRIENDS:user: " + friend + " was not found");
+	        }
+	        else
+	        {
+	        	//find the email of the currect person in the friends array
+	        	var index = tempFriends.indexOf(friend);
+	        	//remove the email from the friends array
+	        	if (index > -1) 
+	        	{
+					tempFriends.splice(index, 1);
+				}
+				
+	        	result.friends = arrayUnique( result.friends.concat( tempFriends ) );
+    			result.save(function(err, obj) 
+    			{ 
+	    			if (err)
+	    			{
+	        			console.log("GETUSERFRIENDS:failure user save, the error: ", err);  			
+	    			}
+	    			
+	    			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("GETUSERFRIENDS:user: " + friend + " was saved successfully."); 
+    			});
+	        }	
+		});	
+	});
+}
+/*
+ * This function will reagange session events according to their timestamp and so will create the session format for web site use.
+*/
+function closeSessionFunction(elements)
+{
+	var elemTemp = { };
+  	(elements.tags).forEach(function (tag) 
+  	{
+      	if (elemTemp[tag.timestamp])
+      	{
+        	elemTemp[tag.timestamp].tags.push(tag);
         }
-      }
+      	else
+      	{
+        	elemTemp[tag.timestamp] = {
+          	tags:[tag]
+        	};
+		}
   });
-  (elements.images).forEach (function (image) 
+  (elements.images).forEach(function (image) 
   {
       if (elemTemp[image.timestamp])
       {
@@ -777,9 +763,9 @@ function closeSessionFunction(elements){
       }
       else
       {
-        elemTemp[image.timestamp]={
+        elemTemp[image.timestamp] = {
           photo:image
-        }
+        };
       }
   });
   return elemTemp;
@@ -795,7 +781,6 @@ function closeSessionFunction(elements){
  * update the session in mongo collection session
  *
  * /session/updateSession -- example
- *  
 */
 router.post("/session/updateSession", function(req, res ) 
 {
@@ -866,103 +851,416 @@ router.post("/session/updateSession", function(req, res )
 });
 
 /* /session/updateSessionRating -- precondition
- * json data with sessionId, email, rating true/false (positive/negative)
+ * 	This function will receive json with sessionId, email: user's id, rating: 0 = decrease / 1 = increase.
  *
  * /session/updateSessionRating -- postcondition
- * json data with status 1/0
+ *  This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/updateSessionRating -- description
- * check if the user not exist in votes (positive and negative) and update the session ratring
- * is the user already exist in the other state he will removed else if the user
- * is already in the same state nothing will be done
+ * 	This function will find the needed session and check if the user participates in it.
+ * 	It will update the rating and the voters list according to the rating property, received in the request.
+ * 	If the user already voted oposite to his current vote, the function will remove him from the oposite list and reduce the oposite rating by 1.
+ * 	If his has voted similarmy to his current vote, nothing will be changed in the rating.
+ * 
+ * /session/updateSessionRating -- example
+ *  sessionId		142964947916810933728
+ * 	email			somemail1@gmail.com
+ * 	rating 			1	
 */
-router.post("/session/updateSessionRating",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
+router.post("/session/updateSessionRating", function(req, res ) 
+{
+  	var r = { };
+  	var votedBefore = -1;
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
+	try
+	{
+		var sessionId = req.body.sessionId;
+		var rating = req.body.rating;
+		var email = req.body.email;
+	}  
+    catch( err )
+    {
+  		console.log("UPDATESESSIONRATING: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+    //TODO. Remove
+    console.log("session id: " + sessionId);
+    console.log("user email: " + email);
+    console.log("session rating: " + rating);
+    
+	if (  	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+			typeof rating === 'undefined' || rating == null || rating == "" ||		
+			typeof email === 'undefined' || email == null || email == ""	)		// if one of the properties do not exists in the request or it is empty
+    {
+    	console.log("UPDATESESSIONRATING:request must contain sessionId, email and rating properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId, email and rating properties.";
+        res.json(r); 
+        return;
+    }
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+        if (err) 
+        {
+         	console.log("UPDATESESSIONRATING:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATESESSIONRATING:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if ( result.stopTime == 0 )
+        	{
+	        	console.log("UPDATESESSIONRATING:session: " + sessionId + " still in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " still in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	if ( result.participants.indexOf(email) != -1 || result.owner == email )
+        	{
+        		//check if this user woted before
+        		if ( result.rating.positive.users.indexOf(email) != -1)		//voted positive
+        		{
+        			votedBefore = 1;
+        		}
+        		if ( result.rating.negative.users.indexOf(email) != -1)		//voted negative
+        		{
+        			votedBefore = 0;
+        		}
+        		
+				if (rating == 0)	//decrease case
+				{
+					if ( votedBefore == 0 )
+					{
+            			console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
+			          	r.status = 0;
+			          	r.desc = "user: " + email + " has already voted down.";
+			         	res.json(r);	
+			          	return;  						
+					}
+					
+					//increase the negative rating of the session by 1
+					++result.rating.negative.value;
+					
+					//add to the negative votes list
+					result.rating.negative.users.push(email);
+					
+					//if voted positive before, remove the user from positive voters list and update the positive rating value 
+					if ( votedBefore == 0 )
+					{
+						//decrease the positive rating of the session by 1
+						--result.rating.positive.value; 
+						
+						//remove from positive voters list
+						result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);
+					}
+				}
+				
+				if (rating == 1)	//increase case
+				{
+					if ( votedBefore == 1 )
+					{
+            			console.log("UPDATESESSIONRATING:user: " + email + " has already voted up.");
+			          	r.status = 0;
+			          	r.desc = "user: " + email + " has already voted up.";
+			         	res.json(r);	
+			          	return;  						
+					}
+					
+					//increase the positive rating of the session by 1
+					++result.rating.positive.value; 
+					
+					//add the user to the positive voters lists
+					result.rating.positive.users.push(email);	
+					
+					//if voted negative before, remove the user from negative voters list and update the rating value 
+					if ( votedBefore == 0 )
+					{
+						//decrease the negative rating of the session by 1
+						--result.rating.negative.value; 
+						
+						//remove from negative voters list
+						result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1);
+					}	
+				}
+		        
+        		//result.markModified('participants');
+        		result.save(function(err, obj) 
+        		{ 
+        			if (err)
+        			{
+            			console.log("UPDATESESSIONRATING:failure session save, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure session save";
+			         	res.json(r);	
+			          	return;     			
+        			}
+        			
+        			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("UPDATESESSIONRATING:user: " + email + " vote for session: " + sessionId + " was successfully received.");
+		            r.status = 1;
+		            r.desc = "user: " + email + " vote for session: " + sessionId + " was successfully received.";
+		            res.json(r);
+					return; 
+        		});
+      		
+        	}
+        	else
+        	{
+	        	console.log("UPDATESESSIONRATING:user: " + email + " does not participate in the session: " + sessionId);
+	            r.status = 0;
+	            r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPLOADTAGS:result: " + result);
+        }    
+    }); 
+    
 });
 
 /* /session/updateViews -- precondition
- * json data with sessionId
+ * 	This function will receive json with sessionId.
  *
  * /session/updateViews -- postcondition
- * json data with status 1/0
+ * 	This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/updateViews -- description
- * update session views to ++ in the session collection
+ * 	This function will update session views counter. The session must be completed.
+ * 
+ * /session/updateViews -- example
+ *  sessionId				142964947916810933728
 */
-router.post("/session/updateViews",multipartMiddleware, function(req, res ) {
-  var sessionId = _public+req.body.sessionId[0];
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
+router.post("/session/updateViews", function(req, res )
+{
+  	var r = { };
   
-  res.send(JSON.stringify({"status":1,"desc":"success"}));
-});
-
-/* /session/uploadTag -- precondition
- * json data with sessionId, tags[json data {timestamp ,text, email}]
- *
- * /session/uploadTag -- postcondition
- * json data with status 1/0
- *
- * /session/uploadTag -- postcondition
- * if recordStarts true can insert tags into session id
-*/
-router.post("/session/uploadTag",multipartMiddleware, function(req, res ) {
-  var sessionId = req.body.sessionId;
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  var tags = req.body.tags;
-  console.log(req.body,sessionId,tags)
-  var r={};
-  MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
-  {
-    // if mongodb connection failed return error message and exit
-    if (err) 
+	try
+	{
+		var sessionId = req.body.sessionId;
+	}
+    catch( err )
     {
-        console.log("connection error ",err);
-        r.status=0;
-        r.desc="err db";
-        res.send((JSON.stringify(r)))
+  		console.log("UPDATEVIEWS: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+	if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )		// if one the propertiey do not exists in the request and it is empty
+    {
+    	console.log("UPDATEVIEWS:request must contain sessionId property.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId property.";
+        res.json(r); 
         return;
     }
-    // if mongodb connection success asking for users collection
-    var collection = db.collection('sessions');
-    // find user id from users collection
-    collection.find({sessionId:sessionId}).toArray(function (err, docs) 
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
     {
-      // if the session exist update
-      if (docs.length)
-      {
-        (tags).forEach (function (tag) 
+        if (err) 
         {
-          tag.rating = {positive:{ users:[] , rate:0},negative:{ users:[], rate:0} };
-          console.log(tag)
-          docs[0].elements.tags.push(tag);
-        });
-        delete docs[0]._id;
-        // insert new user to users collection 
-        collection.update({sessionId:sessionId},{ $set : {elements:docs[0].elements} }, {upsert:true ,safe:true , fsync: true}, function(err, result)
-        { 
-            console.log("tags list updated");
-            r.status=1;
-            r.desc="tags uploaded";
-            db.close();
-            res.send((JSON.stringify(r)))
-        });
-      }
-      else 
-      { // if the session does not exist return status 0
-            console.log("session not exist",sessionId);
-            r.status=0;
-            r.desc="session not exist";
-            db.close();
-            res.send((JSON.stringify(r)))
-      }
+         	console.log("UPDATEVIEWS:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPDATEVIEWS:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if ( result.stopTime == 0 )
+        	{
+	        	console.log("UPDATEVIEWS:session: " + sessionId + " is still in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " is still in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	//update views value in the session document (++)
+			++result.views;
+			
+    		//result.markModified('participants');
+    		result.save(function(err, obj) 
+    		{ 
+    			console.log("UPLOADTAGS: save");
+    			if (err)
+    			{
+        			console.log("UPDATEVIEWS:failure session save, the error: ", err);
+		          	r.status = 0;
+		          	r.desc = "failure session save";
+		         	res.json(r);	
+		          	return;     			
+    			}
+        			
+	        	console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
+	            r.status = 1;
+	            r.desc = "session: " + sessionId + " views counter was updated";
+	            res.json(r);
+				return;
+    		});			        		
+        }
+    });	
+});
+
+/* /session/uploadTags -- precondition
+ * 	This function will receive json with sessionId, email: uploader's id and tags: an array oj JSON objects [{timestamp ,text}].
+ *
+ * /session/uploadTags -- postcondition
+ * 	This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /session/uploadTags -- description
+ * 	This function will find the suitable 'session' document in 'sessions' collection. 
+ * 	Tags could be uploaded only after the session was stated and until it was ended.
+ * 
+ * /session/uploadTags -- example
+ *  sessionId				142964947916810933728
+ * 	email					somemail1@gmail.com
+ * 	tags[0][timestamp]		11
+ * 	tags[0][text]			tag1
+ * 	tags[1][timestamp]		36
+ * 	tags[1][text]			tag2
+*/
+router.post("/session/uploadTags", function( req, res ) 
+{
+  	var r = { };
+  
+	try
+	{
+		var sessionId = req.body.sessionId;
+		var tags = req.body.tags;
+		var email = req.body.email;
+	}  
+    catch( err )
+    {
+  		console.log("UPLOADTAGS: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    
+    //TODO. Remove
+    //console.log("session id: " + sessionId);
+    //console.log("user email: " + email);
+    //console.log("session tags: " + tags);
+    
+	if (  	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+			typeof tags === 'undefined' || tags == null || tags == "" ||		//TODO. add validation for array correctness
+			typeof email === 'undefined' || email == null || email == ""	)		// if one of the properties do not exists in the request and it is empty
+    {
+    	console.log("UPLOADTAGS:request must contain sessionId, email and tags: [] properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId, email and tags: [] properties.";
+        res.json(r); 
+        return;
+    }
+    db.model('sessions').findOne( { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+        if (err) 
+        {
+         	console.log("UPLOADTAGS:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("UPLOADTAGS:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if (result.startTime == 0 || result.stopTime != 0)
+        	{
+	        	console.log("UPLOADTAGS:session: " + sessionId + " is not in progress.");
+	            r.status = 0;
+	            r.desc = "session: " + sessionId + " is not in progress";
+	            res.json(r);
+				return;        		
+        	}
+        	
+        	if (result.participants.indexOf(email) != -1 || result.owner == email )
+        	{
+		        (tags).forEach (function (tag) 
+		        {
+		        	console.log("UPLOADTAGS:tag1: " + tag);	
+		        	//console.log("UPLOADTAGS:tag1:timestamp: " + tag.timestamp);
+		        	//console.log("UPLOADTAGS:tag1:text: " + tag.text);
+		        	tag.email = email;
+		          	tag.rating = { positive : { users : [], rate : 0 }, negative : { users : [], rate : 0 } };
+		          	console.log("UPLOADTAGS:tag2: " + tag);
+		          	result.elements.tags.push(tag);
+		        });
+		        
+        		//result.markModified('participants');
+        		result.save(function(err, obj) 
+        		{ 
+        			console.log("UPLOADTAGS: save");
+        			if (err)
+        			{
+            			console.log("UPLOADTAGS:failure session save, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure session save";
+			         	res.json(r);	
+			          	return;     			
+        			}
+        			
+        			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
+		            r.status = 1;
+		            r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
+		            res.json(r);
+					return; 
+        		});
+      		
+        	}
+        	else
+        	{
+	        	console.log("UPLOADTAGS:user: " + email + " does not participate in the session: " + sessionId);
+	            r.status = 0;
+	            r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+	            res.json(r);
+				return;
+        	}
+        	//console.log("UPLOADTAGS:result: " + result);
+        }    
     });
-  });
 });
 
 
@@ -1103,8 +1401,8 @@ router.post('/session/uploadAudio', function(request, response) {
     {
         console.log('-->PARSE<--');
         //logs the file information 
-        console.log("files",JSON.stringify(files));
-        console.log("fields",JSON.stringify(fields));
+        console.log("files", JSON.stringify(files));
+        console.log("fields", JSON.stringify(fields));
         sessionId= fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
@@ -1137,7 +1435,7 @@ router.post('/session/uploadAudio', function(request, response) {
             
         var stream = cloudinary.uploader.upload_stream(function(result) 
         { 
-          console.log(result)
+          console.log(result);	//TODO. Remove
            var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
             {
@@ -1147,7 +1445,7 @@ router.post('/session/uploadAudio', function(request, response) {
                 console.log("connection error ",err);
                 r.status=0;
                 r.desc="err db";
-                response.send((JSON.stringify(r)))
+                response.json(r);
                 return;
             }
             // if mongodb connection success asking for users collection
@@ -1156,16 +1454,16 @@ router.post('/session/uploadAudio', function(request, response) {
             collection.find({sessionId:sessionId}).toArray(function (err, docs) 
             {
                 // if the session exist update
-                if (docs.length){
-
-                    delete docs[0]._id;
+                if (docs.length)
+                {
+                	delete docs[0]._id;
                     //email url startAt length
                     docs[0].audios.push({
-                      length: audioLength,
-                      timestamp:timestamp,
-                      email: email,
-                      url: result.url,
-                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
+                    length: audioLength,
+                    timestamp:timestamp,
+                    email: email,
+                    url: result.url,
+                    startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
                     docs[0].totalSecondLength+=audioLength;
                     // insert new user to users collection 
@@ -1174,7 +1472,7 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.status=1;
                         r.desc="audio uploaded";
                         db.close();
-                        response.send((JSON.stringify(r)))
+                        response.json(r);
                      });
                 }
                  else { // if the session does not exist return status 0
@@ -1182,7 +1480,7 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.status=0;
                         r.desc="session not exist";
                         db.close();
-                        response.send((JSON.stringify(r)))
+                        response.json(r);
                  }
             });
           });
@@ -1190,7 +1488,8 @@ router.post('/session/uploadAudio', function(request, response) {
         {
           public_id: uniqueid, 
           resource_type: 'raw',
-          format: 'mp3',
+          //format: 'mp3',
+          format: 'amr',
           tags: [sessionId, 'lecturus']
         }      
       );
@@ -1451,7 +1750,6 @@ router.post("/session/getMembers", function(req, res )
 	                if (err) 
 	                {
 	                    console.log("failure while searching for a session, the error: ", err);
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "failure while searching for a session.";
 	                    res.json(r);
@@ -1462,7 +1760,6 @@ router.post("/session/getMembers", function(req, res )
 	                if ( !docs.length ) 
 	                {
 	                    console.log("session: " + data.sessionId + " do not exist.");
-	                    r.uid = 0;
 	                    r.status = 0;
 	                    r.desc = "session: " + data.sessionId + " was not found.";
 	                    res.json(r);
@@ -1525,6 +1822,104 @@ router.post("/session/getMembers", function(req, res )
        
     }
 
+});
+
+/* /session/getMembers -- precondition
+ *	This function must receive json with sessionId, email.
+ *
+ * /session/getMembers -- postcondition
+ *	This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /session/getMembers -- description
+ *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request.
+ *	This function will insert the email of the user to 'participants' property in the 'session' document.
+ *
+ * /session/getMembers -- example
+ *  sessionId 			1427559374447127001
+ *  email			 	somemail1@gmail.com
+*/
+router.post("/session/joinSession", function(req, res ) 
+{
+	var r = { };	//response object	
+	var allParticipants = new Array();
+		 
+	try			//try to parse json data
+	{
+    	var data = req.body;
+    }
+    catch( err )
+    {
+  		console.log("JOINSESSION: failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request";
+    	res.json(r);
+    	return;
+    }
+    if ( !data.email || data.email == "" || !data.sessionId || data.sessionId == "" )	// if email and sessionId properties exist in the request and not empty
+    {
+    	console.log("JOINSESSION: request must contain a property email, sessionId.");
+    	r.status = 0;	
+        r.desc = "request must contain a property email, sessionId.";
+        res.json(r); 
+        return;
+    }
+    db.model('sessions').findOne( { sessionId : data.sessionId },
+    //{ participants : true, owner : true, _id : false },	- does not wotk with this
+    function (err, result)
+    {
+        if (err) 
+        {
+         	console.log("JOINSESSION:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search";
+         	res.json(r);	
+          	return;
+        }
+        if ( !result )
+        {
+        	console.log("JOINSESSION:session: " + data.sessionId + " was not found");
+            r.status = 0;
+            r.desc = "session: " + data.sessionId + " was not found";
+            res.json(r);
+			return;
+        }
+        else
+        {
+        	if (result.participants.indexOf(data.email) == -1 && result.owner != data.email )
+        	{
+        		result.participants.push(data.email);
+        		//result.markModified('participants');
+        		result.save(function(err, obj) 
+        		{ 
+        			if (err)
+        			{
+            			console.log("JOINSESSION:failure session save, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure session save";
+			         	res.json(r);	
+			          	return;     			
+        			}
+        			
+        			//console.log("obj is: " + obj); object after the update
+	 	        	console.log("JOINSESSION:user: " + data.email + " was joined to the session");
+		            r.status = 1;
+		            r.desc = "user: " + data.email + " was joined to the session";
+		            res.json(r);
+					return; 
+        		});
+      		
+        	}
+        	else
+        	{
+	        	console.log("JOINSESSION:user: " + data.email + " already exists in the session");
+	            r.status = 1;
+	            r.desc = "user: " + data.email + " already exists in the session";
+	            res.json(r);
+				return;
+        	}
+        	console.log("JOINSESSION:result: " + result);
+        }
+    });
 });
 
 module.exports = router;
