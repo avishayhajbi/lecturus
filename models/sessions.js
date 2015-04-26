@@ -27,8 +27,7 @@ var sessionsSchema = new Schema(
         	users : { type : Array , default : [] }
     	}
     },
-	//participants :  [ { user : String, image : String , default : [] } ],
-	participants :  [ String ],
+	participants :  { type : Array , default : [] },
 	audios : [ { lenght : Number, email : String, url : String, startAt : Number ,  default : [] } ],
 	elements : {
 		tags : { type : Array , default : [] },

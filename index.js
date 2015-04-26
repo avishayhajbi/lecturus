@@ -33,7 +33,7 @@ app.use(function(req, res, next) {
   next();
 });
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 8090;
 app.set('port', port);
 app.set('view engine', 'ejs');
 
@@ -71,8 +71,9 @@ var connect = function ()
 	//Without it, after some period of time you may start to see "connection closed" errors for what seems like no reason.
 	//options.server.socketOptions = options.replset.socketOptions = { keepAlive : true };
 	options.server.socketOptions = { keepAlive : true, connectTimeoutMS : 30000 };
-	
+    
   mongoose.connect(config.mongoUrl, options);
+
 };
 
 // connect to MongoLab using Mongoose
@@ -110,22 +111,22 @@ fs.readdirSync(__dirname + '/models').forEach( function( fileName)
 
 //--------------------------------Connect to mongodb using MongoClient--------------------------------//
 
-var connectMongo = function () 
-{
-  console.log('MongoDB: Trying to establish connection.');
-  MongoClient.connect(config.mongoUrl, options , function(err, db){
-    if (err) 
-    {
-      connectMongo();
-      return;
-    }
-    app.set('mongodb',db);
-    console.log('MongoDB: Connection established.');
-  });
+// var connectMongo = function () 
+// {
+//   console.log('MongoDB: Trying to establish connection.');
+//   MongoClient.connect(config.mongoUrl, options , function(err, db){
+//     if (err) 
+//     {
+//       connectMongo();
+//       return;
+//     }
+//     app.set('mongodb',db);
+//     console.log('MongoDB: Connection established.');
+//   });
 
-};
+// };
 
-connectMongo();
+// connectMongo();
 
 //--------------------------------Connect to mongodb using MongoClient--------------------------------//
 
