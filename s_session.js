@@ -28,6 +28,24 @@ router.get('/session', function( req, res )
   	});
 });
 
+router.post("/session/test", function( req, res)
+{
+            
+  
+  var collection = app.get('mongodb').collection('users');
+  
+  collection.find( { email: req.body.email } ).toArray (function (err,result){
+    if (err) {
+      console.log('err',err)
+      res.json({res:0})
+    }
+    if (result) {
+      console.log('result',result)
+      res.json({res:result})
+    }
+  });
+            
+});
 /* /session/createSession -- precondition
  * 	This function will receive json with user email, any other fields: name , description, lecturer, degree, course, more data as wanted.
  *
@@ -157,77 +175,59 @@ router.post("/session/getUserSessions", function( req, res)
     	r.status = 0;
     	r.desc = "failure while parsing the request";
     	res.json(r);
+      return;
 	}
 	
-    if ( userId && userId != "" )	// if data.email property exists in the request is not empty
+  /*MongoClient.connect(config.mongoUrl, options , function(err, db){
+    if (err) 
     {
-    	console.log("user id is: " + userId);
-        	
-        // connect to mongodb
-        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE 
-		{
-			console.log("Trying to connect to the db.");
-				            
-            // if connection failed
-            if (err) 
-            {
-                console.log("MongoLab connection error: ", err);
-                r.uid = 0;
-                r.status = 0;
-                r.desc = "failed to connect to MongoLab.";
-                res.json(r);
-                return;
-            }
-            
-            // get sessions collection 
-            var collection = db.collection('sessions');
-            
-            collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] } ,
-              {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ).toArray( function (err, docs) 
-            {
-            	console.log("Searching for the session collection");
-            	
-                // failure while connecting to sessions collection
-                if (err) 
-                {
-                    console.log("failure while searching for a session, the error: ", err);
-                    r.uid = 0;
-                    r.status = 0;
-                    r.desc = "failure while searching for a session.";
-                    res.json(r);
-                    return;
-                }
-                
-                // no documents found
-                if ( !docs.length ) 
-                {
-                    console.log("user: " + userId + " did not participate in any session.");
-                    r.uid = 0;
-                    r.status = 0;
-                    r.desc = "user: " + userId + " did not participate in any session.";
-                    res.json(r);
-                    return; 
-                }
-                else
-                {
-                    console.log("sessions with user: " + userId + " participation: " + docs);
-                    r.status = 1;
-                    r.userRecordings = docs;
-                    r.desc = "sessions with user: " + userId + " participation.";
-                    db.close();		/* TODO REMOVE */
-                    res.json(r);		                	
-                }
-			});
+      return;
+    }
+    
+  });*/
+
+  if ( userId && userId != "" )	// if data.email property exists in the request is not empty
+  {
+  	console.log("user id is: " + userId);
+      	
+    // get sessions collection 
+    var collection = app.get('mongodb').collection('sessions');
+    //var collection = connectMongo().collection('sessions');
+
+    collection.find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] } ,
+    {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ).toArray( function (err, docs) 
+    {
+    	console.log("Searching for the session collection");
+    	
+      // failure while connecting to sessions collection
+      if (err) 
+      {
+          console.log("failure while searching for a session, the error: ", err);
+          r.uid = 0;
+          r.status = 0;
+          r.desc = "failure while searching for a session.";
+          res.json(r);
+          return;
+      }
+      else
+      {
+          console.log("sessions with user: " + userId + " participation: " + docs);
+          r.status = 1;
+          r.userRecordings = docs;
+          r.desc = "sessions with user: " + userId + " participation.";
+          db.close();		/* TODO REMOVE */
+          res.json(r);		                	
+      }
 		});
-    }
-    else
-    {
-      	console.log("data.email propery does not exist in the query or it is empty");
-        r.status = 0;
-        r.desc = "data.email propery does not exist in the query or it is empty";
-        res.json(r);  
-        return;	  	
-    }
+  }
+  else
+  {
+    	console.log("data.email propery does not exist in the query or it is empty");
+      r.status = 0;
+      r.desc = "data.email propery does not exist in the query or it is empty";
+      res.json(r);  
+      return;	  	
+  }
 });
 
 
@@ -285,6 +285,7 @@ router.post("/session/addMembers", function(req, res )
 	        // connect to mongodb
 	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
 			{
+
 				console.log("Trying to connect to the db.");
 					            
 	            // if connection failed

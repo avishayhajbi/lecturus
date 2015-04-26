@@ -3,8 +3,8 @@ var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
-var app = express();
-mongoDb = require('mongodb').Db,
+app = express();
+Db = require('mongodb').Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,
@@ -51,13 +51,16 @@ config = {
 //--------------------------------Connect to mongodb using Mongoose--------------------------------//
 //The server option auto_reconnect is defaulted to true
 var options = {
-  	db: { native_parser : true },
-  	server: { poolSize: 5 },
-  	//replset: { rs_name: 'myReplicaSetName' },
-  	//user: 'b23c6d0f964532',
-  	//pass: '1fc1c4ed'
-  	//auth :
-  	//mongos : true	
+	db: { native_parser : true },
+	server: {
+    poolSize: 5,
+    auto_reconnect: true,
+    socketOptions:{
+      connectTimeoutMS:3600000,
+      keepAlive:3600000,
+      socketTimeoutMS:3600000
+    }
+  }
 };
 
 var connect = function () 
@@ -69,7 +72,7 @@ var connect = function ()
 	//options.server.socketOptions = options.replset.socketOptions = { keepAlive : true };
 	options.server.socketOptions = { keepAlive : true, connectTimeoutMS : 30000 };
 	
-  mongoose.connect('mongodb://lecturus:lec123@ds033477.mongolab.com:33477/heroku_app33687705', options);
+  mongoose.connect(config.mongoUrl, options);
 };
 
 // connect to MongoLab using Mongoose
@@ -91,9 +94,10 @@ db.on('open', function()
 
 db.on('disconnected', function()
 {
-	console.log('Mongoose: Connection stopped, recconect.');
-	connect();
+  console.log('Mongoose: Connection stopped, recconect.');
+  connect();
 });
+	
 
 //load all files in models dir
 fs.readdirSync(__dirname + '/models').forEach( function( fileName)
@@ -102,10 +106,28 @@ fs.readdirSync(__dirname + '/models').forEach( function( fileName)
 });
 //--------------------------------Connect to mongodb using Mongoose--------------------------------//
 
-app.listen(app.get('port'), function() 
+
+
+//--------------------------------Connect to mongodb using MongoClient--------------------------------//
+
+var connectMongo = function () 
 {
-    console.log('LecturuS Server running...' + app.get('port'));
-});
+  console.log('MongoDB: Trying to establish connection.');
+  MongoClient.connect(config.mongoUrl, options , function(err, db){
+    if (err) 
+    {
+      connectMongo();
+      return;
+    }
+    app.set('mongodb',db);
+    console.log('MongoDB: Connection established.');
+  });
+
+};
+
+connectMongo();
+
+//--------------------------------Connect to mongodb using MongoClient--------------------------------//
 
 // can use app.use( '/folderName' ,require('lecturus_users'));
 var users = require('./s_users'); 
@@ -114,6 +136,13 @@ var session = require('./s_session');
 app.use(session); 
 var auxiliary = require('./s_auxiliary'); 
 app.use(auxiliary); 
+
+
+
+app.listen(app.get('port'), function() 
+{
+    console.log('LecturuS Server running...' + app.get('port'));
+});
 
 app.get('/', function(req, res) 
 {
