@@ -1400,8 +1400,8 @@ router.post('/session/uploadAudio', function(request, response) {
     {
         console.log('-->PARSE<--');
         //logs the file information 
-        console.log("files",JSON.stringify(files));
-        console.log("fields",JSON.stringify(fields));
+        console.log("files", JSON.stringify(files));
+        console.log("fields", JSON.stringify(fields));
         sessionId= fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
@@ -1434,7 +1434,7 @@ router.post('/session/uploadAudio', function(request, response) {
             
         var stream = cloudinary.uploader.upload_stream(function(result) 
         { 
-          console.log(result)
+          console.log(result);	//TODO. Remove
            var r={};
             MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
             {
@@ -1444,7 +1444,7 @@ router.post('/session/uploadAudio', function(request, response) {
                 console.log("connection error ",err);
                 r.status=0;
                 r.desc="err db";
-                response.send((JSON.stringify(r)))
+                response.json(r);
                 return;
             }
             // if mongodb connection success asking for users collection
@@ -1453,16 +1453,16 @@ router.post('/session/uploadAudio', function(request, response) {
             collection.find({sessionId:sessionId}).toArray(function (err, docs) 
             {
                 // if the session exist update
-                if (docs.length){
-
-                    delete docs[0]._id;
+                if (docs.length)
+                {
+                	delete docs[0]._id;
                     //email url startAt length
                     docs[0].audios.push({
-                      length: audioLength,
-                      timestamp:timestamp,
-                      email: email,
-                      url: result.url,
-                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
+                    length: audioLength,
+                    timestamp:timestamp,
+                    email: email,
+                    url: result.url,
+                    startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
                     });
                     docs[0].totalSecondLength+=audioLength;
                     // insert new user to users collection 
@@ -1471,7 +1471,7 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.status=1;
                         r.desc="audio uploaded";
                         db.close();
-                        response.send((JSON.stringify(r)))
+                        response.json(r);
                      });
                 }
                  else { // if the session does not exist return status 0
@@ -1479,7 +1479,7 @@ router.post('/session/uploadAudio', function(request, response) {
                         r.status=0;
                         r.desc="session not exist";
                         db.close();
-                        response.send((JSON.stringify(r)))
+                        response.json(r);
                  }
             });
           });
@@ -1487,7 +1487,8 @@ router.post('/session/uploadAudio', function(request, response) {
         {
           public_id: uniqueid, 
           resource_type: 'raw',
-          format: 'mp3',
+          //format: 'mp3',
+          format: 'amr',
           tags: [sessionId, 'lecturus']
         }      
       );
