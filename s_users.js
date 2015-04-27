@@ -247,7 +247,7 @@ router.post("/users/getUsersData", function( req, res )
         {
             console.log("user: " + data + " exists in the system.");
             r.uid = data;
-            r.info = result;                 
+            r.users = result;                 
             r.status = 1;
             r.desc = "user: " + data.email + " exists in the system.";
             res.json(r);
