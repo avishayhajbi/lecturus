@@ -28,24 +28,7 @@ router.get('/session', function( req, res )
   	});
 });
 
-// router.post("/session/test", function( req, res)
-// {
-            
-  
-//   var collection = app.get('mongodb').collection('users');
-  
-//   collection.find( { email: req.body.email } ).toArray (function (err,result){
-//     if (err) {
-//       console.log('err',err)
-//       res.json({res:0})
-//     }
-//     if (result) {
-//       console.log('result',result)
-//       res.json({res:result})
-//     }
-//   });
-            
-// });
+
 /* /session/createSession -- precondition
  * 	This function will receive json with user email, any other fields: name , description, lecturer, degree, course, more data as wanted.
  *

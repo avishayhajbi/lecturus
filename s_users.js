@@ -117,11 +117,11 @@ router.post("/users/registerUser", function(req, res)
  * /users/getUser -- postcondition
  *	This function will return json with status: 1 = success / 0 = failure, and 'user' data.
  * 
- * /users/registerUser -- description
+ * /users/getUser -- description
  * 	This function goes through 'email' properties in 'user' documents and searches for a suitable email.
  *	If an email, received in request, was found, this function will return 'user' document's info.
  * 
- * /users/registerUser -- example
+ * /users/getUser -- example
  *	email		vandervidi@gmail.com
 */
 router.post("/users/getUser", function( req, res ) 
@@ -185,6 +185,84 @@ router.post("/users/getUser", function( req, res )
 			res.json(r);
 			return;
 		}
+    });   
+});
+
+/* /users/getUsersData -- precondition
+ *  This function must receive json array with email called users
+ *
+ * /users/getUsersData -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure, and all 'users' data.
+ * 
+ * /users/getUsersData -- description
+ *  This function goes through 'email' properties in 'user' documents and searches for a suitable email.
+ *  If an email, received in request, was found, this function will return 'user' document's info.
+ * 
+ * /users/getUsersData -- example
+ *  users[0]       vandervidi@gmail.com
+ *  users[1]       avishayhajbi@gmail.com
+*/
+router.post("/users/getUsersData", function( req, res ) 
+{
+    var r = { };
+    
+    try
+    {
+        //try to parse json data
+        var data = req.body.users;
+    }
+     catch( err )
+    {
+        console.log("failure while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.json(r);
+        return;
+    }
+    if ( !data || data.length == 0 )  // if data.email property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property users or its empty";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').find( { email:{ $in : data} },
+    { _id:false ,name:true, lastName:true, image:true, email:true },
+    function (err, result)
+    {
+        // failure during user search
+        if (err) 
+        {
+            console.log("failure during user search, the error: ", err);
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "failure during user search";
+            res.json(r);    
+            return;
+        }
+        
+        
+        if (result.length)
+        {
+            console.log("user: " + data + " exists in the system.");
+            r.uid = data;
+            r.info = result;                 
+            r.status = 1;
+            r.desc = "user: " + data.email + " exists in the system.";
+            res.json(r);
+            return;
+            
+        }
+        else // the user not exist, function returns 0
+        {
+            console.log("user: " + data.email + " not exist in the system.");
+            r.uid = data.email;
+            r.status = 0;
+            r.desc = "user: " + data.email + " not exist in the system.";
+            res.json(r);
+            return;
+        }
     });   
 });
 
