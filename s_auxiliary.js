@@ -205,7 +205,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 /* /auxiliary/getVideosByCourse -- postcondition
     return all related videos by combination between user email degree and course
     json data with status 1/0, all related videos
-    */
+*/
     router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req, res) {
         try
         {
@@ -268,6 +268,13 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 
 });
 
+/* /auxiliary/getVideosByName -- precondition
+   This function will receive data with name
+  */
+/* /auxiliary/getVideosByName -- postcondition
+    return all related videos by the query
+    json data with status 1/0, length, res (for the results)
+*/
 router.get("/auxiliary/getVideosByName/:name?", function(req, res) {
     var r ={};
     var data={};
