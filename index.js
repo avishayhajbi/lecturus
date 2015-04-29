@@ -54,11 +54,11 @@ var options = {
 	db: { native_parser : true },
 	server: {
     poolSize: 5,
-    auto_reconnect: true,
+    //auto_reconnect: true,
     socketOptions:{
-      connectTimeoutMS:3600000,
-      keepAlive:3600000,
-      socketTimeoutMS:3600000
+      connectTimeoutMS:30000,
+      keepAlive:true,
+      //socketTimeoutMS:3600000
     }
   }
 };
