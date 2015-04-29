@@ -1206,7 +1206,7 @@ router.post("/session/uploadTags", function( req, res )
 		        	//console.log("UPLOADTAGS:tag1:timestamp: " + tag.timestamp);
 		        	//console.log("UPLOADTAGS:tag1:text: " + tag.text);
 		        	tag.email = email;
-		          	tag.rating = { positive : { users : [], rate : 0 }, negative : { users : [], rate : 0 } };
+		          	tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
 		          	console.log("UPLOADTAGS:tag2: " + tag);
 		          	result.elements.tags.push(tag);
 		        });
