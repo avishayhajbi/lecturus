@@ -178,7 +178,8 @@ router.post("/session/getUserSessions", function( req, res)
     //var collection = connectMongo().collection('sessions');
 
     db.model('sessions').find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] } ,
-    {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ).toArray( function (err, docs) 
+    {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ,
+    function (err, docs) 
     {
     	console.log("Searching for the session collection");
     	
