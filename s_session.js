@@ -198,7 +198,6 @@ router.post("/session/getUserSessions", function( req, res)
           r.status = 1;
           r.userRecordings = docs;
           r.desc = "sessions with user: " + userId + " participation.";
-          db.close();		/* TODO REMOVE */
           res.json(r);		                	
       }
 		});
