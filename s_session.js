@@ -1516,7 +1516,7 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res)
           var collection = db.collection('sessions');
           
           //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-          collection.find( { sessionId : videoId }).toArray(function( err, docs )		//TODO. use findOne ?
+          collection.find( {$and:[{ sessionId : videoId },{active:false}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
           { 
             	// failure while connecting to sessions collection
             	if (err) 
@@ -1529,16 +1529,13 @@ router.get('/session/getVideoById/:videoId?:edit?', function (req, res)
             	}
             	else
             	{
-             		if (docs.length)
-             		{
-             			// remove inernal mongobd id
-            			delete docs[0]._id;
+             		
                 		console.log("the session: " + videoId + " was found.");
                 		r.status = 1;
                 		r.info = (docs.length)?docs[0]:[];	// TODO. what is this???
                 		r.desc = "the session: " + videoId + " was found.";
                 		res.send((JSON.stringify(r)));		//TODO. res.json()
-            		} 
+            	 
             	}
         	});         
 		});
