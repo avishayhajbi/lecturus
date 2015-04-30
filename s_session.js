@@ -1474,7 +1474,7 @@ router.post('/session/uploadAudio', function(request, response) {
 });
 
 /* /session/getVideoById -- precondition
- * 	This function will receive json with user videoId, edit: true = add 1 to view counter / false = dont add 1 to view counter.
+ * 	This function will receive json with user videoId, userId ,edit: true = add 1 to view counter / false = dont add 1 to view counter.
  *
  * /session/getVideoById -- postcondition
  *  This function will return json with info:, status: 1 = success / 0 = failure.
@@ -1485,70 +1485,88 @@ router.post('/session/uploadAudio', function(request, response) {
  *
  * /session/getVideoById -- example
  *	email		vandervidi@gmail.com
+    videoId 123
+    edit true/false
  */
-router.get('/session/getVideoById/:videoId?:edit?', function (req, res) 
+router.post('/session/getVideoById', function (req, res) 
 {
 	var r = { };
 
     try
     {
-	    var videoId = req.query.videoId;
-    	var edit = req.query.edit; 			//TODO handel pluse minus views counter
+	    var videoId = req.body.videoId;
+    	var userId = req.body.userId;   //TODO handel get video only if the user from the same org
+      var edit = req.body.edit; 			//TODO handel pluse minus views counter
     
-		MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
-      	{
-          	console.log("Trying to connect to the db.");
-                        
-          	// if connection failed
-			if (err) 
-			{
-				console.log("MongoLab connection error: ", err);
-				r.uid = 0;
-				r.status = 0;
-				r.desc = "failed to connect to MongoLab.";
-				res.send((JSON.stringify(r)));	//TODO. res.json()
-				return;
-			}
-          
-          console.log(JSON.stringify(videoId));
-          
-          // get sessions collection 
-          var collection = db.collection('sessions');
-          
-          //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-          collection.find( {$and:[{ sessionId : videoId },{active:false}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
-          { 
-            	// failure while connecting to sessions collection
-            	if (err) 
-            	{
-                	console.log("failure while searching for the session, the error: ", err);
-                	r.status = 0;
-                	r.desc = "failure while searching for the session.";
-                	res.send((JSON.stringify(r)));		//TODO. res.json()
-                	return;
-            	}
-            	else
-            	{
-             		
-                		console.log("the session: " + videoId + " was found.");
-                		r.status = 1;
-                		r.info = (docs.length)?docs[0]:[];	// TODO. what is this???
-                		r.desc = "the session: " + videoId + " was found.";
-                		res.send((JSON.stringify(r)));		//TODO. res.json()
-            	 
-            	}
-        	});         
-		});
+  		MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
+      {
+        console.log("Trying to connect to the db.");
+                          
+        // if connection failed
+  			if (err) 
+  			{
+  				console.log("MongoLab connection error: ", err);
+  				r.uid = 0;
+  				r.status = 0;
+  				r.desc = "failed to connect to MongoLab.";
+  				res.json(r);
+  				return;
+  			}
+            
+        console.log(JSON.stringify(videoId));
+        
+        // get sessions collection 
+        var sessionCollection = db.collection('sessions');
+        var UserCollection = db.collection('users');
+        //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
+        sessionCollection.find( {$and:[{ sessionId : videoId },{active:false}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+        { 
+          	// failure while connecting to sessions collection
+          	if (err) 
+          	{
+              	console.log("failure while searching for the session, the error: ", err);
+              	r.status = 0;
+              	r.desc = "failure while searching for the session.";
+              	res.json(r);
+              	return;
+          	}
+          	else
+          	{
+           		//TODO  getUserinfo(collection,email)
+          		console.log("the session: " + videoId + " was found.");
+          		r.status = 1;
+          		r.info = (docs.length)?docs[0]:[];
+          		r.desc = "the session: " + videoId + " was found.";
+          		res.json(r);		
+          	 
+          	}
+      	});         
+  		});
     }
     catch(err)
     {
       	console.log("failure while parsing the request, the error:", err);
       	r.status = 0;
       	r.desc = "failure while parsing the request";
-      	res.send((JSON.stringify(r)));		//TODO. res.json()
+      	res.json(r);
     } 
 });
 
+function getUserinfo(collection,email){
+  collection.find( {email:email}, {_id:false, name:true, lastName:true, image:true }).toArray(function( err, docs )    //TODO. use findOne ?
+  {
+    var info={};
+    if (err) 
+    {
+      return info;
+    }
+    else
+    {
+      //docs[0]
+      return info;       
+    }
+  });
+}
 
 /* /session/getAllVideos -- precondition
  *  This function will receive json with email.
