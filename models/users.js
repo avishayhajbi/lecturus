@@ -10,6 +10,7 @@ var usersSchema = new Schema(
 		image:{ type : String , default : '' },
 		active : Boolean,
 		timestamp: Number,
+		subscribe : { type : Array , default : [] },
 		friends : { type : Array , default : [] },
 		favorites:  [{
 		 name : String,description:String, participants:{ type : Array , default : [] }, owner:String,course:String,
