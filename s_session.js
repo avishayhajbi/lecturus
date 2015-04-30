@@ -177,7 +177,7 @@ router.post("/session/getUserSessions", function( req, res)
     //var collection = app.get('mongodb').collection('sessions');
     //var collection = connectMongo().collection('sessions');
 
-    db.model('sessions').find( { $or: [ { owner : userId }, { participants: { $elemMatch: { user: userId } } } ] } ,
+    db.model('sessions').find( { $or: [ { owner : userId }, {participants : userId}   ] } ,
     {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ,
     function (err, docs) 
     {
