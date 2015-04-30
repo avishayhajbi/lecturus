@@ -1495,6 +1495,7 @@ router.post('/session/getVideoById', function (req, res)
     try
     {
 	    var videoId = req.body.videoId;
+      var org = req.body.org;
     	var userId = req.body.userId;   //TODO handel get video only if the user from the same org
       var edit = req.body.edit; 			//TODO handel pluse minus views counter
     
@@ -1519,7 +1520,7 @@ router.post('/session/getVideoById', function (req, res)
         var sessionCollection = db.collection('sessions');
         var UserCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-        sessionCollection.find( {$and:[{ sessionId : videoId },{active:false}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+        sessionCollection.find( {$and:[{ sessionId : videoId },{active:false},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
         { 
           	// failure while connecting to sessions collection
           	if (err) 
