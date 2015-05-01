@@ -1518,7 +1518,7 @@ router.post('/session/getVideoById', function (req, res)
         
         // get sessions collection 
         var sessionCollection = db.collection('sessions');
-        var UserCollection = db.collection('users');
+        var userCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
         sessionCollection.find( {$and:[{ sessionId : videoId },{active:false},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
         { 
@@ -1533,13 +1533,50 @@ router.post('/session/getVideoById', function (req, res)
           	}
           	else
           	{
-           		//TODO  getUserinfo(collection,email)
-          		console.log("the session: " + videoId + " was found.");
-          		r.status = 1;
-          		r.info = (docs.length)?docs[0]:[];
-          		r.desc = "the session: " + videoId + " was found.";
-          		res.json(r);		
-          	 
+              var tmpEmails = [];
+              tmpEmails.push(docs[0].participants.map(function(email) {
+                    return email;
+              }));
+              for (var elem in docs[0].elements){
+                if (docs[0].elements[elem].hasOwnProperty('tags'))
+                  tmpEmails.push(docs[0].elements[elem]['tags'].map(function(tag) {
+                    return tag.email;
+                  }));
+              }
+              var merged=[];
+              var merged = merged.concat.apply(merged, tmpEmails);
+              var uniqueArray = merged.filter(function(item, pos) {
+                  return merged.indexOf(item) == pos;
+              });
+              
+              userCollection.find( {email:{ $in : uniqueArray}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, result )    
+              {
+                var users = {};
+                if (err) 
+                {
+                  console.log("error while fetching users info");
+                  r.status = 0;
+                  r.desc= "error while fetching users info";
+                  res.json(r);
+                  db.close();
+                  return;
+                }
+                else
+                {
+
+                  for (var val in result)
+                    users[result[val].email] = result[val];
+                  
+                  docs[0].users = users;
+                  console.log("the session: " + videoId + " was found.");
+                  r.status = 1;
+                  r.info = (docs.length)?docs[0]:[];
+                  r.desc = "the session: " + videoId + " was found.";
+                  res.json(r); 
+                  db.close();
+                  return;      
+                }
+              });
           	}
       	});         
   		});
@@ -1553,17 +1590,19 @@ router.post('/session/getVideoById', function (req, res)
     } 
 });
 
-function getUserinfo(collection,email){
-  collection.find( {email:email}, {_id:false, name:true, lastName:true, image:true }).toArray(function( err, docs )    //TODO. use findOne ?
+function getUserinfo(collection,emails){
+  var info={};
+  collection.find( {email:{ $in : emails}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, docs )    
   {
-    var info={};
     if (err) 
     {
       return info;
     }
     else
     {
-      //docs[0]
+      for (var val in docs)
+        info[val.email] = val;
+      console.log(info)
       return info;       
     }
   });

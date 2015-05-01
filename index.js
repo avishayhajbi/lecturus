@@ -53,13 +53,13 @@ config = {
 var options = {
 	db: { native_parser : true },
 	server: {
-    poolSize: 5,
+    poolSize: 5
     //auto_reconnect: true,
-    socketOptions:{
-      connectTimeoutMS:30000,
-      keepAlive:true,
+    //socketOptions:{
+      //connectTimeoutMS:30000,
+      //keepAlive:true,
       //socketTimeoutMS:3600000
-    }
+    //}
   }
 };
 
