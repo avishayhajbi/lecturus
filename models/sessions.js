@@ -13,7 +13,6 @@ var sessionsSchema = new Schema(
 	degree : { type : String , default : '' },
 	course : { type : String , default : '' },
 	owner : { type : String , default : '' },
-	recordStarts : { type : Boolean , default : false },
 	startTime: { type : Number , default : 0 },
 	stopTime:  { type : Number , default : 0 },
 	totalSecondLength : { type : Number , default : 0 },
