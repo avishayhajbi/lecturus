@@ -15,11 +15,11 @@ var usersSchema = new Schema(
 		friends : { type : Array , default : [] },
 		favorites:  [{
 		 name : String,description:String, participants:{ type : Array , default : [] }, owner:String,course:String,
-         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, title:String, views:Number , default : [] 
+         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, views:Number , default : [] 
 		}],
 		owner:  [{
 		 name : String,description:String, participants:{ type : Array , default : [] }, owner:String,course:String,
-         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, title:String, views:Number , default : [] 
+         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, views:Number , default : [] 
 		}]
 	});
 	
