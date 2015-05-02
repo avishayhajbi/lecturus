@@ -1531,7 +1531,7 @@ router.post('/session/getVideoById', function (req, res)
               	res.json(r);
               	return;
           	}
-          	else
+          	else if (docs[0])
           	{
               var tmpEmails = [];
               console.log(docs[0])
@@ -1579,6 +1579,16 @@ router.post('/session/getVideoById', function (req, res)
                 }
               });
           	}
+            else
+            {
+              console.log("the session: " + videoId + " was not found.");
+              r.status = 0;
+              r.info = [];
+              r.desc = "the session: " + videoId + " was not found.";
+              res.json(r); 
+              db.close();
+              return;  
+            }
       	});         
   		});
     }
