@@ -2,6 +2,7 @@ var express = require('express');
 var fs = require("fs-extra");
 var router = express.Router();
 
+
 /* /auxiliary/getCourses -- precondition
   data with email
   */
@@ -234,7 +235,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
             var collection = db.collection('sessions');
             //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
             collection.find( { degreeId : data.degreeId , courseId : data.courseId || {$exists:true} }
-                , {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false}).toArray(function (err, docs)
+                , sessionPreview ).toArray(function (err, docs)
                 { 
                 // failure while connecting to sessions collection
                 if (err) 
@@ -299,7 +300,7 @@ router.get("/auxiliary/getVideosByName/:name?", function(req, res) {
 
     console.log("looking for: "+data.name)
     db.model('sessions').find( {  name:  {$regex : ".*"+data.name+".*"}  },
-    {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false},
+    sessionPreview,
     function (err, docs)
     { 
         // failure while connecting to sessions collection

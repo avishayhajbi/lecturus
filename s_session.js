@@ -9,7 +9,7 @@ var path = require('path');
 var cloudinary = require('cloudinary');
 var Q = require('q');
 
-var sessionPreview = {
+sessionPreview = {
   name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
   sessionId:true, totalSecondLength:true, rating:true, views:true , _id:false
 }
