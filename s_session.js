@@ -169,7 +169,7 @@ router.post("/session/getUserSessions", function( req, res)
     //var collection = app.get('mongodb').collection('sessions');
     //var collection = connectMongo().collection('sessions');
 
-    db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{startTime:0} ]},
+    db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{startTime:{ $gt: 0  }} ]},
     {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ,
     function (err, docs) 
     {
@@ -1520,7 +1520,7 @@ router.post('/session/getVideoById', function (req, res)
         var sessionCollection = db.collection('sessions');
         var userCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-        sessionCollection.find( {$and:[{ sessionId : videoId },{startTime:0},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+      sessionCollection.find( {$and:[{ sessionId : videoId },{startTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
         { 
           	// failure while connecting to sessions collection
           	if (err) 
@@ -1534,6 +1534,7 @@ router.post('/session/getVideoById', function (req, res)
           	else
           	{
               var tmpEmails = [];
+              console.log(docs[0])
               tmpEmails.push(docs[0].participants.map(function(email) {
                     return email;
               }));
@@ -1671,7 +1672,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                 var collection = db.collection('sessions');
                 
                 //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-                collection.find( {$and:[{ org : docs[0].org },{startTime:0}]} , 
+                collection.find( {$and:[{ org : docs[0].org },{startTime:{ $gt: 0  }}]} , 
                 { name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false}).toArray(function( err, docs )   //TODO. use findOne ? yes
                 { 
                     // failure while connecting to sessions collection
