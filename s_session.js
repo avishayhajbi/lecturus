@@ -9,6 +9,9 @@ var path = require('path');
 var cloudinary = require('cloudinary');
 var Q = require('q');
 
+var sessionPreview = {
+  name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false
+}
 
 cloudinary.config({ 
   cloud_name: 'hakrhqyps', 
@@ -170,7 +173,7 @@ router.post("/session/getUserSessions", function( req, res)
     //var collection = connectMongo().collection('sessions');
 
     db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{startTime:{ $gt: 0  }} ]},
-    {name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false} ,
+    sessionPreview ,
     function (err, docs) 
     {
     	console.log("Searching for the session collection");
@@ -780,7 +783,7 @@ router.post("/session/updateSession", function(req, res )
       // get sessions collection 
       var collection = db.collection('sessions');
       //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-      collection.find( { sessionId:data.sessionId }).toArray(function (err, docs)
+      collection.find( {$and:[{ sessionId:data.sessionId },{owner : data.owner}] }).toArray(function (err, docs)
       { 
           // failure while connecting to sessions collection
           if (err) 
@@ -794,7 +797,8 @@ router.post("/session/updateSession", function(req, res )
           
           else if (docs.length)
           {
-              collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+              collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, 
+              function(err, result) { 
                   if (err)
                   {
                     console.log("session not updated "+err);
@@ -802,6 +806,7 @@ router.post("/session/updateSession", function(req, res )
                     r.desc="session not updated";
                     db.close(); // TODO REMOVE 
                     res.send((JSON.stringify(r)))
+                    return;
                   } 
                   else 
                   {
@@ -809,9 +814,10 @@ router.post("/session/updateSession", function(req, res )
                     r.status=1;
                     r.desc="session updated";
                     db.close(); // TODO REMOVE 
-                    res.send((JSON.stringify(r)))
+                    res.send((JSON.stringify(r)));
+                    return;
                 }
-               });
+              });
           }
           else
           {
@@ -1486,6 +1492,7 @@ router.post('/session/uploadAudio', function(request, response) {
  * /session/getVideoById -- example
  *	email		vandervidi@gmail.com
     videoId 123
+    org shenkar
     edit true/false
  */
 router.post('/session/getVideoById', function (req, res) 
@@ -1601,23 +1608,6 @@ router.post('/session/getVideoById', function (req, res)
     } 
 });
 
-function getUserinfo(collection,emails){
-  var info={};
-  collection.find( {email:{ $in : emails}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, docs )    
-  {
-    if (err) 
-    {
-      return info;
-    }
-    else
-    {
-      for (var val in docs)
-        info[val.email] = val;
-      console.log(info)
-      return info;       
-    }
-  });
-}
 
 /* /session/getAllVideos -- precondition
  *  This function will receive json with email.
@@ -1683,7 +1673,7 @@ router.get('/session/getAllVideos/:email?', function (req, res)
                 
                 //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
                 collection.find( {$and:[{ org : docs[0].org },{startTime:{ $gt: 0  }}]} , 
-                { name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, sessionId:true, totalSecondLength:true, rating:true, title:true, views:true , _id:false}).toArray(function( err, docs )   //TODO. use findOne ? yes
+                sessionPreview).toArray(function( err, docs )   //TODO. use findOne ? yes
                 { 
                     // failure while connecting to sessions collection
                     if (err) 

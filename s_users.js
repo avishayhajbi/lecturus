@@ -416,4 +416,99 @@ router.post("/users/updateUser", function(req, res)
     }); 
 });
 
+/* /users/subscribe -- precondition
+ *  This function must receive json with email: user id, and sessionId  
+ *
+ * /users/subscribe -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /users/subscribe -- description
+ *  This function goes through 'email' properties in 'user' documents and searches for a suitable email.
+ *  then if the email found the sessionId will be store in the user subscribe list IF the sessionId already
+ *  was there it will deleted
+ *
+ * /users/subscribe -- example
+ *  email       vandervidi@gmail.com
+ *  userToFollow  "avishayhajbi@gmail.com"
+*/
+router.post("/users/subscribe", function(req, res) 
+{
+
+    var r = { };
+    
+    try
+    {
+        //try to parse json data
+        var data = req.body;
+    }
+     catch( err )
+    {
+        console.log("failure while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.json(r);
+        return;
+    }
+    if ( !data.email || data.email == "" )
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property org";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').findOne({email: data.email} , {upsert:false},
+    function (err, result)
+    {
+        console.log(result)
+        // failure during user search
+        if (err) 
+        {
+            console.log("failure during user search, the error: ", err);
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "failure during user search";
+            res.json(r);    
+            return;
+        }
+        else if (result)
+        {
+            var index= result.subscribe.indexOf(data.userToFollow);
+            if (index > -1)
+            {
+                result.subscribe.splice(index, 1);
+            }
+            else
+            {
+                result.subscribe.push(data.userToFollow);
+            }
+            result.save(function(err, obj) 
+            { 
+                if (err)
+                {
+                    console.log("failed to update user subscribe list");
+                    r.status = 0;
+                    r.desc = "failed to update user subscribe list";
+                    res.json(r);
+                    return;          
+                }
+                console.log("user subscribe list updated successfully");
+                r.status = 1;
+                r.desc = "user subscribe list updated successfully";
+                res.json(r);
+                return; 
+            });
+        }
+        else
+        {
+            console.log("user was not found: " + data.email);
+            r.status = 0;
+            r.desc = "user was not found";
+            res.json(r);
+            return;
+            
+        }
+        
+    }); 
+});
 module.exports = router;
