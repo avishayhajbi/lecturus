@@ -150,7 +150,7 @@ router.post("/users/getUser", function( req, res )
     }
 
     db.model('users').find( { email : data.email },
-    { _id:false ,name:true, lastName:true, image:true, email:true },
+    { _id:false ,name:true, lastName:true, image:true, email:true, org:true },
     function (err, result)
     {
     	// failure during user search
