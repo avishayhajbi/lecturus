@@ -1501,7 +1501,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
         );
 var file_reader = fs.createReadStream(ffmpeg(temp_path)
   .audioCodec('libfaac')
-  .videoCodec('libx264')
+  //.videoCodec('libx264')
   .format('mp3')).pipe(stream);
 });
 
