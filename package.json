@@ -13,6 +13,7 @@
     "daemon": "^1.1.0",
     "ejs": "^2.3.1",
     "express": "^4.12.3",
+    "fluent-ffmpeg": "^2.0.1",
     "formidable": "^1.0.17",
     "fs-extra": "^0.18.2",
     "mongodb": "^2.0.25",

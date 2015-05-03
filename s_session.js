@@ -8,6 +8,8 @@ var router = express.Router();
 var path = require('path');
 var cloudinary = require('cloudinary');
 var Q = require('q');
+var ffmpeg = require('fluent-ffmpeg');
+var ffmpegCommand = ffmpeg();
 
 sessionPreview = {
   name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
@@ -1497,7 +1499,10 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
           tags: [sessionId, 'lecturus']
         }      
         );
-var file_reader = fs.createReadStream(temp_path).pipe(stream);
+var file_reader = fs.createReadStream(ffmpeg(temp_path)
+  .audioCodec('libfaac')
+  .videoCodec('libx264')
+  .format('mp3')).pipe(stream);
 });
 
 });
