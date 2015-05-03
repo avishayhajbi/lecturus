@@ -328,4 +328,133 @@ router.get("/auxiliary/getVideosByName/:name?", function(req, res) {
     });         
 });
 
+/* /auxiliary/getTopRated -- precondition
+   This function will receive data with org
+  */
+/* /auxiliary/getTopRated -- postcondition
+    return all related videos in ordr by views
+    json data with status 1/0, length, res (for the results)
+*/
+router.post("/auxiliary/getTopRated", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || data.org == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
+
+    console.log("looking for videos: "+data.ord)
+    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).limit(8)
+    .exec(function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+            console.log("videos found "+ docs);
+            r.status = 1;
+            r.length=docs.length;
+            r.res = docs;
+            r.desc = "get videos.";
+            res.json(r); 
+            return;                         
+        }
+    });         
+});
+
+
+/* /auxiliary/followedSubscribedUsers -- precondition
+   This function will receive data with email
+  */
+/* /auxiliary/followedSubscribedUsers -- postcondition
+    return all related videos user cubscribe list
+    json data with status 1/0, length, res (for the results)
+*/
+router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').findOne({email:data.email}, {subscribe:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+
+            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({'views': -1}).limit(4)
+            .exec(function(err, result)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
+                
+                else if (result)
+                {
+                    console.log("videos found "+ result);
+                    r.status = 1;
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });         
+});
 module.exports = router;

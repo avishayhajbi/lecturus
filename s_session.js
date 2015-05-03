@@ -1089,7 +1089,7 @@ else
   {
    console.log("UPDATEVIEWS:request must contain sessionId property.");
    r.status = 0;	
-   r.desc = "request must contain sessionId property.";
+   r.desc = "request must contain sessionId and userId property.";
    res.json(r); 
    return;
  }
