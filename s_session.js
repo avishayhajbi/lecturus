@@ -607,29 +607,68 @@ else
              res.json(r);
              return; 
            }); 
-       }
+       //}
        if (reqStatus == 0)
        {
-         if (result.startTime == 0 )
-         {
-           console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
-           r.status = 0;
-           r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
-           res.json(r);	
-           return; 						
-         }
-         if (result.stopTime != 0 )
-         {
-           console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
-           r.status = 0;
-           r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
-           res.json(r);	
-           return; 						
-         }
-					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
-					result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-					result.stopTime = reqTimestamp;
-         result.save(function(err, obj) 
+	     	if (result.startTime == 0 )
+	         {
+				console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
+	   			r.status = 0;
+	   			r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
+	   			res.json(r);	
+	   			return; 						
+	         }
+	         if (result.stopTime != 0 )
+	         {
+	           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
+	           	r.status = 0;
+	           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
+	           	res.json(r);	
+	           	return; 						
+	         }
+			//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
+			result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
+			result.stopTime = reqTimestamp;
+	  		MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
+			{
+	    		console.log("Trying to connect to the db.");
+	    		//var r = { }; 
+	    		             
+	      		// if connection failed
+		      	if (err) 
+		      	{
+		        	console.log("MongoLab connection error: ", err);
+		        	r.status = 0;
+		        	r.desc = "failed to connect to MongoLab.";
+		        	res.send((JSON.stringify(r)));
+		        	return;
+		      	}
+	          
+	          	collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true}, 
+	          	function(err, update_res) 
+	          	{ 
+	            	if (err)
+	            	{
+	              		console.log("session not updated "+err);
+	              		r.status=0;
+	              		r.desc="session not updated";
+	                	db.close(); // TODO REMOVE 
+	                	res.send((JSON.stringify(r)))
+	                	return;
+	              	} 
+	              	else 
+	              	{
+	                	console.log("session updated");
+	                	r.status=1;
+	                	r.desc="session updated";
+	                	db.close(); // TODO REMOVE 
+	                	res.send((JSON.stringify(r)));
+	                	return;
+	              	}
+	            });
+	          
+	     	});
+     /*    result.save(function(err, obj) 
          { 
            if (err)
            {
@@ -647,21 +686,22 @@ else
              res.json(r);
              return; 
            }); 					
-       }
-     }
-     else
-     {
-      console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
-      r.status = 0;
-      r.desc = "user: " + reqOwner + " is not a session owner.";
-      res.json(r);
-      return;
-    }
-        	//console.log("UPDATESESSIONSTATUS:result: " + result);
-        }
-      });                 	              
+       }*/
+		     	}
+		     	else
+		     	{
+			      	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
+			      	r.status = 0;
+			      	r.desc = "user: " + reqOwner + " is not a session owner.";
+			      	res.json(r);
+			      	return;
+				}
+	        	//console.log("UPDATESESSIONSTATUS:result: " + result);
+	        //}
+	      } 
+      } }               	              
+	});
 });
-
 /*
  * This function will create a ;ist of user friends from the session participants.
  */
