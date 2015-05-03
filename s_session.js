@@ -1499,11 +1499,11 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
           tags: [sessionId, 'lecturus']
         }      
         );
-var command = ffmpeg(temp_path)
+/*var command = ffmpeg(temp_path)
   .audioCodec('libfaac')
   //.videoCodec('libx264')
   .format('mp3');
-temp_path  =command.save(uniqueid+".mp3");
+temp_path  =command.save(uniqueid+".mp3");*/
 var file_reader = fs.createReadStream(temp_path).pipe(stream);
 });
 
