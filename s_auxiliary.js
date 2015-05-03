@@ -255,7 +255,8 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
                     r.res = docs;
                     r.desc = "get videos.";
                     db.close();     /* TODO REMOVE */
-                    res.send((JSON.stringify(r)));                          
+                    res.send((JSON.stringify(r)));  
+                    return;                        
                 }
             });         
             });
@@ -264,7 +265,8 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
         status:0,
         desc:"data error"
     }
-    res.send((JSON.stringify(r)))
+    res.send((JSON.stringify(r)));
+    return;
 }
 
 });
