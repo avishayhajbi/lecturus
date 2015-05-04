@@ -1825,7 +1825,7 @@ catch(err)
                 
                 //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
                 collection.find( {$and:[{ org : docs[0].org },{startTime:{ $gt: 0  }}]} , 
-                sessionPreview).toArray(function( err, docs )   //TODO. use findOne ? yes
+                sessionPreview ).toArray(function( err, docs )   //TODO. use findOne ? yes
                 { 
                     // failure while connecting to sessions collection
                     if (err) 

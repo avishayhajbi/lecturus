@@ -266,14 +266,13 @@ router.post("/users/getUsersData", function( req, res )
     });   
 });
 
-
 getUsersData = function (doc , userid , callback) {
 
     var tmpEmails = [];
-    console.log(doc)
     tmpEmails.push(doc.participants.map(function(email) {
       return email;
     }));
+    if (doc.elements)
     for (var elem in doc.elements){
       if (doc.elements[elem].hasOwnProperty('tags'))
         tmpEmails.push(doc.elements[elem]['tags'].map(function(tag) {
@@ -289,7 +288,7 @@ getUsersData = function (doc , userid , callback) {
     });
 
     db.model('users').find( { email:{ $in : uniqueArray} },
-    { _id:false ,name:true, lastName:true, image:true, email:true },
+    { _id:false ,name:true, lastName:true, image:true, email:true,subscribe:true },
     function (err, result)
     {
         // failure during user search
@@ -301,7 +300,18 @@ getUsersData = function (doc , userid , callback) {
         {
             var users={};
             for (var val in result)
-                  users[result[val].email] = result[val];
+            {   
+                if (result[val].email == userid)
+                {
+                    doc.subscribe = (result[val].subscribe.indexOf(doc.owner)!= -1)?true:false;
+                }
+                users[result[val].email] = {
+                    name: result[val].name,
+                    lastName: result[val].lastName,
+                    image: result[val].image,
+                    email: result[val].email
+                }
+            }
             callback(users)
         }   
     });   
