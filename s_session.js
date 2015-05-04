@@ -1671,8 +1671,8 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
         var sessionCollection = db.collection('sessions');
         var userCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-      sessionCollection.find( {$and:[{ sessionId : videoId },{startTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
-      { 
+          sessionCollection.find( {$and:[{ sessionId : videoId },{startTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+          { 
           	// failure while connecting to sessions collection
           	if (err) 
           	{
@@ -1693,24 +1693,23 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
               db.close();
               return; 
             }
-            var tmpEmails = [];
-            console.log(docs[0])
-            tmpEmails.push(docs[0].participants.map(function(email) {
-              return email;
-            }));
-            for (var elem in docs[0].elements){
-              if (docs[0].elements[elem].hasOwnProperty('tags'))
-                tmpEmails.push(docs[0].elements[elem]['tags'].map(function(tag) {
-                  return tag.email;
-                }));
-            }
-            var merged=[];
-            var merged = merged.concat.apply(merged, tmpEmails);
-            var uniqueArray = merged.filter(function(item, pos) {
-              return merged.indexOf(item) == pos;
+            
+
+            getUsersData(docs[0],userId,function(result){
+                docs[0].rating.positive.users =  (docs[0].rating.positive.users.indexOf(userId)!= -1)?true:false;
+                docs[0].rating.negative.users =  (docs[0].rating.negative.users.indexOf(userId)!= -1)?true:false;             
+                docs[0].users = result;
+                console.log("the session: " + videoId + " was found.");
+                r.status = 1;
+                r.info = (docs.length)?docs[0]:[];
+                r.desc = "the session: " + videoId + " was found.";
+                res.json(r); 
+                db.close();
+                return;
             });
 
-            userCollection.find( {email:{ $in : uniqueArray}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, result )    
+            
+            /*userCollection.find( {email:{ $in : uniqueArray}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, result )    
             {
               var users = {};
               if (err) 
@@ -1737,7 +1736,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
                 db.close();
                 return;      
               }
-            });
+            });*/
           }
           else
           {
