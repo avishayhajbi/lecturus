@@ -516,8 +516,8 @@ else
 	var reqOwner, reqSession, reqStatus;	//temporary variables
 	var r = { };							//response object	
 
- try
- {
+	try
+ 	{
     	// try to parse the json data
     	reqSession = req.body.sessionId;
     	reqOwner = req.body.email;
@@ -526,182 +526,146 @@ else
     }
     catch(err)
     {
-     console.log("UPDATESESSIONSTATUS:failure while parsing the request, the error:", err);
-     r.status = 0;
-     r.desc = "failure while parsing the request";
-     res.json(r);
-     return;
+     	console.log("UPDATESESSIONSTATUS:failure while parsing the request, the error:", err);
+     	r.status = 0;
+     	r.desc = "failure while parsing the request";
+     	res.json(r);
+     	return;
    } 
 
-   if (  	typeof reqSession === 'undefined' || reqSession == null || reqSession == "" ||
-     typeof reqOwner === 'undefined' || reqOwner == null || reqOwner == "" ||
-     typeof reqTimestamp === 'undefined' || reqTimestamp == null || reqTimestamp == "" ||
+	if (  	typeof reqSession === 'undefined' || reqSession == null || reqSession == "" ||
+     		typeof reqOwner === 'undefined' || reqOwner == null || reqOwner == "" ||
+     		typeof reqTimestamp === 'undefined' || reqTimestamp == null || reqTimestamp == "" ||
 			typeof reqStatus === 'undefined' || reqStatus == null || reqStatus == ""	)	// if one of the property do not exists in the request and it is empty
-   {
-    console.log("UPDATESESSIONSTATUS:request must contain following properties: sessionId, email, status and timestamp.");
-    r.status = 0;
-    r.desc = "request must contain following properties: sessionId, email, status and timestamp.";
-    res.json(r);  
-    return;	
-  }
+	{
+		console.log("UPDATESESSIONSTATUS:request must contain following properties: sessionId, email, status and timestamp.");
+    	r.status = 0;
+    	r.desc = "request must contain following properties: sessionId, email, status and timestamp.";
+    	res.json(r);  
+    	return;	
+	}
 
 	// TODO. remove 
- console.log("session owner is: " + reqOwner);
- console.log("Session id is: " + reqSession);
- console.log("Session status is: " + reqStatus);
- console.log("Session timestamp is: " + reqTimestamp);  
+	 console.log("session owner is: " + reqOwner);
+	 console.log("Session id is: " + reqSession);
+	 console.log("Session status is: " + reqStatus);
+	 console.log("Session timestamp is: " + reqTimestamp);  
  
- db.model('sessions').findOne( { sessionId : reqSession },
+ 	db.model('sessions').findOne( { sessionId : reqSession },
     //{ participants : true, owner : true, _id : false },	- does not wotk with this
     function (err, result)
     {
     	//console.log("result: " + result);
-      if (err) 
-      {
-        console.log("UPDATESESSIONSTATUS:failure during session search, the error: ", err);
-        r.status = 0;
-        r.desc = "failure during session search";
-        res.json(r);	
-        return;
-      }
-      if ( !result )
-      {
-       console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was not found");
-       r.status = 0;
-       r.desc = "session: " + reqSession + " was not found";
-       res.json(r);
-       return;
-     }
-     else
-     {
-       if (result.owner == reqOwner )
-       {
-        if (reqStatus == 1)
-        {
-         if (result.startTime != 0 )
-         {
-           console.log("UPDATESESSIONSTATUS:can not restart session: " + reqSession);
-           r.status = 0;
-           r.desc = "can not restart session: " + reqSession;
-           res.json(r);	
-           return; 						
-         }
-					getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
-					result.recordStarts = true;
+      	if (err) 
+      	{
+	        console.log("UPDATESESSIONSTATUS:failure during session search, the error: ", err);
+	        r.status = 0;
+	        r.desc = "failure during session search";
+	        res.json(r);	
+	        return;
+      	}
+      	
+     	if ( !result )	//session was not found case
+      	{
+       		console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was not found");
+       		r.status = 0;
+       		r.desc = "session: " + reqSession + " was not found";
+       		res.json(r);
+       		return;
+     	}
+     	else //session was found case
+     	{
+       		if (result.owner == reqOwner )	// check if the user is the session owner
+       		{
+				if (reqStatus == 1)			//start session case
+        		{
+         			if (result.startTime != 0 )
+         			{
+			           	console.log("UPDATESESSIONSTATUS:can not restart session: " + reqSession);
+			           	r.status = 0;
+			          	r.desc = "can not restart session: " + reqSession;
+			           	res.json(r);	
+			           	return; 						
+         			}
+         				
+					//getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
 					result.startTime = reqTimestamp;
-         result.save(function(err, obj) 
-         { 
-           if (err)
-           {
-             console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-             r.status = 0;
-             r.desc = "failure session save";
-             res.json(r);	
-             return;     			
-           }
+         			result.save(function(err, obj) 
+         			{ 
+		           		if (err)
+		           		{
+							console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				            r.status = 0;
+				            r.desc = "failure session save";
+				            res.json(r);	
+				            return;     			
+	           			}
+		
+				    			//console.log("obj is: " + obj); object after the update
+		             	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
+		             	r.status = 1;
+		             	r.desc = "session: " + reqSession + " was started successfully.";
+		             	res.json(r);
+		             	return; 
+		           }); 
+       			}
+				if (reqStatus == 0)		//stop ssession case
+       			{
+	     			if (result.startTime == 0 )		// need to start the session first
+	         		{	
+						console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
+	   					r.status = 0;
+	   					r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
+	   					res.json(r);	
+	   					return; 						
+	         		}
+		        	if (result.stopTime != 0 )		// the session was stoped before
+		         	{
+			           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
+			           	r.status = 0;
+			           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
+			           	res.json(r);	
+			           	return; 						
+		         	}
+		         	
+					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
+					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
+					updateSessionElements(result.elements, result.sessionId);
+					result.stopTime = reqTimestamp;
+         			result.save(function(err, obj) 
+         			{ 
+		           		if (err)
+		           		{
+			             	console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+			             	r.status = 0;
+			             	r.desc = "failure session save";
+			             	res.json(r);	
+			             	return;     			
+		           		}
 
 		    			//console.log("obj is: " + obj); object after the update
-             console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
-             r.status = 1;
-             r.desc = "session: " + reqSession + " was started successfully.";
-             res.json(r);
-             return; 
-           }); 
-       //}
-       if (reqStatus == 0)
-       {
-	     	if (result.startTime == 0 )
-	         {
-				console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
-	   			r.status = 0;
-	   			r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
-	   			res.json(r);	
-	   			return; 						
-	         }
-	         if (result.stopTime != 0 )
-	         {
-	           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
-	           	r.status = 0;
-	           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
-	           	res.json(r);	
-	           	return; 						
-	         }
-			//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
-			result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-			result.stopTime = reqTimestamp;
-	  		MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
-			{
-	    		console.log("Trying to connect to the db.");
-	    		//var r = { }; 
-	    		             
-	      		// if connection failed
-		      	if (err) 
-		      	{
-		        	console.log("MongoLab connection error: ", err);
-		        	r.status = 0;
-		        	r.desc = "failed to connect to MongoLab.";
-		        	res.send((JSON.stringify(r)));
-		        	return;
-		      	}
-	          
-	          	collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true}, 
-	          	function(err, update_res) 
-	          	{ 
-	            	if (err)
-	            	{
-	              		console.log("session not updated "+err);
-	              		r.status=0;
-	              		r.desc="session not updated";
-	                	db.close(); // TODO REMOVE 
-	                	res.send((JSON.stringify(r)))
-	                	return;
-	              	} 
-	              	else 
-	              	{
-	                	console.log("session updated");
-	                	r.status=1;
-	                	r.desc="session updated";
-	                	db.close(); // TODO REMOVE 
-	                	res.send((JSON.stringify(r)));
-	                	return;
-	              	}
-	            });
-	          
-	     	});
-     /*    result.save(function(err, obj) 
-         { 
-           if (err)
-           {
-             console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-             r.status = 0;
-             r.desc = "failure session save";
-             res.json(r);	
-             return;     			
-           }
-
-		    			//console.log("obj is: " + obj); object after the update
-             console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
-             r.status = 1;
-             r.desc = "session: " + reqSession + " was stopped successfully.";
-             res.json(r);
-             return; 
-           }); 					
-       }*/
-		     	}
-		     	else
-		     	{
-			      	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
-			      	r.status = 0;
-			      	r.desc = "user: " + reqOwner + " is not a session owner.";
-			      	res.json(r);
-			      	return;
-				}
+             			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
+             			r.status = 1;
+             			r.desc = "session: " + reqSession + " was stopped successfully.";
+             			res.json(r);
+             			return; 
+           			}); 					
+       			}
+       		}
+	     	else
+	     	{
+		      	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");
+		      	r.status = 0;
+		      	r.desc = "user: " + reqOwner + " is not a session owner.";
+		      	res.json(r);
+		      	return;
+			}
 	        	//console.log("UPDATESESSIONSTATUS:result: " + result);
-	        //}
-	      } 
-      } }               	              
+	        //} 
+      }               	              
 	});
 });
+
 /*
  * This function will create a ;ist of user friends from the session participants.
  */
@@ -762,36 +726,146 @@ else
  */
  function closeSessionFunction(elements)
  {
-   var elemTemp = { };
-   (elements.tags).forEach(function (tag) 
-   {
-     if (elemTemp[tag.timestamp])
-     {
-       elemTemp[tag.timestamp].tags.push(tag);
-     }
-     else
-     {
-       elemTemp[tag.timestamp] = {
-         tags:[tag]
-       };
-     }
-   });
-   (elements.images).forEach(function (image) 
-   {
-    if (elemTemp[image.timestamp])
-    {
-          elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
+	var elemTemp = { };
+   	
+   	(elements.tags).forEach(function (tag) 
+   	{
+     	if (elemTemp[tag.timestamp])
+     	{
+       		elemTemp[tag.timestamp].tags.push(tag);
+     	}
+     	else
+     	{
+       		elemTemp[tag.timestamp] = {
+         	tags:[tag]
+       		};
+     	}
+	});
+   	(elements.images).forEach(function (image) 
+   	{
+    	if (elemTemp[image.timestamp])
+    	{
+          	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
         }
         else
         {
-          elemTemp[image.timestamp] = {
+          	elemTemp[image.timestamp] = {
             photo:image
           };
         }
-      });
+  	});
+	  		MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
+			{
+	    		console.log("Trying to connect to the db.");
+	    		//var r = { }; 
+	    		             
+	      		// if connection failed
+		      	if (err) 
+		      	{
+		        	console.log("MongoLab connection error: ", err);
+		        	r.status = 0;
+		        	r.desc = "failed to connect to MongoLab.";
+		        	res.send((JSON.stringify(r)));
+		        	return;
+		      	}
+	          
+	          	collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true}, 
+	          	function(err, update_res) 
+	          	{ 
+	            	if (err)
+	            	{
+	              		console.log("session not updated "+err);
+	              		r.status=0;
+	              		r.desc="session not updated";
+	                	db.close(); // TODO REMOVE 
+	                	res.send((JSON.stringify(r)))
+	                	return;
+	              	} 
+	              	else 
+	              	{
+	                	console.log("session updated");
+	                	r.status=1;
+	                	r.desc="session updated";
+	                	db.close(); // TODO REMOVE 
+	                	res.send((JSON.stringify(r)));
+	                	return;
+	              	}
+	            });
+	          
+	     	});      
    return elemTemp;
  }
 
+/*
+ * This function will reagange session events according to their timestamp and so will create the session format for web site use.
+ */
+ function updateSessionElements(oldElements, session)
+ {
+ 	console.log("UPDATESESSIONELEMENTS.");
+	var elemTemp = { };
+  	   	
+   	(oldElements.tags).forEach(function (tag) 
+   	{
+     	if (elemTemp[tag.timestamp])
+     	{
+       		elemTemp[tag.timestamp].tags.push(tag);
+     	}
+     	else
+     	{
+       		elemTemp[tag.timestamp] = {
+         	tags:[tag]
+       		};
+     	}
+	});
+   	(oldElements.images).forEach(function (image) 
+   	{
+    	if (elemTemp[image.timestamp])
+    	{
+          	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
+        }
+        else
+        {
+          	elemTemp[image.timestamp] = {
+            photo:image
+          };
+        }
+  	});
+
+	MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, dataBase) // TODO. REMOVE *
+	{
+		console.log("Trying to connect to the db.");
+		             
+  		// if connection failed
+      	if (err) 
+      	{
+        	console.log("MongoLab connection error: ", err);
+        	return;
+      	}
+      	
+      	// get sessions collection 
+      	var collection = dataBase.collection('sessions');
+      	          
+      	//collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true},
+      	collection.update({ sessionId : session }, { $set : {elements : elemTemp} }, { upsert : false, safe : true, fsync : true }, 
+      	function(err) 
+      	{ 
+        	if (err)
+        	{
+          		console.log("session not updated "+err);
+            	db.close(); // TODO REMOVE 
+            	return;
+          	} 
+          	else 
+          	{
+            	console.log("session updated");
+            	dataBase.close(); // TODO REMOVE 
+            	return;
+          	}
+        });
+      	dataBase.close(); // TODO REMOVE 
+ 	});      
+ }
+ 
 /* /session/updateSession -- precondition
  *  json data with session details as the cliet receive
  * 
