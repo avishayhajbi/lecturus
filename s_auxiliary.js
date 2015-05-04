@@ -272,18 +272,18 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 });
 
 /* /auxiliary/getVideosByName -- precondition
-   This function will receive data with name
+   This function will receive data with name and org
   */
 /* /auxiliary/getVideosByName -- postcondition
     return all related videos by the query
     json data with status 1/0, length, res (for the results)
 */
-router.get("/auxiliary/getVideosByName/:name?", function(req, res) {
+router.post("/auxiliary/searchVideosByName", function(req, res) {
     var r ={};
     var data={};
     try
     {
-        data.name = req.query.name;
+        data = req.body;
     }catch(err){
         var r ={
             status:0,
@@ -301,7 +301,7 @@ router.get("/auxiliary/getVideosByName/:name?", function(req, res) {
     }
 
     console.log("looking for: "+data.name)
-    db.model('sessions').find( {  name:  {$regex : ".*"+data.name+".*"}  },
+    db.model('sessions').find( {$and:[{  name:  {$regex : ".*"+data.name+".*"}}, {org:data.org}]  },
     sessionPreview,
     function (err, docs)
     { 

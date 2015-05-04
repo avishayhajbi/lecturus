@@ -2111,7 +2111,7 @@ catch(err)
   */
 /* /session/deleteImage -- postcondition
     delete the image from the cloud by her url
-    json data with status 1/0, all related videos
+    json data with status 1/0
 */
 
 router.post('/session/deleteImage', function(req, res) {

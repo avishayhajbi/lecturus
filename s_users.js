@@ -417,7 +417,7 @@ router.post("/users/updateUser", function(req, res)
 });
 
 /* /users/subscribe -- precondition
- *  This function must receive json with email: user id, and sessionId  
+ *  This function must receive json with user id, and sessionId  
  *
  * /users/subscribe -- postcondition
  *  This function will return json with status: 1 = success / 0 = failure.
@@ -429,7 +429,7 @@ router.post("/users/updateUser", function(req, res)
  *
  * /users/subscribe -- example
  *  email       vandervidi@gmail.com
- *  userToFollow  "avishayhajbi@gmail.com"
+ *  userToFollow  avishayhajbi@gmail.com
 */
 router.post("/users/subscribe", function(req, res) 
 {
