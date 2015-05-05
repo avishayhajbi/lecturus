@@ -914,7 +914,7 @@ else
           
           else if (docs.length)
           {
-            collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:true ,safe:true , fsync: true}, 
+            collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:false ,safe:true , fsync: true}, 
               function(err, result) { 
                 if (err)
                 {
