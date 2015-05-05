@@ -175,7 +175,7 @@ router.get('/session', function( req, res )
     //var collection = app.get('mongodb').collection('sessions');
     //var collection = connectMongo().collection('sessions');
 
-    db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{startTime:{ $gt: 0  }} ]},
+    db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{stopTime:{ $gt: 0  }} ]},
       sessionPreview ,
       function (err, docs) 
       {
@@ -1671,7 +1671,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
         var sessionCollection = db.collection('sessions');
         var userCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-          sessionCollection.find( {$and:[{ sessionId : videoId },{startTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+          sessionCollection.find( {$and:[{ sessionId : videoId },{stopTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
           { 
           	// failure while connecting to sessions collection
           	if (err) 
@@ -1824,7 +1824,7 @@ catch(err)
                 var collection = db.collection('sessions');
                 
                 //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-                collection.find( {$and:[{ org : docs[0].org },{startTime:{ $gt: 0  }}]} , 
+                collection.find( {$and:[{ org : docs[0].org },{stopTime:{ $gt: 0  }}]} , 
                 sessionPreview ).toArray(function( err, docs )   //TODO. use findOne ? yes
                 { 
                     // failure while connecting to sessions collection

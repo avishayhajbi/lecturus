@@ -301,7 +301,7 @@ router.post("/auxiliary/searchVideosByName", function(req, res) {
     }
 
     console.log("looking for: "+data.name)
-    db.model('sessions').find( {$and:[{  name:  {$regex : ".*"+data.name+".*"}}, {org:data.org}]  },
+    db.model('sessions').find( {$and:[{  name:  {$regex : ".*"+data.name+".*"}}, {org:data.org}, {stopTime:{ $gt: 0  }}]  },
     sessionPreview,
     function (err, docs)
     { 
