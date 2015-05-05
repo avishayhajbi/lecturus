@@ -1614,7 +1614,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
         }      
         );
 /*var command = ffmpeg(temp_path)
-  .audioCodec('libfaac')
+  .audioCodec('libmp3lame') //libmp3lame libfaac
   //.videoCodec('libx264')
   .format('mp3');
 temp_path  =command.save(uniqueid+".mp3");*/

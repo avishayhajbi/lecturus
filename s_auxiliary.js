@@ -457,4 +457,77 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
         }
     });         
 });
+
+/* /auxiliary/userFavorites -- precondition
+   This function will receive data with email
+  */
+/* /auxiliary/userFavorites -- postcondition
+    return all related videos user favorite list
+    json data with status 1/0, length, res (for the results)
+*/
+router.post("/auxiliary/userFavorites", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').findOne({email:data.email}, {favorites:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+
+            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({'views': -1}).limit(4)
+            .exec(function(err, result)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
+                
+                else if (result)
+                {
+                    console.log("videos found "+ result);
+                    r.status = 1;
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });         
+});
 module.exports = router;
