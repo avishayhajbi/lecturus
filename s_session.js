@@ -1620,9 +1620,14 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
  
   var t = command.clone().save("./tmp/"+uniqueid+".mp3")
  console.log('converted file',t)
-
+ 
+ new ffmpeg({source: temp_path})
+      .toFormat('mp3')
+      .writeToStream(stream, function(data, err) {
+        if (err) console.log(err)
+      })
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
-  var file_reader = fs.createReadStream(temp_path).pipe(stream);
+  //var file_reader = fs.createReadStream(temp_path).pipe(stream);
   });
 
 });
