@@ -1616,11 +1616,11 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   var command = ffmpeg(temp_path)
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
-    command.clone().save(_public+uniqueid+".mp3");
+   
 
 
 
-  var file_reader = fs.createReadStream(_public+uniqueid+".mp3").pipe(stream);
+  var file_reader = fs.createReadStream(command.clone().save(_public+uniqueid+".mp3")).pipe(stream);
   });
 
 });
