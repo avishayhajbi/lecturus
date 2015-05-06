@@ -1557,8 +1557,8 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     { 
           console.log(result);	//TODO. Remove
           var r={};
-           response.json(result);
-          /*MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
+          
+          MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
           {
 
             // if mongodb connection failed return error message and exit
@@ -1604,7 +1604,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
                   response.json(r);
                 }
               });
-  });*/
+  });
   },
   {
     public_id: uniqueid, 
@@ -1619,7 +1619,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     .format('mp3');
  
   var t = command.clone().save("./tmp/"+uniqueid+".mp3")
- console.log(t)
+ console.log('converted file',t)
  try{
   var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
 }catch(err){
