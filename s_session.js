@@ -1557,6 +1557,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     { 
           console.log(result);	//TODO. Remove
           var r={};
+           response.json(result);
           /*MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
           {
 
