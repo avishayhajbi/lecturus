@@ -1614,15 +1614,18 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
       tags: [sessionId, 'lecturus']
     }      
   );
-  var command = ffmpeg(temp_path)
+  /*var command = ffmpeg(temp_path)
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
-  try{ 
-    command.clone().save("./temp/"+uniqueid+".mp3")
-  }catch (err){
-    console.log("error execute command clone save")
-  }
-  var file_reader = fs.createReadStream("./temp/"+uniqueid+".mp3").pipe(stream);
+ command.clone().save("./tmp/"+uniqueid+".mp3")*/
+ var proc = new ffmpeg({source:'amr'})
+    .setFfmpegPath("/Applications/ffmpeg")
+    .toFormat('mp3')
+    .saveToFile(uniqueid+'mp3', (stdout, stderr)
+             console.log ('err',stderr)
+             console.log ('done',tdout)
+        )
+  //var file_reader = fs.createReadStream("./tmp/"+uniqueid+".mp3").pipe(stream);
   });
 
 });
