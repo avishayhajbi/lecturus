@@ -1620,8 +1620,11 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
  
   var t = command.clone().save("./tmp/"+uniqueid+".mp3")
  console.log(t)
-
+ try{
   var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
+}catch(err){
+  var file_reader = fs.createReadStream(temp_path).pipe(stream);
+}
   });
 
 });
