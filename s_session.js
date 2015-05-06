@@ -1608,19 +1608,19 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   {
     public_id: uniqueid, 
     resource_type: 'raw',
-            format: 'mp3',
-            //format: 'amr',
-            tags: [sessionId, 'lecturus']
-          }      
-          );
+      format: 'mp3',
+      //format: 'amr',
+      tags: [sessionId, 'lecturus']
+    }      
+  );
   var command = ffmpeg(temp_path)
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
    
+  command.clone().save(_public+uniqueid)
 
 
-
-  var file_reader = fs.createReadStream(command.clone().save(_public+uniqueid+".mp3")).pipe(stream);
+  var file_reader = fs.createReadStream(_public+uniqueid).pipe(stream);
   });
 
 });
