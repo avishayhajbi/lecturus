@@ -1557,7 +1557,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     { 
           console.log(result);	//TODO. Remove
           var r={};
-          MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
+          /*MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
           {
 
             // if mongodb connection failed return error message and exit
@@ -1603,23 +1603,25 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
                   response.json(r);
                 }
               });
-});
-},
-{
-  public_id: uniqueid, 
-  resource_type: 'raw',
-          //format: 'mp3',
-          format: 'amr',
-          tags: [sessionId, 'lecturus']
-        }      
-        );
-/*var command = ffmpeg(temp_path)
-  .audioCodec('libmp3lame') //libmp3lame libfaac
-  //.videoCodec('libx264')
-  .format('mp3');
-temp_path  =command.save(uniqueid+".mp3");*/
-var file_reader = fs.createReadStream(temp_path).pipe(stream);
-});
+  });*/
+  },
+  {
+    public_id: uniqueid, 
+    resource_type: 'raw',
+            format: 'mp3',
+            //format: 'amr',
+            tags: [sessionId, 'lecturus']
+          }      
+          );
+  var command = ffmpeg(temp_path)
+    .audioCodec('libmp3lame') //libmp3lame libfaac
+    .format('mp3');
+    command.clone().save(_public+uniqueid+".mp3");
+
+
+
+  var file_reader = fs.createReadStream(_public+uniqueid+".mp3").pipe(stream);
+  });
 
 });
 
