@@ -1618,11 +1618,11 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
   try{ 
-    command.clone().save("/temp/"+uniqueid+".mp3")
+    command.clone().save("./temp/"+uniqueid+".mp3")
   }catch (err){
     console.log("error execute command clone save")
   }
-  var file_reader = fs.createReadStream("/temp/"+uniqueid+".mp3").pipe(stream);
+  var file_reader = fs.createReadStream("./temp/"+uniqueid+".mp3").pipe(stream);
   });
 
 });
