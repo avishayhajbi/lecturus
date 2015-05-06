@@ -1618,7 +1618,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
  
-  var t = command.clone().save("tmp/"+uniqueid+".mp3")
+  var t = command.clone().save("./tmp/"+uniqueid+".mp3")
  console.log(t)
 
   var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
