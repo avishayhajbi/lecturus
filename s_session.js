@@ -1623,7 +1623,6 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
 
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
   var file_reader = fs.createReadStream(temp_path).pipe(stream);
-}
   });
 
 });
