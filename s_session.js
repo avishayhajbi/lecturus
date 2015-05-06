@@ -1024,8 +1024,8 @@ else
      else
      {
 
-      if ( result.participants.indexOf(email) != -1 || result.owner == email )
-      {
+      //if ( result.participants.indexOf(email) != -1 || result.owner == email )
+      //{
         		//check if this user woted before
         		if ( result.rating.positive.users.indexOf(email) != -1)		//voted positive
         		{
@@ -1040,12 +1040,12 @@ else
 				{
 					if ( votedBefore == 0 )
 					{
-           console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
-           r.status = 0;
-           r.desc = "user: " + email + " has already voted down.";
-           res.json(r);	
-           return;  						
-         }
+			           console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
+			           r.status = 0;
+			           r.desc = "user: " + email + " has already voted down.";
+			           res.json(r);	
+			           return;  						
+			         }
 
 					//increase the negative rating of the session by 1
 					++result.rating.negative.value;
@@ -1054,7 +1054,7 @@ else
 					result.rating.negative.users.push(email);
 					
 					//if voted positive before, remove the user from positive voters list and update the positive rating value 
-					if ( votedBefore == 0 )
+					if ( votedBefore == 1 )
 					{
 						//decrease the positive rating of the session by 1
 						--result.rating.positive.value; 
@@ -1068,12 +1068,12 @@ else
 				{
 					if ( votedBefore == 1 )
 					{
-           console.log("UPDATESESSIONRATING:user: " + email + " has already voted up.");
-           r.status = 0;
-           r.desc = "user: " + email + " has already voted up.";
-           res.json(r);	
-           return;  						
-         }
+			           console.log("UPDATESESSIONRATING:user: " + email + " has already voted up.");
+			           r.status = 0;
+			           r.desc = "user: " + email + " has already voted up.";
+			           res.json(r);	
+			           return;  						
+			         }
 
 					//increase the positive rating of the session by 1
 					++result.rating.positive.value; 
@@ -1112,7 +1112,7 @@ else
               return; 
             });
 
-        	}
+        	/*}
         	else
         	{
             console.log("UPDATESESSIONRATING:user: " + email + " does not participate in the session: " + sessionId);
@@ -1120,7 +1120,7 @@ else
             r.desc = "user: " + email + " does not participate in the session: " + sessionId;
             res.json(r);
             return;
-          }
+          }*/
         	//console.log("UPLOADTAGS:result: " + result);
         }    
       }); 
