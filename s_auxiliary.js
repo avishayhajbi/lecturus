@@ -207,70 +207,59 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
     return all related videos by combination between user email degree and course
     json data with status 1/0, all related videos
 */
-    router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(req, res) {
-        try
-        {
-            var data={};
-            data.email = req.query.email;
-            data.degreeId = parseInt(req.query.degree);
-            data.courseId = parseInt(req.query.course);
-
-            var r ={};
-            MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-            {
-                console.log("Trying to connect to the db.");
-
-            // if connection failed
-            if (err) 
-            {
-                console.log("MongoLab connection error: ", err);
-                r.uid = 0;
-                r.status = 0;
-                r.desc = "failed to connect to MongoLab.";
-                res.send((JSON.stringify(r)));
-                return;
-            }
-            console.log(JSON.stringify(data))
-            // get sessions collection 
-            var collection = db.collection('sessions');
-            //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-            collection.find( {$and:[{ degreeId : data.degreeId} , {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] }
-                , sessionPreview ).toArray(function (err, docs)
-                { 
-                // failure while connecting to sessions collection
-                if (err) 
-                {
-                    console.log("failure while trying get videos, the error: ", err);
-                    r.status = 0;
-                    r.desc = "failure while trying get videos.";
-                    res.send((JSON.stringify(r)));
-                    return;
-                }
-                
-                else
-                {
-                    console.log("videos found "+ docs);
-                    r.status = 1;
-                    r.length=docs.length;
-                    r.res = docs;
-                    r.desc = "get videos.";
-                    db.close();     /* TODO REMOVE */
-                    res.send((JSON.stringify(r)));  
-                    return;                        
-                }
-            });         
-            });
-}catch(err){
-    var r ={
-        status:0,
-        desc:"data error"
+router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data.email = req.query.email;
+        data.degreeId = parseInt(req.query.degree);
+        data.courseId = parseInt(req.query.course);
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 24;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
     }
-    res.send((JSON.stringify(r)));
-    return;
-}
+      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
 
+    console.log("looking for: "+data.name)
+    db.model('sessions').find(  {$and:[{ degreeId : data.degreeId},
+    {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
+    sessionPreview).skip(data.from).limit(data.to)
+    .exec(function(err, docs)
+    {    
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            console.log("videos found "+ docs);
+            r.status = 1;
+            r.length=docs.length;
+            r.res = docs;
+            r.desc = "gfiltered videos";
+            res.json(r);  
+            return;                        
+        }
+    });         
 });
-
 /* /auxiliary/searchSessions -- precondition
    This function will receive data with name and org
   */
