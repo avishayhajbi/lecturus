@@ -14,14 +14,8 @@ var usersSchema = new Schema(
 		lastViews : { type : Array , default : [] },
 		subscribe : { type : Array , default : [] },
 		friends : { type : Array , default : [] },
-		favorites:  [{
-		 name : String,description:String, participants:{ type : Array , default : [] }, owner:String,course:String,
-         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, views:Number , default : [] 
-		}],
-		owner:  [{
-		 name : String,description:String, participants:{ type : Array , default : [] }, owner:String,course:String,
-         degree:String,lecturer:String, sessionId:String, totalSecondLength:Number, rating:Number, views:Number , default : [] 
-		}]
+		favorites:  { type : Array , default : [] },
+		owner:  { type : Array , default : [] },
 	});
 	
 User = mongoose.model('users', usersSchema);

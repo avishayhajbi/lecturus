@@ -358,7 +358,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     }
 
     console.log("looking for videos: "+data.ord)
-    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).limit(8)
+    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).skip(0).limit(4)
     .exec(function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -373,7 +373,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
         
         else if (docs)
         {
-            console.log("videos found "+ docs);
+            //console.log("videos found "+ docs);
             r.status = 1;
             r.length=docs.length;
             r.res = docs;
@@ -430,7 +430,7 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({'views': -1}).limit(4)
+            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({owner:1,views: -1,}).skip(0).limit(4)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -445,7 +445,8 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
                 
                 else if (result)
                 {
-                    console.log("videos found "+ result);
+
+                    //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
@@ -503,7 +504,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({'views': -1}).limit(4)
+            db.model('sessions').find({owner:{$in:docs.favorites}}, sessionPreview).sort({'views': -1}).skip(0).limit(4)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -518,7 +519,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
                 
                 else if (result)
                 {
-                    console.log("videos found "+ result);
+                    //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;

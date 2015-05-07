@@ -266,9 +266,9 @@ router.post("/users/getUsersData", function( req, res )
     });   
 });
 
-getUsersData = function (doc , userid , callback) {
+getUsersData = function (doc, userid, callback) {
 
-    var tmpEmails = [];
+    var tmpEmails = [userid];
     tmpEmails.push(doc.participants.map(function(email) {
       return email;
     }));
@@ -288,7 +288,7 @@ getUsersData = function (doc , userid , callback) {
     });
 
     db.model('users').find( { email:{ $in : uniqueArray} },
-    { _id:false ,name:true, lastName:true, image:true, email:true,subscribe:true },
+    { _id:false ,name:true, lastName:true, image:true, email:true,subscribe:true,favorites:true },
     function (err, result)
     {
         // failure during user search
@@ -304,6 +304,9 @@ getUsersData = function (doc , userid , callback) {
                 if (result[val].email == userid)
                 {
                     doc.subscribe = (result[val].subscribe.indexOf(doc.owner)!= -1)?true:false;
+                    doc.favorite = (result[val].favorites.indexOf(doc.sessionId)!= -1)?true:false;
+                    doc.rating.positive.users =  (doc.rating.positive.users.indexOf(userid)!= -1)?true:false;
+                    doc.rating.negative.users =  (doc.rating.negative.users.indexOf(userid)!= -1)?true:false; 
                 }
                 users[result[val].email] = {
                     name: result[val].name,
@@ -312,6 +315,8 @@ getUsersData = function (doc , userid , callback) {
                     email: result[val].email
                 }
             }
+
+            
             callback(users)
         }   
     });   

@@ -1654,7 +1654,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
 
      try
      {
-       var videoId = req.body.videoId;
+       var sessionId = req.body.videoId;
        var org = req.body.org;
     	var userId = req.body.userId;   //TODO handel get video only if the user from the same org
       var edit = req.body.edit; 			//TODO handel pluse minus views counter
@@ -1674,91 +1674,60 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
           return;
         }
 
-        console.log(JSON.stringify(videoId));
+        console.log(JSON.stringify(sessionId));
         
         // get sessions collection 
         var sessionCollection = db.collection('sessions');
         var userCollection = db.collection('users');
         //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-          sessionCollection.find( {$and:[{ sessionId : videoId },{stopTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
-          { 
-          	// failure while connecting to sessions collection
-          	if (err) 
-          	{
-             console.log("failure while searching for the session, the error: ", err);
-             r.status = 0;
-             r.desc = "failure while searching for the session.";
-             res.json(r);
-             return;
-           }
-           else if (docs[0])
-           {
-            if (edit && edit=="true"){
-              console.log("the session: " + videoId + " was found.");
-              r.status = 1;
-              r.info = docs[0];
-              r.desc = "the session: " + videoId + " was found.";
-              res.json(r); 
-              db.close();
-              return; 
-            }
-            
-
-            getUsersData(docs[0],userId,function(result){
-                docs[0].rating.positive.users =  (docs[0].rating.positive.users.indexOf(userId)!= -1)?true:false;
-                docs[0].rating.negative.users =  (docs[0].rating.negative.users.indexOf(userId)!= -1)?true:false;             
-                docs[0].users = result;
-                console.log("the session: " + videoId + " was found.");
-                r.status = 1;
-                r.info = (docs.length)?docs[0]:[];
-                r.desc = "the session: " + videoId + " was found.";
-                res.json(r); 
-                db.close();
-                return;
-            });
-
-            
-            /*userCollection.find( {email:{ $in : uniqueArray}}, {_id:false, name:true, lastName:true, image:true, email:true }).toArray(function( err, result )    
-            {
-              var users = {};
-              if (err) 
-              {
-                console.log("error while fetching users info");
-                r.status = 0;
-                r.desc= "error while fetching users info";
-                res.json(r);
-                db.close();
-                return;
-              }
-              else
-              {
-
-                for (var val in result)
-                  users[result[val].email] = result[val];
-
-                docs[0].users = users;
-                console.log("the session: " + videoId + " was found.");
-                r.status = 1;
-                r.info = (docs.length)?docs[0]:[];
-                r.desc = "the session: " + videoId + " was found.";
-                res.json(r); 
-                db.close();
-                return;      
-              }
-            });*/
-          }
-          else
-          {
-            console.log("the session: " + videoId + " was not found.");
-            r.status = 0;
-            r.info = [];
-            r.desc = "the session: " + videoId + " was not found.";
+        sessionCollection.find( {$and:[{ sessionId : sessionId },{stopTime:{ $gt: 0  }},{org:org}]}, {_id:false}).toArray(function( err, docs )		//TODO. use findOne ?
+        { 
+        	// failure while connecting to sessions collection
+        	if (err) 
+        	{
+           console.log("failure while searching for the session, the error: ", err);
+           r.status = 0;
+           r.desc = "failure while searching for the session.";
+           res.json(r);
+           return;
+         }
+         else if (docs[0])
+         {
+          if (edit && edit=="true"){
+            console.log("the session: " + sessionId + " was found.");
+            r.status = 1;
+            r.info = docs[0];
+            r.desc = "the session: " + sessionId + " was found.";
             res.json(r); 
             db.close();
-            return;  
+            return; 
           }
-        });         
-});
+          
+
+          getUsersData(docs[0],userId, function(result){            
+              docs[0].users = result;
+              console.log("the session: " + sessionId + " was found.");
+              r.status = 1;
+              r.info = docs[0];
+              r.desc = "the session: " + sessionId + " was found.";
+              res.json(r); 
+              db.close();
+              return;
+          });
+
+        }
+        else
+        {
+          console.log("the session: " + sessionId + " was not found.");
+          r.status = 0;
+          r.info = [];
+          r.desc = "the session: " + sessionId + " was not found.";
+          res.json(r); 
+          db.close();
+          return;  
+        }
+      });         
+  });
 }
 catch(err)
 {
@@ -1783,106 +1752,71 @@ catch(err)
  * /session/getAllVideos -- example
  *  email   vandervidi@gmail.com
  */
- router.get('/session/getAllVideos/:email?', function (req, res) 
- {
-  var r = { };
-
-  try
-  {
-    var email = req.query.email;
-    
-    MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
+router.get("/session/getAllVideos/:email?", function(req, res) {
+    var r ={};
+    var data={};
+    try
     {
-      console.log("Trying to connect to the db.");
+        data = req.query;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
 
-            // if connection failed
-            if (err) 
-            {
-              console.log("MongoLab connection error: ", err);
-              r.uid = 0;
-              r.status = 0;
-              r.desc = "failed to connect to MongoLab.";
-              db.close();
-              res.json(r) 
-              return;
-            }
-
-
-
-        // get sessions collection 
-        var collection = db.collection('users');
+    db.model('users').findOne({email:data.email}, {org:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
         
-        //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-        collection.find( { email : email } , { _id : false}).toArray(function( err, docs )   //TODO. use findOne ?
-        { 
-            // failure while connecting to sessions collection
-            if (err) 
-            {
-              console.log("failure while searching for the user email, the error: ", err);
-              r.status = 0;
-              r.desc = "failure while searching for the user email.";
-              db.close();
-              res.json(r)    
-              return;
-            }
-            else
-            {
-              if (docs.length)
-              {
-                // get sessions collection 
-                var collection = db.collection('sessions');
+        else if (docs)
+        {
+
+            db.model('sessions').find({org:docs.org}, sessionPreview).sort({'views': -1}).skip(0).limit(10)
+            .exec(function(err, result)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
                 
-                //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-                collection.find( {$and:[{ org : docs[0].org },{stopTime:{ $gt: 0  }}]} , 
-                sessionPreview ).toArray(function( err, docs )   //TODO. use findOne ? yes
-                { 
-                    // failure while connecting to sessions collection
-                    if (err) 
-                    {
-                      console.log("failure while searching for the videos , the error: ", err);
-                      r.status = 0;
-                      r.desc = "failure while searching for the videos.";
-                      db.close();
-                      res.json(r) 
-                      return;
-                    }
-                    else
-                    {
-
-                      console.log("user videos was found.");
-                      r.status = 1;
-                          r.info = (docs.length)?docs:[];  // TODO. what is this???
-                          r.desc = "the videos was found.";
-                          db.close();
-                          res.json(r) 
-                          return;
-
-                        }
-                      });
-
-
-              }
-              else {
-                console.log("the user email: " + email + " was found.");
-                r.status = 0;
-                  r.info = [];  // TODO. what is this???
-                  r.desc = "the user: " + email + " related videos is empty.";
-                  db.close();
-                  res.json(r) 
-                  return;
-                } 
-              }
-            });         
-});
-}
-catch(err)
-{
-  console.log("failure while parsing the request, the error:", err);
-  r.status = 0;
-  r.desc = "failure while parsing the request";
-  res.json(r) 
-  return;
-} 
+                else if (result)
+                {
+                    db.model('sessions').find({org:docs.org}).count().exec(function(err, result){ console.log(result)});
+                    //console.log("videos found "+ result);
+                    r.status = 1;  
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });
 });
 
 /* /session/getMembers -- precondition
