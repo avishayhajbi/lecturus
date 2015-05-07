@@ -537,7 +537,7 @@ router.post("/users/addRemoveFollow", function(req, res)
             }
             else
             {
-                result.follow.push(data.userToFollow);
+                result.follow.unshift(data.userToFollow);
             }
             result.save(function(err, obj) 
             { 

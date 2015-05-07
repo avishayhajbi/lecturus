@@ -1205,7 +1205,7 @@ else
           }
           else if (userResult.lastViews.indexOf(sessionId) == -1)
           {
-            userResult.lastViews.push(sessionId);
+            userResult.lastViews.unshift(sessionId);
             userResult.save(function(err, obj) 
             { 
               if (err)

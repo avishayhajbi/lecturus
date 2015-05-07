@@ -342,7 +342,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     {
         data = req.body;
         data.from = req.body.from || 0;
-        data.to = req.body.to || 4;
+        data.to = req.body.to || 24;
     }catch(err){
         var r ={
             status:0,
@@ -351,7 +351,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.org == '' )  // if data.name property exists in the request is not empty
+      if ( !data || data.org == '' )  // if data.org property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -360,7 +360,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     }
 
     console.log("looking for videos: "+data.ord)
-    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).skip(data.from).limit(data.to)
+    db.model('sessions').find({org:data.org}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to)
     .exec(function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -519,7 +519,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({owner:1,'views': -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -625,7 +625,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
           }
           else if (userResult.favorites.indexOf(sessionId) == -1)
           {
-            userResult.favorites.push(sessionId);
+            userResult.favorites.unshift(sessionId);
             userResult.save(function(err, obj) 
             { 
               if (err)
