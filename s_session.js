@@ -1555,65 +1555,64 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
 
     var stream = cloudinary.uploader.upload_stream(function(result) 
     { 
-          console.log(result);	//TODO. Remove
-          var r={};
-          
-          MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
-          {
+      console.log(result);	//TODO. Remove
+      var r={};
+      
+      MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
+      {
 
-            // if mongodb connection failed return error message and exit
-            if (err) {
-              console.log("connection error ",err);
-              r.status=0;
-              r.desc="err db";
-              response.json(r);
-              return;
-            }
-            // if mongodb connection success asking for users collection
-            var collection = db.collection('sessions');
-            // find user id from users collection
-            collection.find({sessionId:sessionId}).toArray(function (err, docs) 
+        // if mongodb connection failed return error message and exit
+        if (err) {
+          console.log("connection error ",err);
+          r.status=0;
+          r.desc="err db";
+          response.json(r);
+          return;
+        }
+        // if mongodb connection success asking for users collection
+        var collection = db.collection('sessions');
+        // find user id from users collection
+        collection.find({sessionId:sessionId},{_id:false}).toArray(function (err, docs) 
+        {
+            // if the session exist update
+            if (docs.length)
             {
-                // if the session exist update
-                if (docs.length)
-                {
-                	delete docs[0]._id;
-                    //email url startAt length
-                    docs[0].audios.push({
-                      length: audioLength,
-                      timestamp:timestamp,
-                      email: email,
-                      url: result.url,
-                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
-                    });
-                    docs[0].totalSecondLength+=audioLength;
-                    // insert new user to users collection 
-                    collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                      console.log("audio list updated");
-                      r.status=1;
-                      r.desc="audio uploaded";
-                      db.close();
-                      response.json(r);
-                    });
-                  }
-                 else { // if the session does not exist return status 0
-                  console.log("session not exist",sessionId);
-                  r.status=0;
-                  r.desc="session not exist";
+                //email url startAt length
+                docs[0].audios.push({
+                  length: audioLength,
+                  timestamp:timestamp,
+                  email: email,
+                  url: result.url,
+                  startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
+                });
+                docs[0].totalSecondLength+=audioLength;
+                // insert new user to users collection 
+                collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
+                  console.log("audio list updated");
+                  r.status=1;
+                  r.desc="audio uploaded";
                   db.close();
                   response.json(r);
-                }
-              });
-  });
-  },
-  {
-    public_id: uniqueid, 
-    resource_type: 'raw',
-      format: 'mp3',
-      //format: 'amr',
-      tags: [sessionId, 'lecturus']
-    }      
-  );
+                });
+              }
+             else { // if the session does not exist return status 0
+              console.log("session not exist",sessionId);
+              r.status=0;
+              r.desc="session not exist";
+              db.close();
+              response.json(r);
+            }
+          });
+    });
+    },
+    {
+      public_id: uniqueid, 
+      resource_type: 'raw',
+        format: 'mp3',
+        //format: 'amr',
+        tags: [sessionId, 'lecturus']
+      }      
+    );
   var command = ffmpeg(temp_path)
     .audioCodec('libmp3lame') //libmp3lame libfaac
     .format('mp3');
@@ -1621,7 +1620,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   var t = command.clone().save("./tmp/"+uniqueid+".mp3")
   console.log('converted file',t)
  
- new ffmpeg({source: temp_path})
+  new ffmpeg({source: temp_path})
       .toFormat('mp3')
       .writeToStream(stream, function(data, err) {
         if (err) 
@@ -1636,7 +1635,6 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
   //var file_reader = fs.createReadStream(temp_path).pipe(stream);
   });
-
 });
 
 /* /session/getSessionById -- precondition
