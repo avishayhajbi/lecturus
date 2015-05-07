@@ -489,7 +489,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.email || data.email == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -513,7 +513,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.favorites}}, sessionPreview).sort({'views': -1}).skip(0).limit(4)
+            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({'views': -1}).skip(0).limit(4)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -528,7 +528,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
                 
                 else if (result)
                 {
-                    //console.log("videos found "+ result);
+                    console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
@@ -643,9 +643,9 @@ router.post("/auxiliary/userFavorites", function(req, res) {
                return;          
              }
 
-             console.log("UPDATEFAVIRTES:session: " + sessionId + " views counter was updated.");
+             console.log("UPDATEFAVIRTES:session: " + userId + " favorites was updated.");
              r.status = 1;
-             r.desc = "session: " + sessionId + " views counter was updated";
+             r.desc = "session: " + sessionId + " favirtes was updated";
              res.json(r);
              return;
            });
@@ -661,16 +661,16 @@ router.post("/auxiliary/userFavorites", function(req, res) {
               console.log("UPDATEFAVIRTES: save");
               if (err)
               {
-               console.log("UPDATEFAVIRTES:failure session save, the error: ", err);
+               console.log("UPDATEFAVIRTES:failure user favorites save, the error: ", err);
                r.status = 0;
-               r.desc = "failure session save";
+               r.desc = "failure user favorites save";
                res.json(r); 
                return;          
              }
 
-             console.log("UPDATEFAVIRTES:session: " + sessionId + " views counter was updated.");
+             console.log("UPDATEFAVIRTES:user: " + userId + " update favorites was updated.");
              r.status = 1;
-             r.desc = "session: " + sessionId + " views counter was updated";
+             r.desc = "user: " + userId + " update favorites was updated";
              res.json(r);
              return;
            });
