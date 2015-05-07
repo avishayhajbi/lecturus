@@ -1763,6 +1763,8 @@ router.get("/session/getAllVideos/:email?", function(req, res) {
     try
     {
         data = req.query;
+        data.from = req.query.from || 0;
+        data.to = req.query.to || 10;
     }catch(err){
         var r ={
             status:0,
@@ -1795,7 +1797,7 @@ router.get("/session/getAllVideos/:email?", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({org:docs.org}, sessionPreview).sort({'views': -1}).skip(0).limit(10)
+            db.model('sessions').find({org:docs.org}, sessionPreview).sort({'views': -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection

@@ -341,6 +341,8 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     try
     {
         data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 4;
     }catch(err){
         var r ={
             status:0,
@@ -358,7 +360,7 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     }
 
     console.log("looking for videos: "+data.ord)
-    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).skip(0).limit(4)
+    db.model('sessions').find({org:data.org}, sessionPreview).sort({'views': -1}).skip(data.from).limit(data.to)
     .exec(function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -398,6 +400,8 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
     try
     {
         data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 4;
     }catch(err){
         var r ={
             status:0,
@@ -430,7 +434,7 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({owner:1,views: -1,}).skip(0).limit(4)
+            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -481,6 +485,8 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
     try
     {
         data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 4;
     }catch(err){
         var r ={
             status:0,
@@ -513,7 +519,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({{owner:1,'views': -1}).skip(0).limit(4)
+            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({owner:1,'views': -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
