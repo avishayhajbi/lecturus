@@ -212,8 +212,8 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
         {
             var data={};
             data.email = req.query.email;
-            data.degreeId = req.query.degree;
-            data.courseId = req.query.course ;
+            data.degreeId = parseInt(req.query.degree);
+            data.courseId = parseInt(req.query.course);
 
             var r ={};
             MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
@@ -234,7 +234,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
             // get sessions collection 
             var collection = db.collection('sessions');
             //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-            collection.find( { degreeId : data.degreeId , courseId : data.courseId || {$exists:true} }
+            collection.find( {$and:[{ degreeId : data.degreeId} , {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] }
                 , sessionPreview ).toArray(function (err, docs)
                 { 
                 // failure while connecting to sessions collection
