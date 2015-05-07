@@ -469,13 +469,13 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
 });
 
 /* /auxiliary/userFavorites -- precondition
-   This function will receive data with email
+   This function will receive data with userId
   */
 /* /auxiliary/userFavorites -- postcondition
     return all related videos user favorite list
     json data with status 1/0, length, res (for the results)
 */
-router.post("/auxiliary/userFavorites", function(req, res) {
+router.post("/auxiliary/getUserFavorites", function(req, res) {
     var r ={};
     var data={};
     try
@@ -489,7 +489,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || !data.email || data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.userId || data.userId == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -497,7 +497,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         return;
     }
 
-    db.model('users').findOne({email:data.email}, {favorites:true,_id:false},
+    db.model('users').findOne({email:data.userId}, {favorites:true,_id:false},
     function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -554,7 +554,7 @@ router.post("/auxiliary/userFavorites", function(req, res) {
  *  sessionId               142964947916810933728
  *  userId           avishayhajbi@gmail.com
  */
- router.post("/session/favoritesActions", function(req, res )
+ router.post("/session/addRemoveFavorites", function(req, res )
  {
    var r = { };
 
