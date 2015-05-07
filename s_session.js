@@ -1619,13 +1619,20 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     .format('mp3');
  
   var t = command.clone().save("./tmp/"+uniqueid+".mp3")
- console.log('converted file',t)
+  console.log('converted file',t)
  
  new ffmpeg({source: temp_path})
       .toFormat('mp3')
       .writeToStream(stream, function(data, err) {
-        if (err) console.log(err)
-      })
+        if (err) 
+        {
+           console.log("converting failed ",sessionId);
+            r.status=0;
+            r.desc="converting failed";
+            db.close();
+            response.json(r);
+        }
+  })
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
   //var file_reader = fs.createReadStream(temp_path).pipe(stream);
   });

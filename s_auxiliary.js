@@ -540,4 +540,143 @@ router.post("/auxiliary/userFavorites", function(req, res) {
         }
     });         
 });
+
+/* /auxiliary/favritesActions -- precondition
+ *  This function will receive json with sessionId and userId.
+ *
+ * /auxiliary/favritesActions -- postcondition
+ *  This function will return json with status: 1 = success / 0 = failure.
+ *
+ * /auxiliary/favritesActions -- description
+ *  This function will update session views counter. The session must be completed.
+ * 
+ * /auxiliary/favritesActions -- example
+ *  sessionId               142964947916810933728
+ *  userId           avishayhajbi@gmail.com
+ */
+ router.post("/session/favoritesActions", function(req, res )
+ {
+   var r = { };
+
+   try
+   {
+    var sessionId = req.body.sessionId;
+    var userId = req.body.userId;
+  }
+  catch( err )
+  {
+    console.log("UPDATEFAVIRTES: failure while parsing the request, the error:" + err);
+    r.status = 0;
+    r.desc = "failure while parsing the request";
+    res.json(r);
+    return;
+  }
+
+  if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+       typeof userId === 'undefined' || userId == null || userId == "" )        // if one the propertiey do not exists in the request and it is empty
+  {
+   console.log("UPDATEFAVIRTES:request must contain sessionId property.");
+   r.status = 0;    
+   r.desc = "request must contain sessionId and userId property.";
+   res.json(r); 
+   return;
+ }
+
+ db.model('sessions').findOne( {$and:[{ sessionId : sessionId },{stopTime:{$gt:0}} ]},
+    //{ participants : true, owner : true, _id : false },   - does not wotk with this
+    function (err, result)
+    {
+      if (err) 
+      {
+        console.log("UPDATEFAVIRTES:failure during session search, the error: ", err);
+        r.status = 0;
+        r.desc = "failure during session search";
+        res.json(r);    
+        return;
+      }
+      if ( !result )
+      {
+       console.log("UPDATEFAVIRTES:session: " + sessionId + " was not found.");
+       r.status = 0;
+       r.desc = "session: " + sessionId + " was not found";
+       res.json(r);
+       return;
+     }
+     else
+     {
+      db.model('users').findOne({email: userId} ,
+        function (err, userResult)
+        {
+          // failure during user search
+          if (err) 
+          {
+            console.log("failure during user search, the error: ", err);
+            r.uid = 0;
+            r.status = 0;
+            r.desc = "failure during user search";
+            res.json(r);    
+            return;
+          }
+          else if (userResult.favorites.indexOf(sessionId) == -1)
+          {
+            userResult.favorites.push(sessionId);
+            userResult.save(function(err, obj) 
+            { 
+              if (err)
+              {
+               console.log("UPDATEFAVIRTES:failure user save, the error: ", err);
+               r.status = 0;
+               r.desc = "failure UPDATEFAVIRTES save";
+               res.json(r); 
+               return;          
+             }
+
+             userResult.save(function(err, obj) 
+             { 
+              console.log("UPDATEFAVIRTES: save");
+              if (err)
+              {
+               console.log("UPDATEFAVIRTES:failure session save, the error: ", err);
+               r.status = 0;
+               r.desc = "failure session save";
+               res.json(r); 
+               return;          
+             }
+
+             console.log("UPDATEFAVIRTES:session: " + sessionId + " views counter was updated.");
+             r.status = 1;
+             r.desc = "session: " + sessionId + " views counter was updated";
+             res.json(r);
+             return;
+           });
+           });
+            
+          }
+          else
+          {
+           var index =  userResult.favorites.indexOf(sessionId);
+           userResult.favorites.splice(index, 1);
+           userResult.save(function(err, obj) 
+             { 
+              console.log("UPDATEFAVIRTES: save");
+              if (err)
+              {
+               console.log("UPDATEFAVIRTES:failure session save, the error: ", err);
+               r.status = 0;
+               r.desc = "failure session save";
+               res.json(r); 
+               return;          
+             }
+
+             console.log("UPDATEFAVIRTES:session: " + sessionId + " views counter was updated.");
+             r.status = 1;
+             r.desc = "session: " + sessionId + " views counter was updated";
+             res.json(r);
+             return;
+           });
+         }
+       });
+}
+}); 
+});
 module.exports = router;

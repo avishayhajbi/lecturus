@@ -6,6 +6,7 @@ var usersSchema = new Schema(
 		email : String,
 		org : String,
 		regId : { type : String , default : '' },
+		location : { type : String , default : '' },
 		name: { type : String , default : '' },
 		lastName: { type : String , default : '' },
 		image:{ type : String , default : '' },
