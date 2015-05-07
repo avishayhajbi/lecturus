@@ -445,11 +445,20 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
                 
                 else if (result)
                 {
-
+                    // TODO change
+                    var temp = {}, uid = '';
+                    for ( vid in result ){
+                        if (uid != result[vid].owner)
+                        {
+                            uid == result[vid].owner;
+                            temp.uid = [];
+                        }
+                        temp.uid.push(result[vid]);
+                    }
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
-                    r.res = result;
+                    r.res = temp;
                     r.desc = "get videos.";
                     res.json(r); 
                     return;                         
