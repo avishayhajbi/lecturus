@@ -5,7 +5,7 @@ var sessionsSchema = new Schema(
 {
 	sessionId : String,
 	org : String,
-	name :  { type : String , default : '' },
+	title :  { type : String , default : '' },
 	description : { type : String , default : '' },
 	lecturer : { type : String , default : '' },
 	degreeId : { type : Number , default : 0 },

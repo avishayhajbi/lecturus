@@ -1639,29 +1639,29 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
 
 });
 
-/* /session/getVideoById -- precondition
+/* /session/getSessionById -- precondition
  * 	This function will receive json with user videoId, userId ,edit: true = add 1 to view counter / false = dont add 1 to view counter.
  *
- * /session/getVideoById -- postcondition
+ * /session/getSessionById -- postcondition
  *  This function will return json with info:, status: 1 = success / 0 = failure.
  * 
- * /session/getVideoById -- description
+ * /session/getSessionById -- description
  *	This function will find 'session' document in the 'sessions' collection, accordint to the sessionId received in the request. 
  * 	This function will increase session view counter only if edit property, received in the request, is true. 
  *
- * /session/getVideoById -- example
+ * /session/getSessionById -- example
  *	email		vandervidi@gmail.com
     videoId 123
     org shenkar
     edit true/false
     */
-    router.post('/session/getVideoById', function (req, res) 
+    router.post('/session/getSessionById', function (req, res) 
     {
      var r = { };
 
      try
      {
-       var sessionId = req.body.videoId;
+       var sessionId = req.body.sessionId;
        var org = req.body.org;
     	var userId = req.body.userId;   //TODO handel get video only if the user from the same org
       var edit = req.body.edit; 			//TODO handel pluse minus views counter
