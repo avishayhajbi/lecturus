@@ -387,14 +387,14 @@ router.post("/auxiliary/getTopRated", function(req, res) {
 });
 
 
-/* /auxiliary/followedSubscribedUsers -- precondition
+/* /auxiliary/followedUsers -- precondition
    This function will receive data with email
   */
-/* /auxiliary/followedSubscribedUsers -- postcondition
+/* /auxiliary/followedUsers -- postcondition
     return all related videos user cubscribe list
     json data with status 1/0, length, res (for the results)
 */
-router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
+router.post("/auxiliary/followedUsers", function(req, res) {
     var r ={};
     var data={};
     try
@@ -418,7 +418,7 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
         return;
     }
 
-    db.model('users').findOne({email:data.email}, {subscribe:true,_id:false},
+    db.model('users').findOne({email:data.email}, {follow:true,_id:false},
     function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -434,7 +434,7 @@ router.post("/auxiliary/followedSubscribedUsers", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.subscribe}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({owner:{$in:docs.follow}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection

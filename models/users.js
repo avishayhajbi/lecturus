@@ -13,7 +13,7 @@ var usersSchema = new Schema(
 		active : Boolean,
 		timestamp: Number,
 		lastViews : { type : Array , default : [] },
-		subscribe : { type : Array , default : [] },
+		follow : { type : Array , default : [] },
 		friends : { type : Array , default : [] },
 		favorites:  { type : Array , default : [] },
 		owner:  { type : Array , default : [] },

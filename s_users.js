@@ -288,7 +288,7 @@ getUsersData = function (doc, userid, callback) {
     });
 
     db.model('users').find( { email:{ $in : uniqueArray} },
-    { _id:false ,name:true, lastName:true, image:true, email:true,subscribe:true,favorites:true },
+    { _id:false ,name:true, lastName:true, image:true, email:true,follow:true,favorites:true },
     function (err, result)
     {
         // failure during user search
@@ -303,7 +303,7 @@ getUsersData = function (doc, userid, callback) {
             {   
                 if (result[val].email == userid)
                 {
-                    doc.subscribe = (result[val].subscribe.indexOf(doc.owner)!= -1)?true:false;
+                    doc.follow = (result[val].follow.indexOf(doc.owner)!= -1)?true:false;
                     doc.favorite = (result[val].favorites.indexOf(doc.sessionId)!= -1)?true:false;
                     doc.rating.positive.users =  (doc.rating.positive.users.indexOf(userid)!= -1)?true:false;
                     doc.rating.negative.users =  (doc.rating.negative.users.indexOf(userid)!= -1)?true:false; 
@@ -473,22 +473,22 @@ router.post("/users/updateUser", function(req, res)
     }); 
 });
 
-/* /users/subscribe -- precondition
+/* /users/addRemoveFollow -- precondition
  *  This function must receive json with user id, and sessionId  
  *
- * /users/subscribe -- postcondition
+ * /users/addRemoveFollow -- postcondition
  *  This function will return json with status: 1 = success / 0 = failure.
  *
- * /users/subscribe -- description
+ * /users/addRemoveFollow -- description
  *  This function goes through 'email' properties in 'user' documents and searches for a suitable email.
- *  then if the email found the sessionId will be store in the user subscribe list IF the sessionId already
+ *  then if the email found the sessionId will be store in the user followed list IF the sessionId already
  *  was there it will deleted
  *
- * /users/subscribe -- example
+ * /users/addRemoveFollow -- example
  *  email       vandervidi@gmail.com
  *  userToFollow  avishayhajbi@gmail.com
 */
-router.post("/users/subscribe", function(req, res) 
+router.post("/users/addRemoveFollow", function(req, res) 
 {
 
     var r = { };
@@ -530,28 +530,28 @@ router.post("/users/subscribe", function(req, res)
         }
         else if (result)
         {
-            var index= result.subscribe.indexOf(data.userToFollow);
+            var index= result.follow.indexOf(data.userToFollow);
             if (index > -1)
             {
-                result.subscribe.splice(index, 1);
+                result.follow.splice(index, 1);
             }
             else
             {
-                result.subscribe.push(data.userToFollow);
+                result.follow.push(data.userToFollow);
             }
             result.save(function(err, obj) 
             { 
                 if (err)
                 {
-                    console.log("failed to update user subscribe list");
+                    console.log("failed to update user follow list");
                     r.status = 0;
-                    r.desc = "failed to update user subscribe list";
+                    r.desc = "failed to update user follow list";
                     res.json(r);
                     return;          
                 }
-                console.log("user subscribe list updated successfully");
+                console.log("user follow list updated successfully");
                 r.status = 1;
-                r.desc = "user subscribe list updated successfully";
+                r.desc = "user follow list updated successfully";
                 res.json(r);
                 return; 
             });
