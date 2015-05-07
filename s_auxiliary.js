@@ -200,14 +200,14 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 }    
 });
 
-/* /auxiliary/getVideosByCourse -- precondition
+/* /auxiliary/getSessionsByCourse -- precondition
   data with email, degree (id), course (id)
   */
-/* /auxiliary/getVideosByCourse -- postcondition
+/* /auxiliary/getSessionsByCourse -- postcondition
     return all related videos by combination between user email degree and course
     json data with status 1/0, all related videos
 */
-    router.get("/auxiliary/getVideosByCourse/:email?:degree?:course?", function(req, res) {
+    router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(req, res) {
         try
         {
             var data={};
@@ -271,19 +271,21 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 
 });
 
-/* /auxiliary/getVideosByName -- precondition
+/* /auxiliary/searchSessions -- precondition
    This function will receive data with name and org
   */
-/* /auxiliary/getVideosByName -- postcondition
+/* /auxiliary/searchSessions -- postcondition
     return all related videos by the query
     json data with status 1/0, length, res (for the results)
 */
-router.post("/auxiliary/searchVideosByName", function(req, res) {
+router.post("/auxiliary/searchSessions", function(req, res) {
     var r ={};
     var data={};
     try
     {
         data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 24;
     }catch(err){
         var r ={
             status:0,
@@ -301,10 +303,12 @@ router.post("/auxiliary/searchVideosByName", function(req, res) {
     }
 
     console.log("looking for: "+data.name)
-    db.model('sessions').find( {$and:[{  name:  {$regex : ".*"+data.name+".*"}}, {org:data.org}, {stopTime:{ $gt: 0  }}]  },
-    sessionPreview,
-    function (err, docs)
-    { 
+    db.model('sessions').find( {$and:[{org:data.org}, {stopTime:{ $gt: 0  }} ,
+    {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
+    { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },
+    sessionPreview).skip(data.from).limit(data.to)
+    .exec(function(err, docs)
+    {    
         // failure while connecting to sessions collection
         if (err) 
         {
