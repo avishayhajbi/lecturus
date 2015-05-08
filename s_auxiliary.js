@@ -678,4 +678,96 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
 }
 }); 
 });
+
+
+
+/* /auxiliary/lastViews -- precondition
+   This function will receive data with email
+  */
+/* /auxiliary/lastViews -- postcondition
+    return all related videos user last views list
+    json data with status 1/0, length, res (for the results)
+*/
+router.post("/auxiliary/lastViews", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 24;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property name or its empty";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').findOne({email:data.email}, {lastViews:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+
+            db.model('sessions').find({sessionId:{$in:docs.lastViews}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            .exec(function(err, result)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
+                
+                else if (result)
+                {
+                    // TODO change
+                    var temp = {}, uid = '';
+                    for ( vid in result ){
+                        if (uid != result[vid].owner)
+                        {
+                            uid = result[vid].owner;
+                            temp[uid] = [];
+                        }
+                        temp[uid].push(result[vid]);
+                    }
+                    //console.log("videos found "+ result);
+                    r.status = 1;
+                    r.length=result.length;
+                    r.res = temp;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });         
+});
+
+createKeyValJSON = function (arr , key){
+
+};
+
 module.exports = router;
