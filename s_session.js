@@ -1508,132 +1508,139 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
  * /session/uploadAudio -- postcondition
  * if recordStarts true can insert image into session id
  */
- router.post('/session/uploadAudio', function(request, response) {
-  var userip = request.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  var sessionId; // save session id
-  var timestamp, email,file, audioLength;
-  console.log('-->UPLOAD AUDIO<--');
-  var form = new formidable.IncomingForm();
+ router.post('/session/uploadAudio', function(request, response) 
+ {
+ 	var userip = request.connection.remoteAddress.replace(/\./g , '');
+  	var uniqueid = new Date().getTime()+userip;
+  	var sessionId; // save session id
+  	var timestamp, email, file, audioLength;
+  	console.log('-->UPLOAD AUDIO<--');
+  	var form = new formidable.IncomingForm();
 
-  form.parse(request, function(error, fields, files) 
-  {
-    console.log('-->PARSE<--');
+  	form.parse(request, function(error, fields, files) 
+  	{
+  		console.log('-->PARSE<--');
         //logs the file information 
         console.log("files", JSON.stringify(files));
         console.log("fields", JSON.stringify(fields));
         sessionId= fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
-        audioLength = parseInt(fields.audioLength,10);
-      });
+        audioLength = parseInt(fields.audioLength, 10);
+	});
 
-  form.on('progress', function(bytesReceived, bytesExpected) 
-  {
-    var percent_complete = (bytesReceived / bytesExpected) * 100;
-    console.log(percent_complete.toFixed(2));
-  });
+	form.on('progress', function(bytesReceived, bytesExpected) 
+  	{
+    	var percent_complete = (bytesReceived / bytesExpected) * 100;
+    	console.log(percent_complete.toFixed(2));
+  	});
 
-  form.on('error', function(err) 
-  {
-   console.log("-->ERROR<--");
-   console.error(err);
- });
+  	form.on('error', function(err) 
+  	{
+   		console.log("-->ERROR<--");
+   		console.error(err);
+ 	});
 
-  form.on('end', function(error, fields, files) 
-  {
-    console.log('-->END<--');
-    file = this.openedFiles[0];
-    /* Temporary location of our uploaded file */
-    var temp_path = this.openedFiles[0].path;
-    console.log("temp_path: " + temp_path);
+  	form.on('end', function(error, fields, files) 
+  	{
+    	console.log('-->END<--');
+    	file = this.openedFiles[0];
+    	/* Temporary location of our uploaded file */
+    	var temp_path = this.openedFiles[0].path;
+    	console.log("temp_path: " + temp_path);
 
-    /* The file name of the uploaded file */
-    var file_name = this.openedFiles[0].name;
-    console.log("file_name: " + file_name);
+    	/* The file name of the uploaded file */
+    	var file_name = this.openedFiles[0].name;
+    	console.log("file_name: " + file_name);
 
-    var stream = cloudinary.uploader.upload_stream(function(result) 
-    { 
-      console.log(result);	//TODO. Remove
-      var r={};
+    	var stream = cloudinary.uploader.upload_stream(function(result) 
+    	{ 
+      		console.log(result);	//TODO. Remove
+      		var r={};
       
-      MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) 
-      {
+      		MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, dataBase) 
+      		{
 
-        // if mongodb connection failed return error message and exit
-        if (err) {
-          console.log("connection error ",err);
-          r.status=0;
-          r.desc="err db";
-          response.json(r);
-          return;
-        }
-        // if mongodb connection success asking for users collection
-        var collection = db.collection('sessions');
-        // find user id from users collection
-        collection.find({sessionId:sessionId},{_id:false}).toArray(function (err, docs) 
-        {
-            // if the session exist update
-            if (docs.length)
-            {
-                //email url startAt length
-                docs[0].audios.push({
-                  length: audioLength,
-                  timestamp:timestamp,
-                  email: email,
-                  url: result.url,
-                  startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt+docs[0].audios[docs[0].audios.length-1].length:0 
-                });
-                docs[0].totalSecondLength+=audioLength;
-                // insert new user to users collection 
-                collection.update({sessionId:sessionId}, {$set : {audios:docs[0].audios , totalSecondLength: docs[0].totalSecondLength}}, {upsert:true ,safe:true , fsync: true}, function(err, result) { 
-                  console.log("audio list updated");
-                  r.status=1;
-                  r.desc="audio uploaded";
-                  db.close();
-                  response.json(r);
-                });
-              }
-             else { // if the session does not exist return status 0
-              console.log("session not exist",sessionId);
-              r.status=0;
-              r.desc="session not exist";
-              db.close();
-              response.json(r);
-            }
-          });
-    });
-    },
-    {
-      public_id: uniqueid, 
-      resource_type: 'raw',
-        format: 'mp3',
-        //format: 'amr',
-        tags: [sessionId, 'lecturus']
-      }      
-    );
-  var command = ffmpeg(temp_path)
-    .audioCodec('libmp3lame') //libmp3lame libfaac
-    .format('mp3');
+        		// if mongodb connection failed return error message and exit
+        		if (err) 
+        		{
+          			console.log("connection error ",err);
+          			r.status=0;
+          			r.desc="err db";
+          			response.json(r);
+		          	return;
+		        }
+		        
+        		// if mongodb connection success asking for users collection
+        		var collection = dataBase.collection('sessions');
+        		// find user id from users collection
+        		collection.find( { sessionId:sessionId }, { _id : false }).toArray(function (err, docs) 
+        		{
+            		// if the session exist update
+            		if (docs.length)
+            		{
+                		//email url startAt length
+                		docs[0].audios.push({
+                  		length: audioLength,
+                  		timestamp: timestamp,
+                 		email: email,
+                  		url: result.url,
+                  		startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt + docs[0].audios[docs[0].audios.length-1].length : 0 
+                		});
+                		
+                		docs[0].totalSecondLength+=audioLength;
+                		// insert new user to users collection 
+                		collection.update( { sessionId : sessionId }, { $set : { audios : docs[0].audios , totalSecondLength : docs[0].totalSecondLength } }, {upsert : true, safe : true, fsync : true}, function(err, result) 
+                		{ 
+                  			console.log("audio list updated");
+                  			r.status = 1;
+                  			r.desc = "audio uploaded";
+                  			dataBase.close();
+                  			response.json(r);
+                		});
+              		}
+             		else 
+             		{ // if the session does not exist return status 0
+              			console.log("session not exist",sessionId);
+              			r.status = 0;
+              			r.desc="session not exist";
+              			dataBase.close();
+              			response.json(r);
+            		}
+          		});
+    		});
+    	},
+    	{
+      		public_id: uniqueid, 
+      		resource_type: 'raw',
+        	//format: 'mp3',
+        	format: 'amr',
+        	tags: [sessionId, 'lecturus']
+      	});
+      	
+  		var command = ffmpeg(temp_path)
+    		.audioCodec('libmp3lame') //libmp3lame libfaac
+   			.format('mp3');
  
-  var t = command.clone().save("./tmp/"+uniqueid+".mp3")
-  console.log('converted file',t)
+  		var t = command.clone().save("./tmp/" + uniqueid + ".mp3");
+  		console.log('converted file', t);
  
-  new ffmpeg({source: temp_path})
-      .toFormat('mp3')
-      .writeToStream(stream, function(data, err) {
-        if (err) 
-        {
-           console.log("converting failed ",sessionId);
-            r.status=0;
-            r.desc="converting failed";
-            db.close();
-            response.json(r);
-        }
-  })
+  		new ffmpeg( { source: temp_path } )
+      		.toFormat('mp3')
+      		.writeToStream(stream, function(data, err) 
+      		{
+		        if (err) 
+		        {
+		           	console.log("converting failed ", sessionId);
+		            r.status = 0;
+		            r.desc = "converting failed";
+		            //db.close();
+		            response.json(r);
+		        }
+  			});
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
   //var file_reader = fs.createReadStream(temp_path).pipe(stream);
-  });
+  	});
 });
 
 /* /session/getSessionById -- precondition
