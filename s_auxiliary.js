@@ -718,9 +718,9 @@ router.post("/auxiliary/lastViews", function(req, res) {
         // failure while connecting to sessions collection
         if (err) 
         {
-            console.log("failure while trying get videos, the error: ", err);
+            console.log("failure while trying get lastViews, the error: ", err);
             r.status = 0;
-            r.desc = "failure while trying get videos.";
+            r.desc = "failure while trying get lastViews.";
             res.json(r);
             return;
         }
@@ -734,9 +734,9 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 // failure while connecting to sessions collection
                 if (err) 
                 {
-                    console.log("failure while trying get videos, the error: ", err);
+                    console.log("failure while trying get lastViews, the error: ", err);
                     r.status = 0;
-                    r.desc = "failure while trying get videos.";
+                    r.desc = "failure while trying get lastViews.";
                     res.json(r);
                     return;
                 }
@@ -744,7 +744,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 else if (result)
                 {
                     // TODO change
-                    var temp = {}, uid = '';
+                    /*var temp = {}, uid = '';
                     for ( vid in result ){
                         if (uid != result[vid].owner)
                         {
@@ -752,12 +752,12 @@ router.post("/auxiliary/lastViews", function(req, res) {
                             temp[uid] = [];
                         }
                         temp[uid].push(result[vid]);
-                    }
+                    }*/
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
-                    r.res = temp;
-                    r.desc = "get videos.";
+                    r.res = result;
+                    r.desc = "lastViews.";
                     res.json(r); 
                     return;                         
                 }
