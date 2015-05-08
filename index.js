@@ -138,6 +138,9 @@ var auxiliary = require('./s_auxiliary');
 app.use(auxiliary); 
 
 
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err);
+});
 
 app.listen(app.get('port'), function() 
 {
@@ -146,7 +149,7 @@ app.listen(app.get('port'), function()
 
 app.get('/', function(req, res) 
 {
-  	res.render('index', {
+  res.render('index', {
 		title:"LecturuS"
 	});
 });
