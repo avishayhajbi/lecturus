@@ -265,6 +265,13 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
     /auxiliary/searchSessions -- postcondition
     return all related videos by the query
     json data with status 1/0, length, res (for the results)
+
+    /auxiliary/searchSessions -- description
+    find sessions by searching into title, description, degree and course
+
+    /auxiliary/searchSessions -- example
+    name some_name
+    org shenkar
 */
 router.post("/auxiliary/searchSessions", function(req, res) {
     var r ={};
