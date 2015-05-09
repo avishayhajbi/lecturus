@@ -220,8 +220,7 @@ router.get('/session', function( req, res )
  *	This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/addMembers -- description
- *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
- *	This function will insert all user's emails received in the request into the 'session' document as session 'participants'.
+ *	This function will send GCM sessages to each user that the function received in the request.
  *
  * /session/addMembers -- example
  *  sessionId 			1427559374447127001
@@ -979,29 +978,26 @@ else
      else
      {
 
-      //if ( result.participants.indexOf(email) != -1 || result.owner == email )
-      //{
-        		//check if this user woted before
-        		if ( result.rating.positive.users.indexOf(email) != -1)		//voted positive
-        		{
-        			votedBefore = 1;
-        		}
-        		if ( result.rating.negative.users.indexOf(email) != -1)		//voted negative
-        		{
-        			votedBefore = 0;
-        		}
+    		//check if this user woted before
+    		if ( result.rating.positive.users.indexOf(email) != -1)		//voted positive
+    			votedBefore = 1;
+    		if ( result.rating.negative.users.indexOf(email) != -1)		//voted negative
+    			votedBefore = 0;
         		
 				if (rating == 0)	//decrease case
 				{
 					if ( votedBefore == 0 )
 					{
-			           console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
-			           r.status = 0;
-			           r.desc = "user: " + email + " has already voted down.";
-			           res.json(r);	
-			           return;  						
-			         }
-
+	           console.log("UPDATESESSIONRATING:user: " + email + " has already voted down.");
+	           r.status = 0;
+	           r.desc = "user: " + email + " has already voted down.";
+	           res.json(r);	
+	           return;  						
+	         }
+          else if ( votedBefore == 1 )
+          {
+             result.rating.positive.users.slice(result.rating.positive.users.indexOf(email),1)              
+          }
 					//increase the negative rating of the session by 1
 					++result.rating.negative.value;
 					
@@ -1028,7 +1024,11 @@ else
 			           r.desc = "user: " + email + " has already voted up.";
 			           res.json(r);	
 			           return;  						
-			         }
+			     }
+           else if ( votedBefore == 0 )
+          {
+             result.rating.negative.users.slice(result.rating.negative.users.indexOf(email),1)              
+          }
 
 					//increase the positive rating of the session by 1
 					++result.rating.positive.value; 
@@ -1062,21 +1062,19 @@ else
         			//console.log("obj is: " + obj); object after the update
               console.log("UPDATESESSIONRATING:user: " + email + " vote for session: " + sessionId + " was successfully received.");
               r.status = 1;
+              r.res = { //result.rating;
+                  positive: {
+                    value: obj.rating.positive.value
+                    },
+                  negative: {
+                    value: obj.rating.negative.value
+                  }
+                }
               r.desc = "user: " + email + " vote for session: " + sessionId + " was successfully received.";
               res.json(r);
               return; 
             });
 
-        	/*}
-        	else
-        	{
-            console.log("UPDATESESSIONRATING:user: " + email + " does not participate in the session: " + sessionId);
-            r.status = 0;
-            r.desc = "user: " + email + " does not participate in the session: " + sessionId;
-            res.json(r);
-            return;
-          }*/
-        	//console.log("UPLOADTAGS:result: " + result);
         }    
       }); 
 

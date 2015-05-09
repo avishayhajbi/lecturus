@@ -1,5 +1,4 @@
 var express = require('express');
-//var mysql = require('mysql');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
@@ -139,6 +138,9 @@ var auxiliary = require('./s_auxiliary');
 app.use(auxiliary); 
 
 
+process.on('uncaughtException', function(err) {
+  console.log('Caught exception: ' + err);
+});
 
 app.listen(app.get('port'), function() 
 {
@@ -147,7 +149,7 @@ app.listen(app.get('port'), function()
 
 app.get('/', function(req, res) 
 {
-  	res.render('index', {
+  res.render('index', {
 		title:"LecturuS"
 	});
 });
