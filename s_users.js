@@ -228,7 +228,7 @@ router.post("/users/getUsersData", function( req, res )
     }
 
     db.model('users').find( { email:{ $in : data} },
-    { _id:false ,name:true, lastName:true, image:true, email:true },
+    { _id : false, name : true, lastName : true, image : true, email : true },
     function (err, result)
     {
         // failure during user search
@@ -241,7 +241,6 @@ router.post("/users/getUsersData", function( req, res )
             res.json(r);    
             return;
         }
-        
         
         if (result.length)
         {
