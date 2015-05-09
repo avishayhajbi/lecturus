@@ -825,5 +825,4 @@ createKeyValJSON = function (arr , key){
 
 };
 
->>>>>>> 6eea9b16d167ab1ec8d5af0673fe20afe8ece67d
 module.exports = router;
