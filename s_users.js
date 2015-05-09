@@ -362,13 +362,13 @@ router.post("/users/getActiveUsers", function( req, res )
     }
 
     db.model('users').find( { org : data.org, active : true },
-    { _id:false ,name:true, lastName:true, image:true, email:true },
+    { _id : false, name : true, lastName : true, image : true, email : true },
     function (err, result)
     {
     	// failure during user search
         if (err) 
         {
-         	console.log("failure during user search, the error: ", err);
+         	console.log("GETACTIVEUSERS:failure during user search, the error: ", err);
          	r.uid = 0;
           	r.status = 0;
           	r.desc = "failure during user search";
@@ -379,19 +379,19 @@ router.post("/users/getActiveUsers", function( req, res )
         // if the user do not exist, register the user
         if (result.length)
         {
-        	console.log("active users: " + result + " were found in this: " + data.org + " organization.");
+        	console.log("GETACTIVEUSERS:active users: " + result + " were found in: " + data.org + " organization.");
             r.status = 1;
             r.users = result;
-            r.desc = "active users were find in this: " + data.org + " ogranization.";
+            r.desc = "active users were find in: " + data.org + " ogranization.";
             res.json(r);
 			return;
 			
         }
 		else // the user not exist, function returns 0
 		{
-			console.log("no active users were find in this: " + data.org + " ogranization.");
+			console.log("no active users were find in: " + data.org + " ogranization.");
             r.status = 0;
-            r.desc = "no active users were find in this: " + data.org + " ogranization.";
+            r.desc = "no active users were find in: " + data.org + " ogranization.";
             res.json(r);
 			return;
 		}
@@ -437,14 +437,14 @@ router.post("/users/updateUser", function(req, res)
         return;
     }
 
-	db.model('users').findOneAndUpdate({email: data.email}, data , {upsert:false},
+	db.model('users').findOneAndUpdate( { email : data.email }, data, { upsert : false },
     function (err, result)
     {
-    	console.log(result)
+    	console.log(result);
     	// failure during user search
         if (err) 
         {
-         	console.log("failure during user search, the error: ", err);
+         	console.log("UPDATEUSER:failure during user search, the error: ", err);
          	r.uid = 0;
           	r.status = 0;
           	r.desc = "failure during user search";
@@ -453,18 +453,18 @@ router.post("/users/updateUser", function(req, res)
         }
         else if (result)
         {
-        	console.log("updated user: " + data.email);
+        	console.log("UPDATEUSER:user: " + data.email + " was successfully updated.");
             r.status = 1;
-            r.desc = "updated user successfully";
+            r.desc = "user: " + data.email + " was successfully updated.";
             res.json(r);
 			return;
 			
         }
         else
         {
-        	console.log("user was not found: " + data.email);
+        	console.log("UPDATEUSER:user: " + data.email + " was not found.");
             r.status = 0;
-            r.desc = "user was not found";
+            r.desc = "user: " + data.email + " was not found.";
             res.json(r);
 			return;
 			

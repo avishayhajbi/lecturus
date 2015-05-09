@@ -7,16 +7,16 @@ var usersSchema = new Schema(
 		org : String,
 		regId : { type : String , default : '' },
 		location : { type : String , default : '' },
-		name: { type : String , default : '' },
-		lastName: { type : String , default : '' },
-		image:{ type : String , default : '' },
+		name : { type : String , default : '' },
+		lastName : { type : String , default : '' },
+		image : { type : String , default : '' },
 		active : Boolean,
-		timestamp: Number,
+		timestamp : Number,
 		lastViews : { type : Array , default : [] },
 		follow : { type : Array , default : [] },
 		friends : { type : Array , default : [] },
-		favorites:  { type : Array , default : [] },
-		owner:  { type : Array , default : [] },
+		favorites :  { type : Array , default : [] },
+		owner :  { type : Array , default : [] },
 	});
 	
 User = mongoose.model('users', usersSchema);

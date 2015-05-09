@@ -10,6 +10,7 @@ var cloudinary = require('cloudinary');
 var Q = require('q');
 var ffmpeg = require('fluent-ffmpeg');
 var ffmpegCommand = ffmpeg();
+var gcm = require('node-gcm');
 
 sessionPreview = {
   name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
@@ -216,7 +217,7 @@ router.get('/session', function( req, res )
  *	This function must receive json with sessionId, participants: array[emails]
  *
  * /session/addMembers -- postcondition
- *	This function will return json with status: 1 = success / 0 = failure 
+ *	This function will return json with status: 1 = success / 0 = failure.
  *
  * /session/addMembers -- description
  *	This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request
@@ -230,161 +231,115 @@ router.get('/session', function( req, res )
  */
  router.post("/session/addMembers", function(req, res ) 
  {  	
-    // TODO change all participants to json object with user: email , image:imageUrl
   	 //create new empty variables
-    var newParticipants = Array();
-    var oldParticipants, data; 
+  	var timestamp = new Date().getTime();	//create timestamp 
+    var newParticipants;
 	var r = { };	//response object	
-
+	var message = new gcm.Message();	//create new gcm message
+	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
+	
 	try
- {
+ 	{
         // try to parse the json data
-        data = req.body;
-        newParticipants = data.participants; // participans = array
+        newParticipants = req.body.participants; // participans = array
+		sessionId = req.body.sessionId;
+	}
+	catch(err)
+	{
+	 	console.log("ADDMEMBERS:failure while parsing the request, the error:", err);
+	 	r.status = 0;
+	 	r.desc = "failure while parsing the request";
+	 	res.json(r);
+		return;
+	}
+		
+    if ( newParticipants.length == 0 )
+    {
+    	console.log("ADDMEMBERS:no participants were sent.");
+      	r.status = 0;
+      	r.desc = "no participants were sent.";
+      	res.json(r);
+      	return; 	
+    }
+    else	//TODO. ERASE
+    {
+     	(newParticipants).forEach (function (currParticipant) 
+     	{
+      		console.log("ADDMEMBERS:new participant: " + currParticipant);
+    	});
+	}
 
-        if ( newParticipants.length == 0 )
-        {
-        	console.log("no participants were sent.");
-          r.status = 0;
-          r.desc = "no participants were sent.";
-          res.send((JSON.stringify(r)));
-          return; 	
-        }
-        else	//TODO. ERASE
-        {
-         (newParticipants).forEach (function (currParticipant) 
-         {
-          console.log("email: " + currParticipant);
-        });
-       }
-
-        if ( data.sessionId && data.sessionId != "" )	// if data.sessionId property exists in the request is not empty
-        {
-        	console.log("Session id is: " + data.sessionId);
+    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )	// if data.sessionId property exists in the request is not empty
+    {
+		console.log("ADDMEMBERS:sessionId propery does not exist in the query or it is empty");
+		r.status = 0;
+		r.desc = "sessionId propery does not exist in the query or it is empty";
+		res.json(r);  
+		return;	        	
+    }
+   	else
+    {
+    	console.log("ADDMEMBERS:Session id is: " + sessionId);
         	
-	        // connect to mongodb
-	        MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) /* TODO. REMOVE */
-         {
+        // seach for the participants google registration id
+        // validation that each user exists in the users collection before adding it to the session
+        db.model('users').find( 
+		{ email : { $in : newParticipants } }, 
+     	{ regId : true, _id : false },
+		function (err, result)
+		{
+			console.log("ADDMEMBERS:Result id is: " + result);
+			// failure during user search
+    		if (err) 
+    		{
+     			console.log("ADDMEMBERS:failure during user search, the error: ", err);
+      			r.status = 0;
+      			r.desc = "failure during user search";
+     			res.json(r);	
+      			return;
+    		}
+    		if ( result.length == 0 )
+    		{
+     			console.log("ADDMEMBERS:no registration ids were found.");
+      			r.status = 0;
+      			r.desc = "no registration ids were found.";
+     			res.json(r);	
+      			return;
+    		}
+    		else
+    		{
+    			message.addData('message', 'join session.');
+				message.addData('sessionId', 111);
+				message.delay_while_idle = 1;
+				
+		     	(result).forEach (function (currRes) 
+		     	{
+		      		console.log("ADDMEMBERS:participant's registration id: " + currRes.regId);
+		      		var registrationIds = [];
+		      		registrationIds.push(currRes.regId);
+		      		
+		      		//send each participant a gcm message - async
+		      		sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
+					{
+					  	if(err) 
+					  	{
+					  		console.error("ADDMEMBERS:error is: " + err);
+					  	}
+					  	else 
+					  	{
+					  	   console.log("ADDMEMBERS:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+				  	  	}
+					});
+		    	});
 
-          console.log("Trying to connect to the db.");
-
-	            // if connection failed
-	            if (err) 
-	            {
-               console.log("MongoLab connection error: ", err);
-               r.status = 0;
-               r.desc = "failed to connect to MongoLab.";
-               res.send((JSON.stringify(r)));
-               return;
-             }
-
-	            // get sessions collection 
-	            var collection = db.collection('sessions');
-	            
-	            collection.find( { sessionId : data.sessionId } ).toArray( function (err, docs) 
-	            {
-	            	console.log("Searching for the session collection");
-	            	
-	                // failure while connecting to sessions collection
-	                if (err) 
-	                {
-                   console.log("failure while searching for a session, the error: ", err);
-                   r.status = 0;
-                   r.desc = "failure while searching for a session.";
-                   res.send((JSON.stringify(r)));
-                   return;
-                 }
-
-	                // the session do not exist
-	                if ( !docs.length ) 
-	                {
-                   console.log("session: " + data.sessionId + " do not exist.");
-                   r.status = 0;
-                   r.desc = "session: " + data.sessionId + " was not found.";
-                   res.send((JSON.stringify(r)));
-                   return; 
-                 }
-                 else
-                 {
-	                	// there is only one session with this sessionId
-	                	//oldParticipants = docs[0].participants; //TODO. check this and remove forEach loop
-                    (docs).forEach (function (currDoc) 
-                    {
-                     console.log("session participants: " + currDoc.participants);
-						  	// we get an array of existing participants
-						  	oldParticipants = currDoc.participants;
-              });
-
-                    console.log("oldParticipants: " + oldParticipants);
-                    newParticipants = arrayUnique(oldParticipants.concat(newParticipants));
-
-                    collection.update( { sessionId : data.sessionId }, { $set: { participants : newParticipants } }, function(err, result) 
-                    { 
-							// failure while connecting to sessions collection
-             if (err) 
-             {
-               console.log("filure while update session participants, the error: ", err);
-               r.status = 0;
-               r.desc = "filure while update session participants.";
-               res.send((JSON.stringify(r)));
-               return;
-             }
-             else
-             {
-              console.log("session participants were updated.");
-              r.status = 1;
-              r.desc = "session participants were updated.";
-              db.close();		/* TODO REMOVE */
-              res.send((JSON.stringify(r)));		                	
-            }
-          });
-                  }
-
-					/* TODO. Validate that each user exists in the db before adding it
-	                // get users collection (only if the session exists)
-	                var collection = db.collection('users');
-	                
-	                
-	                collection.find( {sessionId : uniqueid} ).toArray(function (err, docs) 
-	                {
-	                    // failure while connecting to session collection 
-	                    if (err) 
-	                    {
-	                        console.log("filure while searching for a session, the error: ", err);
-	                        r.uid = 0;
-	                        r.status = 0;
-	                        r.desc = "filure while searching for a session";
-	                        res.send((JSON.stringify(r)));
-	                        return;
-	                    }
-	                    
-	                    // if the session exists 
-	                    if ( docs.length )
-	                        // create another session id because the last one was taken
-	                        uniqueid += new Date().getTime(); 
-	                });
-*/
-});
-});
-}
-else
-{
-  console.log("data.sessionId propery does not exist in the query or it is empty");
-  r.status = 0;
-  r.desc = "data.sessionId propery does not exist in the query or it is empty";
-  res.send((JSON.stringify(r)));  
-  return;			
-}
-}	                        
-catch(err)
-{
- console.log("failure while parsing the request, the error:", err);
- r.status = 0;
- r.desc = "failure while parsing the request";
- res.send((JSON.stringify(r)));
-
-}
-
+     			console.log("ADDMEMBERS:messages were sent.");
+      			r.status = 1;
+      			r.desc = "messages were sent.";
+     			res.json(r);	
+      			return;
+    		}
+   		});                    
+	}
 });
 
 
@@ -1522,6 +1477,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   	{
   		console.log('-->PARSE<--');
         //logs the file information 
+        //console.log("request", JSON.stringify(request));
         console.log("files", JSON.stringify(files));
         console.log("fields", JSON.stringify(fields));
         sessionId= fields.sessionId;
@@ -1575,7 +1531,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
         		// if mongodb connection success asking for users collection
         		var collection = dataBase.collection('sessions');
         		// find user id from users collection
-        		collection.find( { sessionId:sessionId }, { _id : false }).toArray(function (err, docs) 
+        		collection.find( { sessionId : sessionId }, { _id : false }).toArray(function (err, docs) 
         		{
             		// if the session exist update
             		if (docs.length)
@@ -1985,79 +1941,81 @@ catch(err)
 
 	try			//try to parse json data
 	{
-   var data = req.body;
- }
- catch( err )
- {
-  console.log("JOINSESSION: failure while parsing the request, the error:" + err);
-  r.status = 0;
-  r.desc = "failure while parsing the request";
-  res.json(r);
-  return;
-}
-    if ( !data.email || data.email == "" || !data.sessionId || data.sessionId == "" )	// if email and sessionId properties exist in the request and not empty
+   		var email = req.body.email;
+   		var sessionId = req.body.sessionId;
+ 	}
+ 	catch( err )
+ 	{
+  		console.log("JOINSESSION: failure while parsing the request, the error:" + err);
+  		r.status = 0;
+  		r.desc = "failure while parsing the request";
+  		res.json(r);
+  		return;
+	}
+    if ( 	typeof email === 'undefined' || email == null || email == "" ||
+    		typeof sessionId === 'undefined' || sessionId == null || sessionId == ""  )	// if email and sessionId properties do not exist in the request and empty
     {
     	console.log("JOINSESSION: request must contain a property email, sessionId.");
     	r.status = 0;	
-      r.desc = "request must contain a property email, sessionId.";
-      res.json(r); 
-      return;
+      	r.desc = "request must contain a property email, sessionId.";
+      	res.json(r); 
+      	return;
     }
-    db.model('sessions').findOne( { sessionId : data.sessionId },
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
     //{ participants : true, owner : true, _id : false },	- does not wotk with this
     function (err, result)
     {
-      if (err) 
-      {
-        console.log("JOINSESSION:failure during session search, the error: ", err);
-        r.status = 0;
-        r.desc = "failure during session search";
-        res.json(r);	
-        return;
-      }
-      if ( !result )
-      {
-       console.log("JOINSESSION:session: " + data.sessionId + " was not found");
-       r.status = 0;
-       r.desc = "session: " + data.sessionId + " was not found";
-       res.json(r);
-       return;
-     }
-     else
-     {
-       if (result.participants.indexOf(data.email) == -1 && result.owner != data.email )
-       {
-        result.participants.push(data.email);
+      	if (err) 
+  		{
+    		console.log("JOINSESSION:failure during session search, the error: ", err);
+			r.status = 0;
+			r.desc = "failure during session search";
+    		res.json(r);	
+    		return;
+  		}
+      	if ( !result )
+      	{
+       		console.log("JOINSESSION:session: " + sessionId + " was not found");
+       		r.status = 0;
+       		r.desc = "session: " + sessionId + " was not found";
+       		res.json(r);
+       		return;
+     	}
+     	else
+     	{
+       		if (result.participants.indexOf(email) == -1 && result.owner != email )
+       		{
+        		result.participants.push(email);
         		//result.markModified('participants');
         		result.save(function(err, obj) 
         		{ 
         			if (err)
         			{
-               console.log("JOINSESSION:failure session save, the error: ", err);
-               r.status = 0;
-               r.desc = "failure session save";
-               res.json(r);	
-               return;     			
-             }
+               			console.log("JOINSESSION:failure session save, the error: ", err);
+               			r.status = 0;
+               			r.desc = "failure session save";
+               			res.json(r);	
+               			return;     			
+             		}
 
-        			//console.log("obj is: " + obj); object after the update
-              console.log("JOINSESSION:user: " + data.email + " was joined to the session");
-              r.status = 1;
-              r.desc = "user: " + data.email + " was joined to the session";
-              res.json(r);
-              return; 
-            });
-
+	        		//console.log("obj is: " + obj); object after the update
+	              	console.log("JOINSESSION:user: " + email + " was joined to the session.");
+	              	r.status = 1;
+	              	r.desc = "user: " + email + " was joined to the session.";
+	              	res.json(r);
+	              	return; 
+            	});
         	}
         	else
         	{
-            console.log("JOINSESSION:user: " + data.email + " already exists in the session");
-            r.status = 1;
-            r.desc = "user: " + data.email + " already exists in the session";
-            res.json(r);
-            return;
+            	console.log("JOINSESSION:user: " + email + " already exists in the session");
+            	r.status = 1;
+            	r.desc = "user: " + email + " already exists in the session";
+            	res.json(r);
+            	return;
           }
-          console.log("JOINSESSION:result: " + result);
+          //console.log("JOINSESSION:result: " + result);
         }
       });
 });
