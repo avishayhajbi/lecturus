@@ -5,12 +5,12 @@ var gcm = require('node-gcm');
 //var gcm = require('gcm').GCM;
 
 /* /auxiliary/getCourses -- precondition
-  data with email
-  */
-/* /auxiliary/getCourses -- postcondition
-    return all related courses to user
-  json data with status 1/0, all user courses hierarchy
-  */
+ * data with email
+ *
+ * /auxiliary/getCourses -- postcondition
+ * return all related courses to user
+ * json data with status 1/0, all user courses hierarchy
+*/
   router.post("/auxiliary/getCourses", function(req, res) {
     try{
         // try to get data
@@ -71,8 +71,7 @@ var gcm = require('node-gcm');
 });
 
 /* 
-*/
-/* 
+ 
 */
 router.post("/auxiliary/getCoursesByOrg", function(req, res) {
     try{
@@ -132,8 +131,7 @@ router.post("/auxiliary/getCoursesByOrg", function(req, res) {
 });
 
 /* 
-*/
-/* 
+
 */
 router.post("/auxiliary/checkCoursesChanges", function(req, res) {
     try{
@@ -203,8 +201,8 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
 
 /* /auxiliary/getSessionsByCourse -- precondition
   data with email, degree (id), course (id)
-  */
-/* /auxiliary/getSessionsByCourse -- postcondition
+
+   /auxiliary/getSessionsByCourse -- postcondition
     return all related videos by combination between user email degree and course
     json data with status 1/0, all related videos
 */
@@ -263,8 +261,8 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
 });
 /* /auxiliary/searchSessions -- precondition
    This function will receive data with name and org
-  */
-/* /auxiliary/searchSessions -- postcondition
+
+    /auxiliary/searchSessions -- postcondition
     return all related videos by the query
     json data with status 1/0, length, res (for the results)
 */
@@ -324,8 +322,8 @@ router.post("/auxiliary/searchSessions", function(req, res) {
 
 /* /auxiliary/getTopRated -- precondition
    This function will receive data with org
-  */
-/* /auxiliary/getTopRated -- postcondition
+
+    /auxiliary/getTopRated -- postcondition
     return all related videos in ordr by views
     json data with status 1/0, length, res (for the results)
 */
@@ -353,8 +351,8 @@ router.post("/auxiliary/getTopRated", function(req, res) {
         return;
     }
 
-    console.log("looking for videos: "+data.ord)
-    db.model('sessions').find({org:data.org}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to)
+    console.log("looking for videos: "+data.ord);
+    db.model('sessions').find({$and:[{org:data.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to)
     .exec(function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -383,10 +381,16 @@ router.post("/auxiliary/getTopRated", function(req, res) {
 
 /* /auxiliary/followedUsers -- precondition
    This function will receive data with email
-  */
-/* /auxiliary/followedUsers -- postcondition
-    return all related videos user cubscribe list
+
+    /auxiliary/followedUsers -- postcondition
+    return all related videos user follow list
     json data with status 1/0, length, res (for the results)
+
+    /auxiliary/followedUsers -- description
+    This function will return all user favorites ordered by last update.
+
+    /auxiliary/followedUsers -- example
+    email: vandervidi@gmail.com
 */
 router.post("/auxiliary/followedUsers", function(req, res) {
     var r ={};
@@ -404,15 +408,15 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.email ||data.email == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
-        r.desc = "request must contain a property name or its empty";
+        r.desc = "request must contain a property email or its empty";
         res.json(r); 
         return;
     }
 
-    db.model('users').findOne({email:data.email}, {follow:true,_id:false},
+    db.model('users').findOne({email:data.email}, {follow:true,org:true,_id:false},
     function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -428,7 +432,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({owner:{$in:docs.follow}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({$and:[{owner:{$in:docs.follow}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -443,20 +447,11 @@ router.post("/auxiliary/followedUsers", function(req, res) {
                 
                 else if (result)
                 {
-                    // TODO change
-                    var temp = {}, uid = '';
-                    for ( vid in result ){
-                        if (uid != result[vid].owner)
-                        {
-                            uid = result[vid].owner;
-                            temp[uid] = [];
-                        }
-                        temp[uid].push(result[vid]);
-                    }
+                    result = createKeyValJSON(result,'owner');
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
-                    r.res = temp;
+                    r.res = result;
                     r.desc = "get videos.";
                     res.json(r); 
                     return;                         
@@ -466,12 +461,19 @@ router.post("/auxiliary/followedUsers", function(req, res) {
     });         
 });
 
-/* /auxiliary/userFavorites -- precondition
-   This function will receive data with userId
-  */
-/* /auxiliary/userFavorites -- postcondition
+/*  
+    auxiliary/userFavorites -- precondition
+    This function will receive data with userId
+
+    /auxiliary/userFavorites -- postcondition
     return all related videos user favorite list
     json data with status 1/0, length, res (for the results)
+
+    /auxiliary/favritesActions -- description
+    This function will return all user favorites ordered by last update.
+  
+    /auxiliary/favritesActions -- example
+    userId           avishayhajbi@gmail.com
 */
 router.post("/auxiliary/getUserFavorites", function(req, res) {
     var r ={};
@@ -497,7 +499,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         return;
     }
 
-    db.model('users').findOne({email:data.userId}, {favorites:true,_id:false},
+    db.model('users').findOne({email:data.userId}, {favorites:true, org:true,_id:false},
     function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -512,8 +514,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         
         else if (docs)
         {
-
-            db.model('sessions').find({sessionId:{$in:docs.favorites}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({$and:[{sessionId:{$in:docs.favorites}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -548,7 +549,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
  *  This function will return json with status: 1 = success / 0 = failure.
  *
  * /auxiliary/favritesActions -- description
- *  This function will update session views counter. The session must be completed.
+ *  This function will user favorites .
  * 
  * /auxiliary/favritesActions -- example
  *  sessionId               142964947916810933728
@@ -736,12 +737,19 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
 		
  });
  
-/* /auxiliary/lastViews -- precondition
-   This function will receive data with email
-  */
-/* /auxiliary/lastViews -- postcondition
+/* 
+    /auxiliary/lastViews -- precondition
+    This function will receive data with userId
+
+    /auxiliary/lastViews -- postcondition
     return all related videos user last views list
     json data with status 1/0, length, res (for the results)
+
+    /auxiliary/favritesActions -- description
+    This function will return all user last views ordered by last viewed .
+  
+    /auxiliary/favritesActions -- example
+    userId           avishayhajbi@gmail.com
 */
 router.post("/auxiliary/lastViews", function(req, res) {
     var r ={};
@@ -759,7 +767,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || data.userId == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -767,7 +775,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         return;
     }
 
-    db.model('users').findOne({email:data.email}, {lastViews:true,_id:false},
+    db.model('users').findOne({email:data.userId}, {lastViews:true,org:true,_id:false},
     function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -782,8 +790,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         
         else if (docs)
         {
-
-            db.model('sessions').find({sessionId:{$in:docs.lastViews}}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -798,16 +805,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 
                 else if (result)
                 {
-                    // TODO change
-                    /*var temp = {}, uid = '';
-                    for ( vid in result ){
-                        if (uid != result[vid].owner)
-                        {
-                            uid = result[vid].owner;
-                            temp[uid] = [];
-                        }
-                        temp[uid].push(result[vid]);
-                    }*/
+                    //result = createKeyValJSON(result,'owner');
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
@@ -822,7 +820,16 @@ router.post("/auxiliary/lastViews", function(req, res) {
 });
 
 createKeyValJSON = function (arr , key){
-
+    var temp = {}, uid = '';
+    for ( k in arr ){
+        if (uid != arr[k][key])
+        {
+            uid = arr[k][key];
+            temp[uid] = [];
+        }
+        temp[uid].push(arr[k]);
+    }
+    return temp;
 };
 
 module.exports = router;
