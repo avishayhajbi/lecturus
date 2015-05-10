@@ -138,13 +138,14 @@ var auxiliary = require('./s_auxiliary');
 app.use(auxiliary); 
 
 
-// process.on('uncaughtException', function(err) {
-//   console.log('Caught exception: ' + err);
-// });
+process.on("uncaughtException", function(err) { 
+  console.log(err);
+});
+
 
 app.listen(app.get('port'), function() 
 {
-    console.log('LecturuS Server running...' + app.get('port'));
+  console.log('LecturuS Server running...' + app.get('port'));
 });
 
 app.get('/', function(req, res) 
