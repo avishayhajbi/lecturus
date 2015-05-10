@@ -1,5 +1,4 @@
 var express = require('express');
-var fs = require("fs-extra");
 var router = express.Router();
 
 router.get('/users', function (req, res) 
@@ -12,7 +11,7 @@ router.get('/users', function (req, res)
 });
 
 /* /users/registerUser -- precondition
- *	This function must receive json with email: user id, any other fields: active true/false.  
+ *	This function must receive json with email: user id and org: organization that user studies at. 
  *
  * /users/registerUser -- postcondition
  *	This function will return json with status: 1 = success / 0 = failure.
@@ -23,91 +22,141 @@ router.get('/users', function (req, res)
  *
  * /users/registerUser -- example
  *	email		vandervidi@gmail.com
+ * 	org			shenkar
 */
 router.post("/users/registerUser", function(req, res) 
 {
 	var r = { };
+	var email, org, data;
 	
     try
     {
         //try to parse json data
-    	var data = req.body;
+    	email = req.body.email;
+    	org = req.body.org;
+    	data = req.body;
     }
-     catch( err )
+    catch( err )
     {
-  		console.log("failure while parsing the request, the error:" + err);
+  		console.log("REGISTERUSER:failure while parsing the request, the error:" + err);
     	r.status = 0;
     	r.desc = "failure while parsing the request";
     	res.json(r);
     	return;
     }
-    if ( !data.email || data.email == "" || !data.org || data.org == "" )	// if data.email and data.org property exists in the request is not empty
+    
+    if (	typeof email === 'undefined' || email == null || email == "" ||
+    		typeof org === 'undefined' || org == null || org == "" )	// if data.email and data.org property exists in the request is not empty
     {
+    	console.log("REGISTERUSER:request must contain email and org properties.");
     	r.status = 0;	
-        r.desc = "request must contain a property email";
+        r.desc = "request must contain email and org properties.";
         res.json(r); 
         return;
     }
-
-    db.model('users').find( { email : data.email },
-    { _id:false ,active:false, timestamp:false, favorites:false, owner:false },
-    function (err, result)
+	
+    db.model('organizations').findOne( { name : org },
+	{ _id : false },
+    function( err, orgObject )
     {
+    	console.log("REGISTERUSER:organization: " + orgObject);
+    	
     	// failure during user search
         if (err) 
         {
-         	console.log("failure during user search, the error: ", err);
-         	r.uid = 0;
+         	console.log("REGISTERUSER:failure during user search, the error: ", err);
+         	//r.uid = 0;
           	r.status = 0;
-          	r.desc = "failure during user search";
+          	r.desc = "failure during user search.";
          	res.json(r);	
           	return;
         }
         
-        // if the user do not exist, register the user
-        if (!result.length)
+		// if the org do not exist
+        if (orgObject == null)
         {
-        	//console.log("result ",result)
-        	data.timestamp = new Date().getTime();
-        	data.active = true;
-        	
-        	console.log("register new user "+data.email)
-            // insert new user to users collection 
-            var newUser =  new User(data);
-			newUser.save(function (err) {
-			  	// saved!
-			  	// failure during insertion of new user
-                if (err) 
-                {
-                 	console.log("failure during insertion of new user, the error: ", err);
-                 	r.uid = 0;
-                  	r.status = 0;
-                  	r.desc = "failure during insertion of new user";
-                 	res.json(r);
-                  	return;
-                }
-                else
-                {
-                    console.log("user: " + data.email + " has completed successfully.");
-                    r.uid = data.email;
-                    r.status = 1;
-                    r.desc = "user: " + data.email + " has completed successfully.";
-                    res.json(r);
-                    return;	                        	
-                }
-			});
-			
+         	console.log("REGISTERUSER:organization was not found.");
+         	//r.uid = 0;
+          	r.status = 0;
+          	r.desc = "organization was not found.";
+         	res.json(r);	
+          	return;
         }
-		else // the user exists, function returns 2 (exist)
-		{
-			console.log("user: " + data.email + " already exists in the system.");
-			r.uid = data.email;
-			r.info = result[0];					
-			r.status = 2;
-			r.desc = "user: " + data.email + " already exists in the system.";
+        
+        //check that user belongs to the organization
+        if ( orgObject.students.indexOf(email) != -1 )
+        {   
+		    db.model('users').find( { email : email },
+		    { _id : false, active : false, timestamp : false, favorites : false, owner : false },
+		    function (err, result)
+		    {
+		    	// failure during user search
+		        if (err) 
+		        {
+		         	console.log("REGISTERUSER:failure during user search, the error: ", err);
+		         	r.uid = 0;
+		          	r.status = 0;
+		          	r.desc = "failure during user search";
+		         	res.json(r);	
+		          	return;
+		        }
+		        
+		        // if the user do not exist, register the user
+		        if (!result.length)
+		        {
+		        	//console.log("result ",result)
+		        	data.timestamp = new Date().getTime();
+		        	data.active = true;
+		        	
+		        	console.log("REGISTERUSER:register new user " + email);
+		            // insert new user to users collection 
+		            var newUser =  new User(data);
+					newUser.save(function (err) 
+					{
+					  	// failure during insertion of new user
+		                if (err) 
+		                {
+		                 	console.log("REGISTERUSER:failure during insertion of new user, the error: ", err);
+		                 	//r.uid = 0;
+		                  	r.status = 0;
+		                  	r.desc = "failure during insertion of new user";
+		                 	res.json(r);
+		                  	return;
+		                }
+		                else
+		                {
+		                    console.log("REGISTERUSER:user: " + email + " was registered successfully.");
+		                    //r.uid = data.email;
+		                    r.status = 1;
+		                    r.desc = "user: " + email + " was registered successfully.";
+		                    res.json(r);
+		                    return;	                        	
+		                }
+					});
+					
+		        }
+				else // the user exists, function returns 2 (exist)
+				{
+					console.log("REGISTERUSER:user: " + email + " already exists in the system.");
+					//r.uid = data.email;
+					//r.info = result[0];					
+					r.status = 0;
+					r.desc = "user: " + email + " already exists in the system.";
+					res.json(r);
+					return;
+				}
+		    }); 
+	    }
+	    else
+	    {
+			console.log("REGISTERUSER:user: " + email + " do not belong to the organization: " + org + ".");
+			//r.uid = data.email;
+			//r.info = result[0];					
+			r.status = 0;
+			r.desc = "user: " + email + " do not belong to the organization: " + org + ".";
 			res.json(r);
-			return;
-		}
+			return;	    	
+	    }   	
     });
 });
 

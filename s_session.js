@@ -1688,7 +1688,6 @@ router.post('/session/getSessionById', function (req, res)
 				  	db.close();
 				  	return;
       			});	
-
 			}
     		else
 		    {
