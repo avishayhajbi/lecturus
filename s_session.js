@@ -1651,76 +1651,49 @@ router.post('/session/getSessionById', function (req, res)
 	 	r.desc = "failure while parsing the request";
 	 	res.json(r);
 	} 
-	
-	MongoClient.connect( config.mongoUrl, { native_parser : true }, function( err, db ) // TODO. REMOVE 
-  	{
-    	console.log("Trying to connect to the db.");
-
-        // if connection failed
-        if (err) 
+	db.model('sessions').findOne( { $and : [ { sessionId : sessionId }, { stopTime : { $gt: 0  } }, { org : org } ] }, { _id : false },
+  { _id : false }).lean().exec(function( err, doc )
+  {
+    if (err) 
         {
-          	console.log("MongoLab connection error: ", err);
-          	r.status = 0;
-          	r.desc = "failed to connect to MongoLab.";
-          	res.json(r);
-          	return;
+              console.log("failure while searching for the session, the error: ", err);
+              r.status = 0;
+              r.desc = "failure while searching for the session.";
+              res.json(r);
+              return;
         }
-
-    	console.log(JSON.stringify(sessionId));
-    
-    	// get sessions collection 
-    	var sessionCollection = db.collection('sessions');
-    	var userCollection = db.collection('users');
-    	
-    	//TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-    	sessionCollection.find( { $and : [ { sessionId : sessionId }, { stopTime : { $gt: 0  } }, { org : org } ] }, { _id : false }).toArray(function( err, docs )		//TODO. use findOne ?
-    	{ 
-    		// failure while connecting to sessions collection
-    		if (err) 
-    		{
-	           	console.log("failure while searching for the session, the error: ", err);
-	           	r.status = 0;
-	           	r.desc = "failure while searching for the session.";
-	           	res.json(r);
-	           	return;
-     		}
-     		else if (docs[0])
-     		{
-      			if (edit && edit=="true")
-      			{
-        			console.log("the session: " + sessionId + " was found.");
-        			r.status = 1;
-        			r.info = docs[0];
-        			r.desc = "the session: " + sessionId + " was found.";
-        			res.json(r); 
-        			db.close();
-        			return; 
-      			}
-      
-  				getUsersData(docs[0], userId, function(result)
-  				{            
-          	docs[0].users = result;
-				  	console.log("the session: " + sessionId + " was found.");
-				  	r.status = 1;
-				  	r.info = docs[0];
-				  	r.desc = "the session: " + sessionId + " was found.";
-				  	res.json(r); 
-				  	db.close();
-				  	return;
-      			});	
-			}
-    		else
-		    {
-		      	console.log("the session: " + sessionId + " was not found.");
-		      	r.status = 0;
-		      	r.info = [];
-		      	r.desc = "the session: " + sessionId + " was not found.";
-		      	res.json(r); 
-		      	db.close();
-		      	return;  
-		    }
-  		});         
-	});
+        else if (doc)
+        {
+            if (edit && edit=="true")
+            {
+              console.log("the session: " + sessionId + " was found.");
+              r.status = 1;
+              r.info = doc;
+              r.desc = "the session: " + sessionId + " was found.";
+              res.json(r); 
+              return; 
+            }
+          getUsersData(doc, userId, function(result)
+          {            
+            doc.users = result;
+            console.log("the session: " + sessionId + " was found.");
+            r.status = 1;
+            r.info = doc;
+            r.desc = "the session: " + sessionId + " was found.";
+            res.json(r); 
+            return;
+            }); 
+      }
+        else
+        {
+            console.log("the session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.info = [];
+            r.desc = "the session: " + sessionId + " was not found.";
+            res.json(r); 
+            return;  
+        }
+  });
 });
 
 
