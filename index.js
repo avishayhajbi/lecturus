@@ -138,9 +138,9 @@ var auxiliary = require('./s_auxiliary');
 app.use(auxiliary); 
 
 
-process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err);
-});
+// process.on('uncaughtException', function(err) {
+//   console.log('Caught exception: ' + err);
+// });
 
 app.listen(app.get('port'), function() 
 {
