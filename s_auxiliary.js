@@ -183,7 +183,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
                         res.send((JSON.stringify(r)))
                     }
                 });
-});
+        });
         // if data.email not exist or empty
         else{
             r.status=0;
@@ -212,8 +212,8 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
     try
     {
         data.email = req.query.email;
-        data.degreeId = parseInt(req.query.degree);
-        data.courseId = parseInt(req.query.course);
+        data.degreeId = parseInt(req.query.degree)||0;
+        data.courseId = parseInt(req.query.course)||0;
         data.from = req.body.from || 0;
         data.to = req.body.to || 24;
     }catch(err){
@@ -224,15 +224,45 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
         res.json(r);
         return;
     }
-      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.email || data.email == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
-        r.desc = "request must contain a property name or its empty";
+        r.desc = "request must contain a property email or its empty";
         res.json(r); 
         return;
     }
 
-    console.log("looking for: "+data.name)
+
+    var query = db.model('sessions').find({$and:[{ degreeId : data.degreeId|| {$exists:true}},
+    {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
+    sessionPreview);
+    query.count(function(err, count) {
+        query.skip(data.from).limit(data.to).exec('find', function(err, docs)
+        {    
+            // failure while connecting to sessions collection
+            if (err) 
+            {
+                console.log("failure while trying get videos, the error: ", err);
+                r.status = 0;
+                r.desc = "failure while trying get videos.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            
+            else if (docs)
+            {
+                //console.log("videos found "+ docs);
+                r.status = 1;
+                r.count = count;
+                r.length=docs.length;
+                r.res = docs;
+                r.desc = "get videos.";
+                res.send((JSON.stringify(r))); 
+                return;                         
+            }
+        });         
+    });
+    /*
     db.model('sessions').find(  {$and:[{ degreeId : data.degreeId},
     {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
     sessionPreview).skip(data.from).limit(data.to)
@@ -257,7 +287,7 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
             res.json(r);  
             return;                        
         }
-    });         
+    }); */        
 });
 /* /auxiliary/searchSessions -- precondition
    This function will receive data with name and org
@@ -297,7 +327,37 @@ router.post("/auxiliary/searchSessions", function(req, res) {
         return;
     }
 
-    console.log("looking for: "+data.name)
+    var query = db.model('sessions').find({$and:[{org:data.org}, {stopTime:{ $gt: 0  }} ,
+    {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
+    { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },sessionPreview);
+    query.count(function(err, count) {
+        query.skip(data.from).limit(data.to).exec('find', function(err, docs)
+        {    
+            // failure while connecting to sessions collection
+            if (err) 
+            {
+                console.log("failure while trying get videos, the error: ", err);
+                r.status = 0;
+                r.desc = "failure while trying get videos.";
+                res.send((JSON.stringify(r)));
+                return;
+            }
+            
+            else if (docs)
+            {
+                //console.log("videos found "+ docs);
+                r.status = 1;
+                r.count = count;
+                r.length=docs.length;
+                r.res = docs;
+                r.desc = "get videos.";
+                res.send((JSON.stringify(r))); 
+                return;                         
+            }
+        });         
+    });
+
+    /*console.log("looking for: "+data.name)
     db.model('sessions').find( {$and:[{org:data.org}, {stopTime:{ $gt: 0  }} ,
     {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
     { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },
@@ -316,7 +376,7 @@ router.post("/auxiliary/searchSessions", function(req, res) {
         
         else if (docs)
         {
-            console.log("videos found "+ docs);
+            //console.log("videos found "+ docs);
             r.status = 1;
             r.length=docs.length;
             r.res = docs;
@@ -324,7 +384,7 @@ router.post("/auxiliary/searchSessions", function(req, res) {
             res.send((JSON.stringify(r))); 
             return;                         
         }
-    });         
+    });*/         
 });
 
 /* /auxiliary/getTopRated -- precondition
@@ -797,7 +857,8 @@ router.post("/auxiliary/lastViews", function(req, res) {
         
         else if (docs)
         {
-            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1})
+            .skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
