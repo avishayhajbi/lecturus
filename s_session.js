@@ -1155,6 +1155,27 @@ else
      }
      else
      {
+
+      ++result.views;
+       result.save(function(err, obj) 
+       { 
+        console.log("UPDATEVIEWS: save");
+        if (err)
+        {
+         console.log("UPDATEVIEWS:failure session save, the error: ", err);
+         r.status = 0;
+         r.desc = "failure session save";
+         res.json(r); 
+         return;          
+       }
+
+       // console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
+       // r.status = 1;
+       // r.desc = "session: " + sessionId + " views counter was updated";
+       // res.json(r);
+       // return;
+     });
+             
       db.model('users').findOne({email: userId} ,
         function (err, userResult)
         {
@@ -1181,26 +1202,12 @@ else
                res.json(r); 
                return;          
              }
-
-             ++result.views;
-             result.save(function(err, obj) 
-             { 
-              console.log("UPDATEVIEWS: save");
-              if (err)
-              {
-               console.log("UPDATEVIEWS:failure session save, the error: ", err);
-               r.status = 0;
-               r.desc = "failure session save";
-               res.json(r); 
-               return;          
-             }
-
              console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
              r.status = 1;
              r.desc = "session: " + sessionId + " views counter was updated";
              res.json(r);
              return;
-           });
+             
            });
             
           }
