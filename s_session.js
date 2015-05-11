@@ -1587,8 +1587,8 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     	{
       		public_id: uniqueid, 
       		resource_type: 'raw',
-        	//format: 'mp3',
-        	format: 'amr',
+        	format: 'mp3',
+        	//format: 'amr',
         	tags: [sessionId, 'lecturus']
       	});
       	
