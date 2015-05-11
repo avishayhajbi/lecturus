@@ -584,7 +584,7 @@ else
 		         	
 					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
 					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-					//updateSessionElements(result.elements, result.sessionId);
+					updateSessionElements(result.elements, result.sessionId);
 					result.stopTime = reqTimestamp;
          			result.save(function(err, obj) 
          			{ 
@@ -598,7 +598,6 @@ else
 		           		}
 
 		    			//console.log("obj is: " + obj); object after the update
-		    			updateSessionElements(result.elements, result.sessionId);
              			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
              			r.status = 1;
              			r.desc = "session: " + reqSession + " was stopped successfully.";
@@ -1588,17 +1587,17 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     	{
       		public_id: uniqueid, 
       		resource_type: 'raw',
-        	//format: 'mp3',
-        	format: 'amr',
+        	format: 'mp3',
+        	//format: 'amr',
         	tags: [sessionId, 'lecturus']
       	});
       	
-  		var command = ffmpeg(temp_path)
-    		.audioCodec('libmp3lame') //libmp3lame libfaac
-   			.format('mp3');
+  		//var command = ffmpeg(temp_path)
+    		//.audioCodec('libmp3lame') //libmp3lame libfaac
+   			//.format('mp3');
  
-  		var t = command.clone().save("./tmp/" + uniqueid + ".mp3");
-  		console.log('converted file', t);
+  		//var t = command.clone().save("./tmp/" + uniqueid + ".mp3");
+  		//console.log('converted file', t);
  
   		new ffmpeg( { source: temp_path } )
       		.toFormat('mp3')
