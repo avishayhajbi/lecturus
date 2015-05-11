@@ -584,7 +584,7 @@ else
 		         	
 					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
 					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-					updateSessionElements(result.elements, result.sessionId);
+					//updateSessionElements(result.elements, result.sessionId);
 					result.stopTime = reqTimestamp;
          			result.save(function(err, obj) 
          			{ 
@@ -598,6 +598,7 @@ else
 		           		}
 
 		    			//console.log("obj is: " + obj); object after the update
+		    			updateSessionElements(result.elements, result.sessionId);
              			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
              			r.status = 1;
              			r.desc = "session: " + reqSession + " was stopped successfully.";
