@@ -13,7 +13,7 @@ var ffmpegCommand = ffmpeg();
 var gcm = require('node-gcm');
 
 sessionPreview = {
-  name : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
+  title : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
   sessionId:true, totalSecondLength:true, rating:true, views:true , _id:false
 }
 
