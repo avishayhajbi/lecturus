@@ -1601,8 +1601,8 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
  
   		new ffmpeg( { source: temp_path } )
       		.toFormat('mp3')
-          .audioBitrate(128).
-          .audioFrequency(22050).
+          .audioBitrate(128)
+          .audioFrequency(22050)
           .audioCodec('libmp3lame')
           .audioQuality(0)
       		.writeToStream(stream, function(data, err) 
