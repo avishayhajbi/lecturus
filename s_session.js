@@ -1587,8 +1587,8 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
     	{
       		public_id: uniqueid, 
       		resource_type: 'raw',
-        	format: 'mp3',
-        	//format: 'amr',
+        	//format: 'mp3',
+        	format: 'amr',
         	tags: [sessionId, 'lecturus']
       	});
       	
@@ -1599,21 +1599,20 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
   		//var t = command.clone().save("./tmp/" + uniqueid + ".mp3");
   		//console.log('converted file', t);
  
-  		new ffmpeg( { source: temp_path } )
-      		.toFormat('mp3')
-      		.writeToStream(stream, function(data, err) 
-      		{
-		        if (err) 
-		        {
-		           	console.log("converting failed ", sessionId);
-		            r.status = 0;
-		            r.desc = "converting failed";
-		            //db.close();
-		            response.json(r);
-		        }
-  			});
+  		// new ffmpeg( { source: temp_path } )
+    //   		.toFormat('mp3')
+    //   		.writeToStream(stream, function(data, err) 
+    //   		{
+		  //       if (err) 
+		  //       {
+		  //          	console.log("converting failed ", sessionId);
+		  //           r.status = 0;
+		  //           r.desc = "converting failed";
+		  //           response.json(r);
+		  //       }
+  		// 	});
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
-  //var file_reader = fs.createReadStream(temp_path).pipe(stream);
+  var file_reader = fs.createReadStream(temp_path).pipe(stream);
   	});
 });
 
