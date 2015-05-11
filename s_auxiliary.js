@@ -214,8 +214,8 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(re
         data.email = req.query.email;
         data.degreeId = parseInt(req.query.degree)||0;
         data.courseId = parseInt(req.query.course)||0;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 24;
+        data.from = req.query.from || 0;
+        data.to = req.query.to || 24;
     }catch(err){
         var r ={
             status:0,
