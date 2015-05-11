@@ -584,7 +584,10 @@ else
 		         	
 					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
 					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-					updateSessionElements(result.elements, result.sessionId);
+					
+          var Aelements= result.elements;
+          var AsessionId = result.sessionId;
+         
 					result.stopTime = reqTimestamp;
          			result.save(function(err, obj) 
          			{ 
@@ -597,7 +600,10 @@ else
 			             	return;     			
 		           		}
 
-		    			//console.log("obj is: " + obj); object after the update
+    		    			//console.log("obj is: " + obj); object after the update
+                  
+                   updateSessionElements(Aelements, AsessionId);
+                  
              			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
              			r.status = 1;
              			r.desc = "session: " + reqSession + " was stopped successfully.";
@@ -675,80 +681,6 @@ else
        });	
 });
 }
-/*
- * This function will reagange session events according to their timestamp and so will create the session format for web site use.
- */
- function closeSessionFunction(elements)
- {
-	var elemTemp = { };
-   	
-   	(elements.tags).forEach(function (tag) 
-   	{
-     	if (elemTemp[tag.timestamp])
-     	{
-       		elemTemp[tag.timestamp].tags.push(tag);
-     	}
-     	else
-     	{
-       		elemTemp[tag.timestamp] = {
-         	tags:[tag]
-       		};
-     	}
-	});
-   	(elements.images).forEach(function (image) 
-   	{
-    	if (elemTemp[image.timestamp])
-    	{
-          	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
-        }
-        else
-        {
-          	elemTemp[image.timestamp] = {
-            photo:image
-          };
-        }
-  	});
-	  		MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
-			{
-	    		console.log("Trying to connect to the db.");
-	    		//var r = { }; 
-	    		             
-	      		// if connection failed
-		      	if (err) 
-		      	{
-		        	console.log("MongoLab connection error: ", err);
-		        	r.status = 0;
-		        	r.desc = "failed to connect to MongoLab.";
-		        	res.send((JSON.stringify(r)));
-		        	return;
-		      	}
-	          
-	          	collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true}, 
-	          	function(err, update_res) 
-	          	{ 
-	            	if (err)
-	            	{
-	              		console.log("session not updated "+err);
-	              		r.status=0;
-	              		r.desc="session not updated";
-	                	db.close(); // TODO REMOVE 
-	                	res.send((JSON.stringify(r)))
-	                	return;
-	              	} 
-	              	else 
-	              	{
-	                	console.log("session updated");
-	                	r.status=1;
-	                	r.desc="session updated";
-	                	db.close(); // TODO REMOVE 
-	                	res.send((JSON.stringify(r)));
-	                	return;
-	              	}
-	            });
-	          
-	     	});      
-   return elemTemp;
- }
 
 /*
  * This function will reagange session events according to their timestamp and so will create the session format for web site use.
@@ -806,7 +738,7 @@ else
         	if (err)
         	{
           		console.log("session not updated "+err);
-            	db.close(); // TODO REMOVE 
+            	dataBase.close(); // TODO REMOVE 
             	return;
           	} 
           	else 
@@ -816,7 +748,6 @@ else
             	return;
           	}
         });
-      	dataBase.close(); // TODO REMOVE 
  	});      
  }
  
