@@ -206,7 +206,7 @@ router.post("/auxiliary/checkCoursesChanges", function(req, res) {
     return all related videos by combination between user email degree and course
     json data with status 1/0, all related videos
 */
-router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?", function(req, res) {
+router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?:from?:to?", function(req, res) {
     var r ={};
     var data={};
     try
