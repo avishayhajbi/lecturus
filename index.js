@@ -3,7 +3,7 @@ var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
 app = express();
-Db = require('mongodb').Db,
+mongoDb = require('mongodb').Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     ReplSetServers = require('mongodb').ReplSetServers,
@@ -52,7 +52,7 @@ config = {
 var options = {
 	db: { native_parser : true },
 	server: {
-    poolSize: 5
+    poolSize: 20
     //auto_reconnect: true,
     //socketOptions:{
       //connectTimeoutMS:30000,
