@@ -158,6 +158,8 @@ router.get('/session', function( req, res )
         // try to parse the json data
         data = req.body;
         userId = req.body.email;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 8;
       }
       catch(err)
       {
@@ -177,9 +179,10 @@ router.get('/session', function( req, res )
     //var collection = connectMongo().collection('sessions');
 
     db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{stopTime:{ $gt: 0  }} ]},
-      sessionPreview ,
-      function (err, docs) 
-      {
+    sessionPreview).sort({stopTime: -1}).skip(data.from).limit(data.to)
+    .exec(function(err, docs)
+    {
+
        console.log("Searching for the session collection");
 
       // failure while connecting to sessions collection
@@ -195,6 +198,7 @@ router.get('/session', function( req, res )
       else
       {
         console.log("sessions with user: " + userId + " participation: " + docs);
+        r.length = docs.length;
         r.status = 1;
         r.userRecordings = docs;
         r.desc = "sessions with user: " + userId + " participation.";
@@ -634,15 +638,6 @@ else
 	             	res.json(r);	
 	             	return;     			
            		}
-
-              // uodate user owner list TODO change to better solution
-              db.model('users').update({email:obj.owner},{$push: {owner:{$each:[obj.sessionId],$position: 0}}},{upsert:false},function(err,data){
-              if(err){
-                     res.json(err); 
-              }else{
-                     res.json(data); 
-              }
-            });
 
 		    			//console.log("obj is: " + obj); object after the update
               
