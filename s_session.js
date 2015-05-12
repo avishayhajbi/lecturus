@@ -579,74 +579,74 @@ else
          				
 					//getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
 					result.startTime = reqTimestamp;
-         			result.save(function(err, obj) 
-         			{ 
-		           		if (err)
-		           		{
-							console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-				            r.status = 0;
-				            r.desc = "failure session save";
-				            res.json(r);	
-				            return;     			
-	           			}
-		
-				    			//console.log("obj is: " + obj); object after the update
-		             	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
-		             	r.status = 1;
-		             	r.desc = "session: " + reqSession + " was started successfully.";
-		             	res.json(r);
-		             	return; 
-		           }); 
+     			result.save(function(err, obj) 
+     			{ 
+           		if (err)
+           		{
+					console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+		            r.status = 0;
+		            r.desc = "failure session save";
+		            res.json(r);	
+		            return;     			
+         			}
+
+		    			//console.log("obj is: " + obj); object after the update
+             	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
+             	r.status = 1;
+             	r.desc = "session: " + reqSession + " was started successfully.";
+             	res.json(r);
+             	return; 
+           }); 
        			}
 				if (reqStatus == 0)		//stop ssession case
-       			{
-	     			if (result.startTime == 0 )		// need to start the session first
-	         		{	
+   			{
+     			if (result.startTime == 0 )		// need to start the session first
+         	{	
 						console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
-	   					r.status = 0;
-	   					r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
-	   					res.json(r);	
-	   					return; 						
-	         		}
-		        	if (result.stopTime != 0 )		// the session was stoped before
-		         	{
-			           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
-			           	r.status = 0;
-			           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
-			           	res.json(r);	
-			           	return; 						
-		         	}
+   					r.status = 0;
+   					r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
+   					res.json(r);	
+   					return; 						
+         		}
+	        	if (result.stopTime != 0 )		// the session was stoped before
+	         	{
+		           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
+		           	r.status = 0;
+		           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
+		           	res.json(r);	
+		           	return; 						
+	         	}
 		         	
-					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
-					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-					
-          var Aelements= result.elements;
-          var AsessionId = result.sessionId;
-         
-					result.stopTime = reqTimestamp;
-         			result.save(function(err, obj) 
-         			{ 
-		           		if (err)
-		           		{
-			             	console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-			             	r.status = 0;
-			             	r.desc = "failure session save";
-			             	res.json(r);	
-			             	return;     			
-		           		}
+  					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
+  					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
+  					
+            var Aelements= result.elements;
+            var AsessionId = result.sessionId;
+           
+  					result.stopTime = reqTimestamp;
+       			result.save(function(err, obj) 
+       			{ 
+           		if (err)
+           		{
+	             	console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+	             	r.status = 0;
+	             	r.desc = "failure session save";
+	             	res.json(r);	
+	             	return;     			
+           		}
 
-    		    			//console.log("obj is: " + obj); object after the update
-                  
-                   updateSessionElements(Aelements, AsessionId);
-                  
-             			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
-             			r.status = 1;
-             			r.desc = "session: " + reqSession + " was stopped successfully.";
-             			res.json(r);
-             			return; 
-           			}); 					
-       			}
-       		}
+		    			//console.log("obj is: " + obj); object after the update
+              
+              updateSessionElements(Aelements, AsessionId);
+              
+         			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
+         			r.status = 1;
+         			r.desc = "session: " + reqSession + " was stopped successfully.";
+         			res.json(r);
+         			return; 
+       			}); 					
+     			}
+     		}
 	     	else
 	     	{
 		      	console.log("UPDATESESSIONSTATUS:user: " + reqOwner + " is not a session owner.");

@@ -561,7 +561,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
       if ( !data || !data.userId || data.userId == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
-        r.desc = "request must contain a property name or its empty";
+        r.desc = "request must contain a userId name or its empty";
         res.json(r); 
         return;
     }
@@ -582,6 +582,87 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         else if (docs)
         {
             db.model('sessions').find({$and:[{sessionId:{$in:docs.favorites}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            .exec(function(err, result)
+            { 
+                // failure while connecting to sessions collection
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
+                
+                else if (result)
+                {
+                    console.log("videos found "+ result);
+                    r.status = 1;
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });         
+});
+
+/*  
+    auxiliary/getUserRecordings -- precondition
+    This function will receive data with userId
+
+    /auxiliary/getUserRecordings -- postcondition
+    return all related videos user recordings list
+    json data with status 1/0, length, res (for the results)
+
+    /auxiliary/getUserRecordings -- description
+    This function will return all user recordings ordered by last update.
+  
+    /auxiliary/getUserRecordings -- example
+    userId           avishayhajbi@gmail.com
+*/
+router.post("/auxiliary/getUserRecordings", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 4;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || !data.userId || data.userId == '' )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property userId or its empty";
+        res.json(r); 
+        return;
+    }
+
+    db.model('users').findOne({email:data.userId}, {owner:true, org:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+            db.model('sessions').find({$and:[{owner:{$in:docs.owner}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
