@@ -884,6 +884,7 @@ router.post("/auxiliary/getUserRecordings", function(req, res) {
 	});	
 		
  });
+
  
 /* 
     /auxiliary/lastViews -- precondition

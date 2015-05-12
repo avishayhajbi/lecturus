@@ -635,6 +635,15 @@ else
 	             	return;     			
            		}
 
+              // uodate user owner list TODO change to better solution
+              db.model('users').update({email:obj.owner},{$push: {owner:{$each:[obj.sessionId],$position: 0}}},{upsert:false},function(err,data){
+              if(err){
+                     res.json(err); 
+              }else{
+                     res.json(data); 
+              }
+            });
+
 		    			//console.log("obj is: " + obj); object after the update
               
               updateSessionElements(Aelements, AsessionId);
