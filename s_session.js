@@ -214,7 +214,7 @@ router.get('/session', function( req, res )
 
 
 /* /session/addMembers -- precondition
- *	This function must receive json with sessionId, participants: array[emails]
+ *	This function must receive json with sessionId, participants: array[emails], email: belong to the session owner.
  *
  * /session/addMembers -- postcondition
  *	This function will return json with status: 1 = success / 0 = failure.
@@ -232,7 +232,7 @@ router.get('/session', function( req, res )
  {  	
   	 //create new empty variables
   	var timestamp = new Date().getTime();	//create timestamp 
-    var newParticipants;
+    var newParticipants, sessionOnwer, sessionId;
 	var r = { };	//response object	
 	var message = new gcm.Message();	//create new gcm message
 	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
@@ -242,6 +242,7 @@ router.get('/session', function( req, res )
         // try to parse the json data
         newParticipants = req.body.participants; // participans = array
 		sessionId = req.body.sessionId;
+		sessionOnwer = req.body.email;
 	}
 	catch(err)
 	{
@@ -279,64 +280,98 @@ router.get('/session', function( req, res )
    	else
     {
     	console.log("ADDMEMBERS:Session id is: " + sessionId);
-        	
-        // seach for the participants google registration id
-        // validation that each user exists in the users collection before adding it to the session
-        db.model('users').find( 
-		{ email : { $in : newParticipants } }, 
-     	{ regId : true, _id : false },
-		function (err, result)
-		{
-			console.log("ADDMEMBERS:Result id is: " + result);
-			// failure during user search
+    	
+        db.model('sessions').findOne( 
+		{ sessionId : sessionId }, 
+		function (err, sessionObj)
+		{    	
     		if (err) 
     		{
-     			console.log("ADDMEMBERS:failure during user search, the error: ", err);
+     			console.log("ADDMEMBERS:failure during session search, the error: ", err);
       			r.status = 0;
       			r.desc = "failure during user search";
      			res.json(r);	
       			return;
     		}
-    		if ( result.length == 0 )
-    		{
-     			console.log("ADDMEMBERS:no registration ids were found.");
-      			r.status = 0;
-      			r.desc = "no registration ids were found.";
-     			res.json(r);	
-      			return;
-    		}
-    		else
-    		{
-    			message.addData('message', 'join session.');
-				message.addData('sessionId', 111);
-				message.delay_while_idle = 1;
-				
-		     	(result).forEach (function (currRes) 
-		     	{
-		      		console.log("ADDMEMBERS:participant's registration id: " + currRes.regId);
-		      		var registrationIds = [];
-		      		registrationIds.push(currRes.regId);
-		      		
-		      		//send each participant a gcm message - async
-		      		sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
-					{
-					  	if(err) 
-					  	{
-					  		console.error("ADDMEMBERS:error is: " + err);
-					  	}
-					  	else 
-					  	{
-					  	   console.log("ADDMEMBERS:message sending to: " + currRes.regId + " resulted with:" + sentResult);
-				  	  	}
-					});
-		    	});
-
-     			console.log("ADDMEMBERS:messages were sent.");
-      			r.status = 1;
-      			r.desc = "messages were sent.";
-     			res.json(r);	
-      			return;
-    		}
+    		
+			// if the org do not exist
+	        if (sessionObj == null)
+	        {
+	         	console.log("ADDMEMBERS:session was not found.");
+	          	r.status = 0;
+	          	r.desc = "session was not found.";
+	         	res.json(r);	
+	          	return;
+	        }
+	        
+	        if (sessionObj.owner != sessionOnwer)
+	        {
+	         	console.log("ADDMEMBERS:email, reseived in the request, does not belong to session owner.");
+	          	r.status = 0;
+	          	r.desc = "email, reseived in the request, does not belong to session owner.";
+	         	res.json(r);	
+	          	return;
+	        }
+	        
+	        // seach for the participants google registration id
+	        // validation that each user exists in the users collection before adding it to the session
+	        db.model('users').find( 
+			{ email : { $in : newParticipants } }, 
+	     	{ regId : true, _id : false },
+			function (err, result)
+			{
+				console.log("ADDMEMBERS:Result id is: " + result);
+				// failure during user search
+	    		if (err) 
+	    		{
+	     			console.log("ADDMEMBERS:failure during user search, the error: ", err);
+	      			r.status = 0;
+	      			r.desc = "failure during user search";
+	     			res.json(r);	
+	      			return;
+	    		}
+	    		if ( result.length == 0 )
+	    		{
+	     			console.log("ADDMEMBERS:no registration ids were found.");
+	      			r.status = 0;
+	      			r.desc = "no registration ids were found.";
+	     			res.json(r);	
+	      			return;
+	    		}
+	    		else
+	    		{
+	    			message.addData('message', 'join session.');
+					message.addData('sessionId', sessionId);
+					message.addData('ownerId', sessionOnwer);
+					message.delay_while_idle = 1;
+					
+			     	(result).forEach (function (currRes) 
+			     	{
+			      		console.log("ADDMEMBERS:participant's registration id: " + currRes.regId);
+			      		var registrationIds = [];
+			      		registrationIds.push(currRes.regId);
+			      		
+			      		//send each participant a gcm message - async
+			      		sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
+						{
+						  	if(err) 
+						  	{
+						  		console.error("ADDMEMBERS:error is: " + err);
+						  	}
+						  	else 
+						  	{
+						  	   console.log("ADDMEMBERS:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+					  	  	}
+						});
+			    	});
+	
+	     			console.log("ADDMEMBERS:messages were sent.");
+	      			r.status = 1;
+	      			r.desc = "messages were sent.";
+	     			res.json(r);	
+	      			return;
+	    		}
+	   		});
    		});                    
 	}
 });
