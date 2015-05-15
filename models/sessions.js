@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var sessionsSchema = new Schema( 
 {
-	sessionId : String,//{ type : String ,  index : 1 , unique : true , required :true},
+	sessionId : { type : String ,  index : true, unique : true , required :true},
 	org : String,
 	title :  { type : String , default : '' },
 	description : { type : String , default : '' },

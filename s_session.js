@@ -104,12 +104,12 @@ router.get('/session', function( req, res )
       return;
     }
     else{
-      //data.sessionId = uniqueid;
+      data.sessionId = uniqueid;
       data.owner = data.email;
       date.timestamp = date;
       
       var newSession =  new Session(data);
-      newSession.save(function (err) {
+      newSession.save(function (err,obj) {
         if (err) 
         {
           console.log("failure during insertion of new session, the error: ", err);
@@ -121,12 +121,12 @@ router.get('/session', function( req, res )
         }
         else
         {
-          console.log("session: " + data.sessionId + " has completed successfully.");
-          r.sessionId = data.sessionId;
+          console.log("session: " + obj.sessionId + " has completed successfully.");
+          r.sessionId = obj.sessionId;
           r.timestamp = date;
-          r.owner = data.owner;
+          r.owner = obj.owner;
           r.status = 1;
-          r.desc = "session: " + data.sessionId + " has completed successfully.";
+          r.desc = "session: " + obj.sessionId + " has completed successfully.";
           res.json(r);
           return;                           
         }

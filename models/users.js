@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var usersSchema = new Schema( 
 	{
-		email : String,//{ type : String ,  index : 1 , unique : true , required :true},
+		email : { type : String ,  index : true, unique : true , required :true},
 		org : String,
 		regId : { type : String , default : '' },
 		location : { type : String , default : '' },
