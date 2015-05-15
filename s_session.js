@@ -265,14 +265,16 @@ router.get('/session', function( req, res )
       	res.json(r);
       	return; 	
     }
-    else	//TODO. ERASE
+    /*
+    else	
     {
      	(newParticipants).forEach (function (currParticipant) 
      	{
       		console.log("ADDMEMBERS:new participant: " + currParticipant);
     	});
 	}
-
+	*/
+	
     if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )	// if data.sessionId property exists in the request is not empty
     {
 		console.log("ADDMEMBERS:sessionId propery does not exist in the query or it is empty");
@@ -506,9 +508,10 @@ else
  router.post("/session/updateSessionStatus", function(req, res ) 
  {
 	//create new empty variables
-	var reqOwner, reqSession, reqStatus;	//temporary variables
-	var r = { };							//response object	
-
+	var reqOwner, reqSession, reqStatus, reqTimestamp;	//temporary variables
+	var r = { };										//response object	
+	var tempElements;
+	
 	try
  	{
     	// try to parse the json data
@@ -539,10 +542,10 @@ else
 	}
 
 	// TODO. remove 
-	 console.log("session owner is: " + reqOwner);
-	 console.log("Session id is: " + reqSession);
-	 console.log("Session status is: " + reqStatus);
-	 console.log("Session timestamp is: " + reqTimestamp);  
+	 console.log("UPDATESESSIONSTATUS:Session owner is: " + reqOwner);
+	 console.log("UPDATESESSIONSTATUS:Session id is: " + reqSession);
+	 console.log("UPDATESESSIONSTATUS:Session status is: " + reqStatus);
+	 console.log("UPDATESESSIONSTATUS:Session timestamp is: " + reqTimestamp);  
  
  	db.model('sessions').findOne( { sessionId : reqSession },
     //{ participants : true, owner : true, _id : false },	- does not wotk with this
@@ -572,7 +575,7 @@ else
        		{
 				if (reqStatus == 1)			//start session case
         		{
-         			if (result.startTime != 0 )
+         			if ( result.startTime != 0 )
          			{
 			           	console.log("UPDATESESSIONSTATUS:can not restart session: " + reqSession);
 			           	r.status = 0;
@@ -582,73 +585,75 @@ else
          			}
          				
 					//getUserFriends( result.owner, result.participants ); 	//TODO. check for correctness...
+					
 					result.startTime = reqTimestamp;
-     			result.save(function(err, obj) 
-     			{ 
-           		if (err)
-           		{
-					console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-		            r.status = 0;
-		            r.desc = "failure session save";
-		            res.json(r);	
-		            return;     			
-         			}
+     				result.save(function(err, obj) 
+     				{ 
+		           		if (err)
+		           		{
+							console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+				            r.status = 0;
+				            r.desc = "failure session save";
+				            res.json(r);	
+				            return;     			
+	         			}
 
-		    			//console.log("obj is: " + obj); object after the update
-             	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
-             	r.status = 1;
-             	r.desc = "session: " + reqSession + " was started successfully.";
-             	res.json(r);
-             	return; 
-           }); 
+						//inform participants that session has started sesstion
+						informSessionStart(reqSession); 
+						 
+		             	console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was started successfully.");
+		             	r.status = 1;
+		             	r.desc = "session: " + reqSession + " was started successfully.";
+		             	res.json(r);
+		             	return; 
+		           }); 
        			}
-				if (reqStatus == 0)		//stop ssession case
-   			{
-     			if (result.startTime == 0 )		// need to start the session first
-         	{	
-						console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was not started yet.");
-   					r.status = 0;
-   					r.desc = "can not stop session: " + reqSession + ". it was not started yet.";
-   					res.json(r);	
-   					return; 						
-         		}
-	        	if (result.stopTime != 0 )		// the session was stoped before
-	         	{
-		           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ". it was already stopped.");
-		           	r.status = 0;
-		           	r.desc = "can not stop session: " + reqSession + ". it was already stopped.";
-		           	res.json(r);	
-		           	return; 						
-	         	}
+				if (reqStatus == 0)		//stop session case
+   				{
+	     			if (result.startTime == 0 )		// need to start the session first
+	         		{	
+						console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ", it was not started yet.");
+	   					r.status = 0;
+	   					r.desc = "can not stop session: " + reqSession + ", it was not started yet.";
+	   					res.json(r);	
+	   					return; 						
+	         		}
+		        	if (result.stopTime != 0 )		// the session was stoped before
+		         	{
+			           	console.log("UPDATESESSIONSTATUS:can not stop session: " + reqSession + ", it was already stopped.");
+			           	r.status = 0;
+			           	r.desc = "can not stop session: " + reqSession + ", it was already stopped.";
+			           	res.json(r);	
+			           	return; 						
+		         	}
 		         	
-  					//result.recordStarts = false; //TODO. remove, no need to set false. once started, we can not restart the session.
-  					//result.elements = closeSessionFunction(result.elements);	// TODO. convert the function to be async
-  					
-            var Aelements= result.elements;
-            var AsessionId = result.sessionId;
-           
-  					result.stopTime = reqTimestamp;
-       			result.save(function(err, obj) 
-       			{ 
-           		if (err)
-           		{
-	             	console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
-	             	r.status = 0;
-	             	r.desc = "failure session save";
-	             	res.json(r);	
-	             	return;     			
-           		}
-
-		    			//console.log("obj is: " + obj); object after the update
+	            	tempElements = result.elements;	
+	            	var AsessionId = result.sessionId;	//TODO. erase
+	           
+	  				result.stopTime = reqTimestamp;
+	       			result.save(function(err, obj) 
+	       			{ 
+		           		if (err)
+		           		{
+			             	console.log("UPDATESESSIONSTATUS:failure session save, the error: ", err);
+			             	r.status = 0;
+			             	r.desc = "failure session save";
+			             	res.json(r);	
+			             	return;     			
+		           		}
               
-              updateSessionElements(Aelements, AsessionId);
+              			//rearrange elements value
+              			updateSessionElements(tempElements, AsessionId);
               
-         			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
-         			r.status = 1;
-         			r.desc = "session: " + reqSession + " was stopped successfully.";
-         			res.json(r);
-         			return; 
-       			}); 					
+              			//inform participants that session has stopped sesstion
+              			informSessionStop(reqSession);
+              			
+	         			console.log("UPDATESESSIONSTATUS:session: " + reqSession + " was stopped successfully.");
+	         			r.status = 1;
+	         			r.desc = "session: " + reqSession + " was stopped successfully.";
+	         			res.json(r);
+	         			return; 
+	       			}); 					
      			}
      		}
 	     	else
@@ -664,6 +669,167 @@ else
       }               	              
 	});
 });
+
+/*
+ * 
+ */
+function informSessionStart(sessionId) 
+{  	
+	//create new empty variables
+	var message = new gcm.Message();	//create new gcm message
+	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
+	 
+	console.log("INFORMSESSIONSTART:inform that session: " + sessionId + " has started.");
+		    	
+    db.model('sessions').findOne( 
+	{ sessionId : sessionId }, 
+	function (err, sessionObj )
+	{    	
+		if (err) 
+		{
+ 			console.log("INFORMSESSIONSTART:failure during session search, the error: ", err);	
+  			return;
+		}
+    		
+		// if the session do not exist
+        if (sessionObj == null)
+        {
+         	console.log("INFORMSESSIONSTART:session was not found.");	
+          	return;
+        }
+	        	        
+        // seach for the participants google registration id
+        // validation that each user exists in the users collection before adding it to the session
+        db.model('users').find( 
+		{ email : { $in : sessionObj.participants } }, 
+     	//{ regId : true, _id : false },
+     	 '-_id regId',
+		function (err, arrUsers)
+		{
+			console.log("INFORMSESSIONSTART:Array of users: " + arrUsers);
+			
+			// failure during user search
+    		if (err) 
+    		{
+     			console.log("INFORMSESSIONSTART:failure during users search, the error: ", err);	
+      			return;
+    		}
+    		if ( arrUsers.length == 0 )
+    		{
+     			console.log("INFORMSESSIONSTART:no session participans were found.");	
+      			return;
+    		}
+    		else
+    		{
+    			message.addData('message', '2');
+				message.addData('sessionId', sessionId);
+				message.delay_while_idle = 1;
+				
+		     	(arrUsers).forEach (function (user) 
+		     	{
+		      		console.log("INFORMSESSIONSTART:participant's registration id: " + user.regId);
+		      		var registrationIds = [];
+		      		registrationIds.push(user.regId);
+		      		
+		      		//send each participant a gcm message - async
+		      		sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
+					{
+					  	if(err) 
+					  	{
+					  		console.error("INFORMSESSIONSTART:error is: " + err);
+					  	}
+					  	else 
+					  	{
+					  	   console.log("INFORMSESSIONSTART:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+				  	  	}
+					});
+		    	});
+
+    		}
+   		});                    
+	});
+}
+
+
+/*
+ * 
+ */
+function informSessionStop(sessionId) 
+{  	
+	//create new empty variables
+	var message = new gcm.Message();	//create new gcm message
+	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
+	
+	console.log("INFORMSESSIONSTOP:inform that session: " + sessionId + " has started.");
+	    	
+    db.model('sessions').findOne( 
+	{ sessionId : sessionId }, 
+	function (err, sessionObj )
+	{    	
+		if (err) 
+		{
+ 			console.log("INFORMSESSIONSTOP:failure during session search, the error: ", err);	
+  			return;
+		}
+    		
+		// if the session do not exist
+        if (sessionObj == null)
+        {
+         	console.log("INFORMSESSIONSTOP:session was not found.");	
+          	return;
+        }
+	        	        
+        // seach for the participants google registration id
+        // validation that each user exists in the users collection before adding it to the session
+        db.model('users').find( 
+		{ email : { $in : sessionObj.participants } }, 
+     	//{ regId : true, _id : false },
+     	 '-_id regId',
+		function (err, arrUsers)
+		{
+			console.log("INFORMSESSIONSTOP:Array of users: " + arrUsers);
+			
+			// failure during user search
+    		if (err) 
+    		{
+     			console.log("INFORMSESSIONSTOP:failure during users search, the error: ", err);	
+      			return;
+    		}
+    		if ( arrUsers.length == 0 )
+    		{
+     			console.log("INFORMSESSIONSTOP:no session participans were found.");	
+      			return;
+    		}
+    		else
+    		{
+    			message.addData('message', '3');
+				message.addData('sessionId', sessionId);
+				message.delay_while_idle = 1;
+				
+		     	(arrUsers).forEach (function (user) 
+		     	{
+		      		console.log("INFORMSESSIONSTOP:participant's registration id: " + user.regId);
+		      		var registrationIds = [];
+		      		registrationIds.push(user.regId);
+		      		
+		      		//send each participant a gcm message - async
+		      		sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
+					{
+					  	if(err) 
+					  	{
+					  		console.error("INFORMSESSIONSTOP:error is: " + err);
+					  	}
+					  	else 
+					  	{
+					  	   console.log("INFORMSESSIONSTOP:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+				  	  	}
+					});
+		    	});
+
+    		}
+   		});                    
+	});
+}
 
 /*
  * This function will create a ;ist of user friends from the session participants.
