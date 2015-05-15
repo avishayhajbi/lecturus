@@ -14,7 +14,7 @@ var gcm = require('node-gcm');
 
 sessionPreview = {
   title : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
-  sessionId:true, totalSecondLength:true, rating:true, views:true , _id:false
+  sessionId:true, totalSecondLength:true, rating:true, views:true, timestamp:true , _id:false
 }
 
 cloudinary.config({ 
@@ -104,10 +104,10 @@ router.get('/session', function( req, res )
       return;
     }
     else{
-      data.sessionId = uniqueid;
+      //data.sessionId = uniqueid;
       data.owner = data.email;
       date.timestamp = date;
-      delete data.email;
+      
       var newSession =  new Session(data);
       newSession.save(function (err) {
         if (err) 
