@@ -623,7 +623,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
  *  sessionId               142964947916810933728
  *  userId           avishayhajbi@gmail.com
  */
- router.post("/session/addRemoveFavorites", function(req, res )
+ router.post("/auxiliary/addRemoveFavorites", function(req, res )
  {
    var r = { };
 

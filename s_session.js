@@ -1527,7 +1527,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
                 		docs[0].audios.push({
                   		length: audioLength,
                   		timestamp: timestamp,
-                 		email: email,
+                 		  email: email,
                   		url: result.url,
                   		startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt + docs[0].audios[docs[0].audios.length-1].length : 0 
                 		});
@@ -1617,7 +1617,7 @@ router.post('/session/getSessionById', function (req, res)
 		var sessionId = req.body.sessionId;
        	var org = req.body.org;
     	var userId = req.body.userId;   	//TODO handel get video only if the user from the same org
-      	var edit = req.body.edit; 			//TODO handel pluse minus views counter
+      	var edit = req.body.edit || "false"; 			//TODO handel pluse minus views counter
   	}
 	catch(err)
 	{
@@ -1639,7 +1639,7 @@ router.post('/session/getSessionById', function (req, res)
         }
         else if (doc)
         {
-            if (edit && edit=="true")
+            if (edit=="true")
             {
               console.log("the session: " + sessionId + " was found.");
               r.status = 1;
