@@ -554,7 +554,7 @@ router.post("/users/addRemoveFollow", function(req, res)
         res.json(r);
         return;
     }
-    if ( !data.email || data.email == "" )
+    if ( !data.email || data.email == "" || !data.userToFollow || data.userToFollow == "")
     {
         r.status = 0;   
         r.desc = "request must contain a property org";
@@ -562,7 +562,7 @@ router.post("/users/addRemoveFollow", function(req, res)
         return;
     }
 
-    db.model('users').findOne({email: data.email} , {upsert:false},
+    db.model('users').findOne({email: data.email},
     function (err, result)
     {
         console.log(result)

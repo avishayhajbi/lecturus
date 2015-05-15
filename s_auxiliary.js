@@ -475,7 +475,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || !data.email ||data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.email )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property email or its empty";
