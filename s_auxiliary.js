@@ -458,6 +458,8 @@ router.post("/auxiliary/getTopRated", function(req, res) {
 
     /auxiliary/followedUsers -- example
     email: vandervidi@gmail.com
+    from: 0
+    to: 4
 */
 router.post("/auxiliary/followedUsers", function(req, res) {
     var r ={};
@@ -465,8 +467,8 @@ router.post("/auxiliary/followedUsers", function(req, res) {
     try
     {
         data = req.body;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 4;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 4;
     }catch(err){
         var r ={
             status:0,
@@ -482,6 +484,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         res.json(r); 
         return;
     }
+
 
     db.model('users').findOne({email:data.email}, {follow:true,org:true,_id:false},
     function(err, docs)
@@ -499,10 +502,9 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         else if (docs)
         {
 
-            db.model('sessions').find({$and:[{owner:{$in:docs.follow}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
-            .exec(function(err, result)
-            { 
-                // failure while connecting to sessions collection
+            var query = db.model('sessions').find({$and:[{owner:{$in:docs.follow}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
+            query.sort({owner:1,views: -1})//.skip(data.from).limit(data.to)
+            .exec(function(err, result){
                 if (err) 
                 {
                     console.log("failure while trying get videos, the error: ", err);
@@ -511,11 +513,10 @@ router.post("/auxiliary/followedUsers", function(req, res) {
                     res.json(r);
                     return;
                 }
-                
                 else if (result)
                 {
                     result = createKeyValJSON(result,'owner');
-                    //console.log("videos found "+ result);
+                    console.log("followed videos found for "+data.email);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
@@ -523,7 +524,89 @@ router.post("/auxiliary/followedUsers", function(req, res) {
                     res.json(r); 
                     return;                         
                 }
-            });                        
+            });
+        }
+    });         
+});
+
+/* /auxiliary/getUserSessions -- precondition
+   This function will receive data with userId
+
+    /auxiliary/getUserSessions -- postcondition
+    return all related videos for specific user
+    json data with status 1/0, length, res (for the results)
+
+    /auxiliary/getUserSessions -- description
+    This function will return all user sessions.
+
+    /auxiliary/getUserSessions -- example
+    userId: vandervidi@gmail.com
+    from: 0
+    to: 4
+*/
+router.post("/auxiliary/getUserSessions", function(req, res) {
+    var r ={};
+    var data={};
+    try
+    {
+        data = req.body;
+        data.from = req.body.from || 0;
+        data.to = req.body.to || 4;
+    }catch(err){
+        var r ={
+            status:0,
+            desc:"data error"
+        }
+        res.json(r);
+        return;
+    }
+      if ( !data || !data.userId )  // if data.name property exists in the request is not empty
+    {
+        r.status = 0;   
+        r.desc = "request must contain a property userId or its empty";
+        res.json(r); 
+        return;
+    }
+
+
+    db.model('users').findOne({email:data.userId}, {org:true,_id:false},
+    function(err, docs)
+    { 
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+
+            var query = db.model('sessions').find({$and:[{owner:data.userId},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
+            query.sort({views: -1}).skip(data.from).limit(data.to)
+            .exec(function(err, result){
+                if (err) 
+                {
+                    console.log("failure while trying get videos, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure while trying get videos.";
+                    res.json(r);
+                    return;
+                }
+                else if (result)
+                {
+                    console.log("all videos found for "+data.email);
+                    r.status = 1;
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get user videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });
         }
     });         
 });
@@ -596,7 +679,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
                 
                 else if (result)
                 {
-                    console.log("videos found "+ result);
+                    console.log("favorites videos found for "+ data.userId);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
@@ -822,7 +905,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         
         else if (docs)
         {
-            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1})
+            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
             .skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
@@ -838,7 +921,6 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 
                 else if (result)
                 {
-                    //result = createKeyValJSON(result,'owner');
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
@@ -852,14 +934,18 @@ router.post("/auxiliary/lastViews", function(req, res) {
     });         
 });
 
-createKeyValJSON = function (arr , key){
-    var temp = {}, uid = '';
+function createKeyValJSON  (arr , key){
+    //arrayName.splice(0,half_length);
+    var temp = {}, uid = '' ,count=0;
     for ( k in arr ){
+        if (count==4 && uid == arr[k][key]) continue;
         if (uid != arr[k][key])
         {
+            count = 0;
             uid = arr[k][key];
             temp[uid] = [];
         }
+        count++;
         temp[uid].push(arr[k]);
     }
     return temp;

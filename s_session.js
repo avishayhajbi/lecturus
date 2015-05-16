@@ -2192,4 +2192,101 @@ router.post('/session/deleteImage', function(req, res) {
 
 });
 
+/* /session/deleteSession -- precondition
+  data with sessionId and userId
+
+
+   /session/deleteSession -- postcondition
+    delete the session 
+    json data with status 1/0
+
+  /session/deleteSession -- postcondition
+    delete the session 
+    json data with status 1/0
+
+  /session/deleteSession -- example
+    sessionId 123456
+    userId avishayhajbi@gmail.com
+*/
+
+router.post('/session/deleteSession', function(req, res) {
+  var data = req.body;
+  var r ={};
+  if (!data || data =='' || !data.sessionId || !data.userId) 
+  {
+    console.log("sessionId or userId params not found");
+    r.status = 0;
+    r.desc = "sessionId or userId params not found";
+    res.json(r);
+    return;
+  }
+
+  var query = db.model('sessions').findOne({$and:[{ $or: [ { owner : data.userId }, {participants : data.userId}   ] },{sessionId:data.sessionId}] });
+    query.lean().exec('findOne', function(err, docs)
+    {    
+        // failure while connecting to sessions collection
+        if (err) 
+        {
+            console.log("failure while trying get videos, the error: ", err);
+            r.status = 0;
+            r.desc = "failure while trying get videos.";
+            res.send((JSON.stringify(r)));
+            return;
+        }
+        
+        else if (!docs)
+        {
+            console.log("session "+data.sessionId+" not found or "+data.userId+" now participant/admin");
+            r.status = 0;
+            r.desc = "session "+data.sessionId+" not found or "+data.userId+" now participant/admin";
+            res.json(r); 
+            return;                         
+        }
+        else
+        {
+          var audios = docs.audios.map(function(audio) {
+            var temp = audio.url.split('/');
+            return temp[temp.length-1].split(".")[0];
+          });
+
+          /*var images = [];
+          var elements = docs.elements;
+          for (time in elements){
+            if (elements[time] && elements[time].photo){
+              var temp = elements[time].photo.url.split('/');
+              images.push(temp[temp.length-1].split(".")[0]);
+            }
+          }*/
+          cloudinary.api.delete_resources_by_tag(data.sessionId,
+          function(result)
+          { 
+            console.log(result) 
+            cloudinary.api.delete_derived_resources(audios,
+            function(result){
+              console.log("audios",result) 
+              if (result.result == "not found")
+              {
+                console.log("session was not found");
+                r.status = 0;
+                r.desc = "session was not found";
+                res.json(r);
+                return;
+              }
+                console.log("session deleted");
+                r.status = 1;
+                r.desc = "session deleted";
+                res.json(r);
+                return;
+              });
+          });
+         /* r.status = 1;
+          r.res = docs;
+          r.desc = "session "+data.sessionId+" deleted";
+          res.json(r); 
+          return;*/
+        }
+    });  
+
+});
+
 module.exports = router;
