@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var usersSchema = new Schema( 
 	{
-		email : String,
+		email : { type : String ,  index : true, unique : true , required :true},
 		org : String,
 		regId : { type : String , default : '' },
 		location : { type : String , default : '' },
@@ -20,3 +20,4 @@ var usersSchema = new Schema(
 	});
 	
 User = mongoose.model('users', usersSchema);
+// exports.schemaName = schemaName

@@ -475,7 +475,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || !data.email ||data.email == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.email )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property email or its empty";
@@ -610,20 +610,20 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
 });
 
 
-/* /auxiliary/favritesActions -- precondition
+/* /auxiliary/addRemoveFavorites -- precondition
  *  This function will receive json with sessionId and userId.
  *
- * /auxiliary/favritesActions -- postcondition
+ * /auxiliary/addRemoveFavorites -- postcondition
  *  This function will return json with status: 1 = success / 0 = failure.
  *
- * /auxiliary/favritesActions -- description
+ * /auxiliary/addRemoveFavorites -- description
  *  This function will user favorites .
  * 
- * /auxiliary/favritesActions -- example
+ * /auxiliary/addRemoveFavorites -- example
  *  sessionId               142964947916810933728
  *  userId           avishayhajbi@gmail.com
  */
- router.post("/session/addRemoveFavorites", function(req, res )
+ router.post("/auxiliary/addRemoveFavorites", function(req, res )
  {
    var r = { };
 
@@ -650,103 +650,66 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
    res.json(r); 
    return;
  }
-
- db.model('sessions').findOne( {$and:[{ sessionId : sessionId },{stopTime:{$gt:0}} ]},
-    //{ participants : true, owner : true, _id : false },   - does not wotk with this
-    function (err, result)
+db.model('users').findOne({email: userId} ,
+    function (err, userResult)
     {
+      // failure during user search
       if (err) 
       {
-        console.log("UPDATEFAVIRTES:failure during session search, the error: ", err);
+        console.log("failure during user search, the error: ", err);
+        r.uid = 0;
         r.status = 0;
-        r.desc = "failure during session search";
+        r.desc = "failure during user search";
         res.json(r);    
         return;
       }
-      if ( !result )
+      else if (userResult.favorites.indexOf(sessionId) == -1)
       {
-       console.log("UPDATEFAVIRTES:session: " + sessionId + " was not found.");
-       r.status = 0;
-       r.desc = "session: " + sessionId + " was not found";
-       res.json(r);
-       return;
-     }
-     else
-     {
-      db.model('users').findOne({email: userId} ,
-        function (err, userResult)
-        {
-          // failure during user search
-          if (err) 
+        userResult.favorites.unshift(sessionId);
+        userResult.save(function(err, obj) 
+        { 
+          if (err)
           {
-            console.log("failure during user search, the error: ", err);
-            r.uid = 0;
-            r.status = 0;
-            r.desc = "failure during user search";
-            res.json(r);    
-            return;
-          }
-          else if (userResult.favorites.indexOf(sessionId) == -1)
-          {
-            userResult.favorites.unshift(sessionId);
-            userResult.save(function(err, obj) 
-            { 
-              if (err)
-              {
-               console.log("UPDATEFAVIRTES:failure user save, the error: ", err);
-               r.status = 0;
-               r.desc = "failure UPDATEFAVIRTES save";
-               res.json(r); 
-               return;          
-             }
-
-             userResult.save(function(err, obj) 
-             { 
-              console.log("UPDATEFAVIRTES: save");
-              if (err)
-              {
-               console.log("UPDATEFAVIRTES:failure session save, the error: ", err);
-               r.status = 0;
-               r.desc = "failure session save";
-               res.json(r); 
-               return;          
-             }
-
-             console.log("UPDATEFAVIRTES:session: " + userId + " favorites was updated.");
-             r.status = 1;
-             r.desc = "session: " + sessionId + " favirtes was updated";
-             res.json(r);
-             return;
-           });
-           });
-            
-          }
-          else
-          {
-           var index =  userResult.favorites.indexOf(sessionId);
-           userResult.favorites.splice(index, 1);
-           userResult.save(function(err, obj) 
-             { 
-              console.log("UPDATEFAVIRTES: save");
-              if (err)
-              {
-               console.log("UPDATEFAVIRTES:failure user favorites save, the error: ", err);
-               r.status = 0;
-               r.desc = "failure user favorites save";
-               res.json(r); 
-               return;          
-             }
-
-             console.log("UPDATEFAVIRTES:user: " + userId + " update favorites was updated.");
-             r.status = 1;
-             r.desc = "user: " + userId + " update favorites was updated";
-             res.json(r);
-             return;
-           });
+           console.log("UPDATEFAVIRTES:failure user save, the error: ", err);
+           r.status = 0;
+           r.desc = "failure UPDATEFAVIRTES save";
+           res.json(r); 
+           return;          
          }
+
+         console.log("UPDATEFAVIRTES:session: " + userId + " favorites was updated.");
+         r.status = 1;
+         r.desc = "session: " + sessionId + " favirtes was updated";
+         res.json(r);
+         return;
+      
        });
-}
-}); 
+        
+      }
+      else
+      {
+       var index =  userResult.favorites.indexOf(sessionId);
+       userResult.favorites.splice(index, 1);
+       userResult.save(function(err, obj) 
+         { 
+          console.log("UPDATEFAVIRTES: save");
+          if (err)
+          {
+           console.log("UPDATEFAVIRTES:failure user favorites save, the error: ", err);
+           r.status = 0;
+           r.desc = "failure user favorites save";
+           res.json(r); 
+           return;          
+         }
+
+         console.log("UPDATEFAVIRTES:user: " + userId + " update favorites was updated.");
+         r.status = 1;
+         r.desc = "user: " + userId + " update favorites was updated";
+         res.json(r);
+         return;
+       });
+     }
+    });
 });
 
 /* 

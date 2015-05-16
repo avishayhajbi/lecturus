@@ -14,7 +14,7 @@ var gcm = require('node-gcm');
 
 sessionPreview = {
   title : true,description:true, participants:true, owner:true,course:true,degree:true,lecturer:true, 
-  sessionId:true, totalSecondLength:true, rating:true, views:true , _id:false
+  sessionId:true, totalSecondLength:true, rating:true, views:true, timestamp:true , _id:false
 }
 
 cloudinary.config({ 
@@ -107,9 +107,9 @@ router.get('/session', function( req, res )
       data.sessionId = uniqueid;
       data.owner = data.email;
       date.timestamp = date;
-      delete data.email;
+      
       var newSession =  new Session(data);
-      newSession.save(function (err) {
+      newSession.save(function (err,obj) {
         if (err) 
         {
           console.log("failure during insertion of new session, the error: ", err);
@@ -121,12 +121,12 @@ router.get('/session', function( req, res )
         }
         else
         {
-          console.log("session: " + data.sessionId + " has completed successfully.");
-          r.sessionId = data.sessionId;
+          console.log("session: " + obj.sessionId + " has completed successfully.");
+          r.sessionId = obj.sessionId;
           r.timestamp = date;
-          r.owner = data.owner;
+          r.owner = obj.owner;
           r.status = 1;
-          r.desc = "session: " + data.sessionId + " has completed successfully.";
+          r.desc = "session: " + obj.sessionId + " has completed successfully.";
           res.json(r);
           return;                           
         }
@@ -1692,7 +1692,7 @@ var file_reader = fs.createReadStream(temp_path).pipe(stream);
                 		docs[0].audios.push({
                   		length: audioLength,
                   		timestamp: timestamp,
-                 		email: email,
+                 		  email: email,
                   		url: result.url,
                   		startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt + docs[0].audios[docs[0].audios.length-1].length : 0 
                 		});
@@ -1782,7 +1782,7 @@ router.post('/session/getSessionById', function (req, res)
 		var sessionId = req.body.sessionId;
        	var org = req.body.org;
     	var userId = req.body.userId;   	//TODO handel get video only if the user from the same org
-      	var edit = req.body.edit; 			//TODO handel pluse minus views counter
+      	var edit = req.body.edit || "false"; 			//TODO handel pluse minus views counter
   	}
 	catch(err)
 	{
@@ -1804,7 +1804,7 @@ router.post('/session/getSessionById', function (req, res)
         }
         else if (doc)
         {
-            if (edit && edit=="true")
+            if (edit=="true")
             {
               console.log("the session: " + sessionId + " was found.");
               r.status = 1;
