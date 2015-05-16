@@ -702,8 +702,7 @@ function informSessionStart(sessionId)
         // validation that each user exists in the users collection before adding it to the session
         db.model('users').find( 
 		{ email : { $in : sessionObj.participants } }, 
-     	//{ regId : true, _id : false },
-     	 '-_id regId',
+     	{ regId : true, _id : false },
 		function (err, arrUsers)
 		{
 			console.log("INFORMSESSIONSTART:Array of users: " + arrUsers);
@@ -783,8 +782,8 @@ function informSessionStop(sessionId)
         // validation that each user exists in the users collection before adding it to the session
         db.model('users').find( 
 		{ email : { $in : sessionObj.participants } }, 
-     	//{ regId : true, _id : false },
-     	 '-_id regId',
+     	{ regId : true, _id : false },
+     	//'-_id -regId',
 		function (err, arrUsers)
 		{
 			console.log("INFORMSESSIONSTOP:Array of users: " + arrUsers);
@@ -2155,41 +2154,487 @@ catch(err)
   data with imageurl
   */
 /* /session/deleteImage -- postcondition
-    delete the image from the cloud by her url
+    delete the image from the cloud by its url
     json data with status 1/0
 */
 
-router.post('/session/deleteImage', function(req, res) {
-  var data = req.body.imageurl;
-  var r ={};
-  if (!data || data =='') 
-  {
-    console.log("image url not found");
-    r.status = 0;
-    r.desc = "image url not found";
-    res.json(r);
-    return;
-  }
-  var temp = data.split('/');
-  cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
-  function(result) 
-  { 
-    console.log(result) 
-    if (result.result == "not found")
+router.post('/session/deleteImage', function(req, res) 
+{
+  	var imageUrl;
+  	var r = { };
+  	
+  	try
+  	{
+  		imageUrl = req.body.imageurl;	//TODO. should be imageUrl = camel case
+  	}
+  	catch( err )
     {
-      console.log("image was not found");
-      r.status = 0;
-      r.desc = "image was not found";
-      res.json(r);
-      return;
+  		console.log("DELETEIMAGE:failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request.";
+    	res.json(r);
+    	return;
     }
-    console.log("image deleted");
-    r.status = 1;
-    r.desc = "image deleted";
-    res.json(r);
-    return;
+  	
+  	if ( !imageUrl || imageUrl == '' ) 
+  	{
+	    console.log("DELETEIMAGE:request must contain an image URL.");
+	    r.status = 0;
+	    r.desc = "request must contain an image URL.";
+	    res.json(r);
+	    return;
+  	}
+  	
+  	var temp = imageUrl.split('/');
+  	cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
+  	function(result) 
+  	{ 
+    	console.log("DELETEIMAGE:result is: " + result);
+	    if (result.result == "not found")
+	    {
+	      console.log("DELETEIMAGE:image was not found.");
+	      r.status = 0;
+	      r.desc = "image was not found.";
+	      res.json(r);
+	      return;
+	    }
+	    
+	    console.log("DELETEIMAGE:image was deleted.");
+	    r.status = 1;
+	    r.desc = "image was deleted.";
+	    res.json(r);
+	    return;
   });
 
 });
 
+/*
+ * 
+ */
+router.post('/session/seekSessionStandby', function(req, res)
+{
+  	var sessionId, email;
+  	var r = { };
+  	var message = new gcm.Message();	//create new gcm message
+	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
+
+  	try
+  	{
+  		sessionId = req.body.sessionId;
+  		email = req.body.email;
+  	}
+  	catch( err )
+    {
+  		console.log("SEEKSESSIONSTANDBY:failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request.";
+    	res.json(r);
+    	return;
+    }
+    
+    //set message details
+	message.addData('message', 'switch owner');
+	message.addData('status', '4');
+	message.addData('sessionId', sessionId);
+	message.delay_while_idle = 1; 
+	
+    if (	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+    		typeof email === 'undefined' || email == null || email == "" )	//check if sessionId, currOwner and futureOwner properties exist in the request and not empty
+    {
+    	console.log("SEEKSESSIONSTANDBY:request must contain sessionId and email properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId and email properties.";
+        res.json(r); 
+        return;
+    }
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+	//{ _id : false },
+    function( err, sessionObj )
+    {
+    	console.log("SEEKSESSIONSTANDBY:session is: " + sessionObj);
+    	
+    	// failure during session search
+        if (err) 
+        {
+         	console.log("SEEKSESSIONSTANDBY:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search.";
+         	res.json(r);	
+          	return;
+        }
+        
+		// if the sessions do not exist
+        if (sessionObj == null)
+        {
+         	console.log("SEEKSESSIONSTANDBY:session was not found.");
+          	r.status = 0;
+          	r.desc = "session was not found.";
+         	res.json(r);	
+          	return;
+        }
+        
+        if (sessionObj.owner == email)	//email belongs to the owner case
+        {
+        	if (sessionObj.participants.length == 0)
+        	{
+	         	console.log("SEEKSESSIONSTANDBY:session: " + sessionId + " has no participants.");
+	          	r.status = 0;
+	          	r.desc = "session: " + sessionId + " has no participants.";
+	         	res.json(r);	
+	          	return;
+        	}
+        	
+			//find first participant in the users database
+		    db.model('users').findOne( { email : sessionObj.participants[0] },
+			{ _id : false },
+		    function( err, userObj )
+		    {
+		    	console.log("SEEKSESSIONSTANDBY:user is: " + userObj);
+		    	
+		    	// failure during session search
+		        if (err) 
+		        {
+		         	console.log("SEEKSESSIONSTANDBY:failure during user search, the error: ", err);
+		          	r.status = 0;
+		          	r.desc = "failure during user search.";
+		         	res.json(r);	
+		          	return;
+		        }
+		        
+				// if the sessions do not exist
+		        if (userObj == null)
+		        {
+		         	console.log("SEEKSESSIONSTANDBY:user was not found.");
+		          	r.status = 0;
+		          	r.desc = "user was not found.";
+		         	res.json(r);	
+		          	return;
+		        }
+		
+				var participantRegId = [];
+      			participantRegId.push(userObj.regId);						
+					   		
+				//send gcm request to the first participant in the list
+	      		sender.sendNoRetry(message, participantRegId, function(err, sentResult) 
+				{
+				  	if(err) 
+				  	{
+				  		console.error("SEEKSESSIONSTANDBY:error is: " + err);
+				  	}
+				  	else 
+				  	{
+				  	   console.log("SEEKSESSIONSTANDBY:message sending to: " + userObj.regId + " resulted with:" + sentResult);
+			  	  	}
+				});
+        	
+		     	console.log("SEEKSESSIONSTANDBY:request to replace you as session owner was sent to: " + sessionObj.participants[0]);
+		      	r.status = 1;
+		      	r.desc = "request to replace you as session owner was sent to: " + sessionObj.participants[0];
+		     	res.json(r);	
+		      	return;
+		    });
+        }
+        else							//email belongs to the one of session participants case
+        {
+        	var nextParticipant = sessionObj.participants.indexOf(email)+1;
+        	
+        	//check if the next participant do not exist = current user is the last participant in the participants list
+			if (sessionObj.participants.length >= nextParticipant)
+        	{
+        		//find the session owner in the users database
+			    db.model('users').findOne( { email : sessionObj.owner },
+				{ _id : false },
+			    function( err, userObj )
+			    {
+			    	console.log("SEEKSESSIONSTANDBY:user is: " + userObj);
+			    	
+			    	// failure during session search
+			        if (err) 
+			        {
+			         	console.log("SEEKSESSIONSTANDBY:failure during user search, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure during user search.";
+			         	res.json(r);	
+			          	return;
+			        }
+			        
+					// if the user do not exist - not likely
+			        if (userObj == null)
+			        {
+			         	console.log("SEEKSESSIONSTANDBY:user was not found.");
+			          	r.status = 0;
+			          	r.desc = "user was not found.";
+			         	res.json(r);	
+			          	return;
+			        }
+			
+					var ownerRegId = [];
+	      			ownerRegId.push(userObj.regId);	
+      			
+        			//send gcm message to session owner = stop this session
+					message.addData('status', '7');					
+								   		
+	      			sender.sendNoRetry(message, ownerRegId, function(err, sentResult) 
+					{
+					  	if(err) 
+					  	{
+					  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+					  	}
+					  	else 
+					  	{
+					  	   console.log("SWITCHSESSIONOWNER:message sending to: " + userObj.regId + " resulted with:" + sentResult);
+				  	  	}
+					});
+				
+		         	console.log("SEEKSESSIONSTANDBY:user: " + email + " was the last participant in the session.");
+		          	r.status = 1;
+		          	r.desc = "user: " + email + " was the last participant in the session.";
+		         	res.json(r);	
+		          	return;
+				});
+    		}
+    		else
+    		{
+        		//find the session owner in the users database
+			    db.model('users').findOne( { email : sessionObj.participants[nextParticipant] },
+				{ _id : false },
+			    function( err, userObj )
+			    {
+			    	console.log("SEEKSESSIONSTANDBY:user is: " + userObj);
+			    	
+			    	// failure during session search
+			        if (err) 
+			        {
+			         	console.log("SEEKSESSIONSTANDBY:failure during user search, the error: ", err);
+			          	r.status = 0;
+			          	r.desc = "failure during user search.";
+			         	res.json(r);	
+			          	return;
+			        }
+			        
+					// if the user do not exist - not likely
+			        if (userObj == null)
+			        {
+			         	console.log("SEEKSESSIONSTANDBY:user was not found.");
+			          	r.status = 0;
+			          	r.desc = "user was not found.";
+			         	res.json(r);	
+			          	return;
+			        }
+			
+					var nextParticipantRegId = [];
+	      			nextParticipantRegId.push(userObj.regId);	
+      			
+        			//send gcm message to the nexparticipant = swith owner
+	      			sender.sendNoRetry(message, nextParticipantRegId, function(err, sentResult) 
+					{
+					  	if(err) 
+					  	{
+					  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+					  	}
+					  	else 
+					  	{
+					  	   console.log("SWITCHSESSIONOWNER:message sending to: " + userObj.regId + " resulted with:" + sentResult);
+				  	  	}
+					});
+				
+		         	console.log("SEEKSESSIONSTANDBY:message was sent to the next participant in the list: " + sessionObj.participants[nextParticipant]);
+		          	r.status = 1;
+		          	r.desc = "message was sent to the next participant in the list: " + sessionObj.participants[nextParticipant];
+		         	res.json(r);	
+		          	return;     			
+        		});
+        	}
+        }
+	});
+});
+
+/*
+ * 
+ */
+router.post('/session/switchSessionOwner', function(req, res)
+{
+  	var sessionId, currOwner, futureOwner;
+  	var r = { };
+  	var message = new gcm.Message();	//create new gcm message
+	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
+	var users = new Array();
+	
+  	try
+  	{
+  		sessionId = req.body.sessionId;
+  		currOwner = req.body.currOwner;
+  		futureOwner = req.body.futureOwner;
+  	}
+  	catch( err )
+    {
+  		console.log("SWITCHSESSIONOWNER:failure while parsing the request, the error:" + err);
+    	r.status = 0;
+    	r.desc = "failure while parsing the request.";
+    	res.json(r);
+    	return;
+    }
+    
+    if (	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+    		typeof currOwner === 'undefined' || currOwner == null || currOwner == "" ||
+    		typeof futureOwner === 'undefined' || futureOwner == null || futureOwner == "" )	//check if sessionId, currOwner and futureOwner properties exist in the request and not empty
+    {
+    	console.log("SWITCHSESSIONOWNER:request must contain sessionId, currOwner and futureOwner properties.");
+    	r.status = 0;	
+        r.desc = "request must contain sessionId, currOwner and futureOwner properties.";
+        res.json(r); 
+        return;
+    }	
+    
+    db.model('sessions').findOne( { sessionId : sessionId },
+	//{ _id : false },
+    function( err, sessionObj )
+    {
+    	console.log("SWITCHSESSIONOWNER:session is: " + sessionObj);
+    	
+    	// failure during session search
+        if (err) 
+        {
+         	console.log("SWITCHSESSIONOWNER:failure during session search, the error: ", err);
+          	r.status = 0;
+          	r.desc = "failure during session search.";
+         	res.json(r);	
+          	return;
+        }
+        
+		// if the sessions do not exist
+        if (sessionObj == null)
+        {
+         	console.log("SWITCHSESSIONOWNER:session was not found.");
+          	r.status = 0;
+          	r.desc = "session was not found.";
+         	res.json(r);	
+          	return;
+        }
+        
+        //email received as currOwner do not belong to the session owner
+        if (sessionObj.owner != currOwner)
+        {
+         	console.log("SWITCHSESSIONOWNER:user: " + currOwner + " is not a session owner.");
+          	r.status = 0;
+          	r.desc = "user: " + currOwner + " is not a session owner.";
+         	res.json(r);	
+          	return;
+        }
+        else
+		{
+        	//switch places: participant goes to be a session owner, owner goes to be participant
+        	sessionObj.owner = futureOwner;
+        	sessionObj.participants.push(currOwner);
+        	
+        	//remove new session owner from session participant list
+        	sessionObj.participants.splice(sessionObj.participants.indexOf(futureOwner), 1);
+
+			//create an array of switching users
+			users.push(currOwner);
+			users.push(futureOwner);
+			
+			sessionObj.save(function(err, obj) 
+   			{ 
+    			console.log("SWITCHSESSIONOWNER:save");
+    			if (err)
+    			{
+	     			console.log("SWITCHSESSIONOWNER:failure during session save, the error: ", err);
+	     			r.status = 0;
+	    			r.desc = "failure during session save";
+	     			res.json(r); 
+	     			return;          
+   				}
+   				
+	        	// seach for the google registration id of the users that going to make a switch
+	        	db.model('users').find( 
+				{ email : { $in : users } }, 
+	     		{ regId : true, _id : false },
+				function (err, arrUsers)
+				{
+					console.log("SWITCHSESSIONOWNER:Array of users: " + arrUsers);
+					
+					// failure during user search
+		    		if (err) 
+		    		{
+		     			console.log("SWITCHSESSIONOWNER:failure during users search, the error: ", err);
+			          	r.status = 0;
+	          			r.desc = "failure during users search, the error: ", err;
+	         			res.json(r);	
+		      			return;
+		    		}
+		    		if ( arrUsers.length != 2 )
+		    		{
+		     			console.log("SWITCHSESSIONOWNER:one of the participans was not found.");
+			          	r.status = 0;
+	          			r.desc = "one of the participans was not found.";
+	         			res.json(r);	
+		      			return;
+		    		}
+		    		else
+		    		{
+		    			message.addData('message', 'record action');
+						message.addData('sessionId', sessionId);
+						message.delay_while_idle = 1;
+						
+				     	(arrUsers).forEach (function (user) 
+				     	{
+				      		console.log("SWITCHSESSIONOWNER:participant's registration id: " + user.regId);
+				      		
+				      		if (user.email == futureOwner)
+				      		{
+					      		var newOwnerRegId = [];
+				      			newOwnerRegId.push(user.regId);
+				      		
+				      			message.addData('status', '5');			//TODO. check for the right number
+				      			
+				      			//send a gcm message to the current session owner
+				      			sender.sendNoRetry(message, newOwnerRegId, function(err, sentResult) 
+								{
+								  	if(err) 
+								  	{
+								  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+								  	}
+								  	else 
+								  	{
+								  	   console.log("SWITCHSESSIONOWNER:message sending to: " + user.regId + " resulted with:" + sentResult);
+							  	  	}
+								});
+				      		} 
+							else
+							{
+								var oldOwnerRegId = [];
+				      			oldOwnerRegId.push(user.regId);
+				      			
+								message.addData('status', '6');			//TODO. check for the right number						
+									   		
+					      		//send a gcm message to the previos session owner
+					      		sender.sendNoRetry(message, oldOwnerRegId, function(err, sentResult) 
+								{
+								  	if(err) 
+								  	{
+								  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+								  	}
+								  	else 
+								  	{
+								  	   console.log("SWITCHSESSIONOWNER:message sending to: " + user.regId + " resulted with:" + sentResult);
+							  	  	}
+								});
+							}
+				    	});
+				    	
+		     			console.log("SWITCHSESSIONOWNER:all messages were sent.");
+			          	r.status = 1;
+	          			r.desc = "all messages were sent";
+	         			res.json(r);	
+		      			return;	
+	    			}
+	   			});          	
+			});
+		}
+	});
+            
+});
+ 
 module.exports = router;

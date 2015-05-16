@@ -749,63 +749,6 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
 }); 
 });
 
-/*only for testing*/
- router.post("/auxiliary/testGCM", function(req, res) 
- {
- 	console.log("TESTGCM");
- 	
-	// Create a message
-	var message = new gcm.Message();
-	message.addData({'message': 'Hello from Max.', 'timestamp': '111'});
-	//message.addData('timestamp', 111);
-	message.delay_while_idle = 1;
-	
-	/*
-	var message = new gcm.Message({
-	    //collapseKey: 'demo',
-	    //delayWhileIdle: true,
-	    //timeToLive: 3,
-	    data: {
-	        message : 'Hello from Max.',
-	        timestamp : '111'
-	    }
-	});
-	*/
-	// Change the message data
-	/*
-	message.addData({
-	    key1: 'message1',
-	    key2: 'message2'
-	});
-	*/
-
-	// Set up the sender with you API key
-	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');
-
-	// Add the registration IDs of the devices you want to send to
-	var registrationIds = [];
-	registrationIds.push('APA91bGyfbb5HkMckV6L2hThQYynXBGUFYDjSQkG5wOq3mbINk_WbpDb7t44ENvRTzmUQ-7xLNCHYEsWO1DW4Jv9FGzN9D4VHyoLIDFD-WLJQo9KyeTBfX2oxezU0apSyskrf_Rw39jwPLOGfVZlEafBO0z1J4ufTg');
-	//registrationIds.push('APA91bGGZTl1Ed_BpsSH0Ga66xpw5MN2Xx36pGPtttXKIzHTnke0346pM2yeGUwXuMJEAE1UVyWOocF9v');
-	//registrationIds.push('APA91bH902yz8BfkkJdiQZWFygXk27m_LTB37NDKwfeOYBe2qiRx4t5qpRp-iwqaBgL8HY9s3v8ZpTkz899w1bN0AAmcqgvnwPMmgF076HtwSKvTXPcAFD1J8X3MIrvnrLbBVLIZ7ulPjRX8-h3oGnXcJ_YLmhEftg');
-	
-	// Send the message (trying only once)
-	sender.sendNoRetry(message, registrationIds, function(err, gcmResult) 
-	//sender.send(message, registrationIds, function (err, result) 
-	{
-		console.log("TESTGCM:sendNoRetry function");
-	  	if(err) 
-	  	{
-	  		console.error("TESTGCM:error is: " + err);
-	  	}
-	  	else 
-	  	{
-	  	   console.log("TESTGCM:Sent with message ID: ", gcmResult);
-  	  	}
-	});	
-		
- });
-
- 
 /* 
     /auxiliary/lastViews -- precondition
     This function will receive data with userId
