@@ -157,67 +157,6 @@ router.post("/users/getUsersData", function( req, res )
     });   
 });
 
-getUsersData = function (doc, userid, callback) 
-{
-    var tmpEmails = [userid];
-    tmpEmails.push(doc.participants.map(function(email) 
-    {
-      	return email;
-    }));
-    
-    if (doc.elements)
-    for (var elem in doc.elements)
-    {
-      	if (doc.elements[elem].hasOwnProperty('tags'))
-	        tmpEmails.push(doc.elements[elem]['tags'].map(function(tag) 
-	        {
-				tag.rating.positive.users =  (tag.rating.positive.users.indexOf(userid)!= -1)?true:false;
-	          	tag.rating.negative.users =  (tag.rating.negative.users.indexOf(userid)!= -1)?true:false;
-	          	return tag.email;
-	        }));
-    }
-    
-    var merged = [ ];
-    var merged = merged.concat.apply(merged, tmpEmails);
-    var uniqueArray = merged.filter(function(item, pos) 
-    {
-      	return merged.indexOf(item) == pos;
-    });
-
-    db.model('users').find( { email : { $in : uniqueArray } },
-    { _id : false, name : true, lastName : true, image : true, email : true, follow : true, favorites : true },
-    function (err, result)
-    {
-        // failure during user search
-        if (err) 
-        {
-            callback(0);    
-        }
-        else
-        {
-            var users = { };
-            for (var val in result)
-            {   
-                if (result[val].email == userid)
-                {
-                    doc.follow = (result[val].follow.indexOf(doc.owner)!= -1)?true:false;
-                    doc.favorite = (result[val].favorites.indexOf(doc.sessionId)!= -1)?true:false;
-                    doc.rating.positive.users =  (doc.rating.positive.users.indexOf(userid)!= -1)?true:false;
-                    doc.rating.negative.users =  (doc.rating.negative.users.indexOf(userid)!= -1)?true:false; 
-                }
-                users[result[val].email] = {
-                    name : result[val].name,
-                    lastName : result[val].lastName,
-                    image : result[val].image,
-                    email : result[val].email
-                };
-            }
-
-            callback(users);
-        }   
-    });   
-};
-
 /* /users/getActiveUsers -- precondition
  *	This function must receive json with org. 
  *

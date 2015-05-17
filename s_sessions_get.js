@@ -617,6 +617,66 @@ router.post('/session/getSessionById', function (req, res)
   });
 });
 
+function getUsersData (doc, userid, callback) 
+{
+    var tmpEmails = [userid];
+    tmpEmails.push(doc.participants.map(function(email) 
+    {
+        return email;
+    }));
+    
+    if (doc.elements)
+    for (var elem in doc.elements)
+    {
+        if (doc.elements[elem].hasOwnProperty('tags'))
+          tmpEmails.push(doc.elements[elem]['tags'].map(function(tag) 
+          {
+        tag.rating.positive.users =  (tag.rating.positive.users.indexOf(userid)!= -1)?true:false;
+              tag.rating.negative.users =  (tag.rating.negative.users.indexOf(userid)!= -1)?true:false;
+              return tag.email;
+          }));
+    }
+    
+    var merged = [ ];
+    var merged = merged.concat.apply(merged, tmpEmails);
+    var uniqueArray = merged.filter(function(item, pos) 
+    {
+        return merged.indexOf(item) == pos;
+    });
+
+    db.model('users').find( { email : { $in : uniqueArray } },
+    { _id : false, name : true, lastName : true, image : true, email : true, follow : true, favorites : true },
+    function (err, result)
+    {
+        // failure during user search
+        if (err) 
+        {
+            callback(0);    
+        }
+        else
+        {
+            var users = { };
+            for (var val in result)
+            {   
+                if (result[val].email == userid)
+                {
+                    doc.follow = (result[val].follow.indexOf(doc.owner)!= -1)?true:false;
+                    doc.favorite = (result[val].favorites.indexOf(doc.sessionId)!= -1)?true:false;
+                    doc.rating.positive.users =  (doc.rating.positive.users.indexOf(userid)!= -1)?true:false;
+                    doc.rating.negative.users =  (doc.rating.negative.users.indexOf(userid)!= -1)?true:false; 
+                }
+                users[result[val].email] = {
+                    name : result[val].name,
+                    lastName : result[val].lastName,
+                    image : result[val].image,
+                    email : result[val].email
+                };
+            }
+
+            callback(users);
+        }   
+    });   
+};
 
 /* /session/getAllVideos -- precondition
  *  This function will receive json with email.
@@ -830,69 +890,5 @@ catch(err)
 }
 
 });
-
-
-
-/* /session/deleteImage -- precondition
-  data with imageurl
-  */
-/* /session/deleteImage -- postcondition
-    delete the image from the cloud by its url
-    json data with status 1/0
-*/
-
-router.post('/session/deleteImage', function(req, res) 
-{
-  	var imageUrl;
-  	var r = { };
-  	
-  	try
-  	{
-  		imageUrl = req.body.imageurl;	//TODO. should be imageUrl = camel case
-  	}
-  	catch( err )
-    {
-  		console.log("DELETEIMAGE:failure while parsing the request, the error:" + err);
-    	r.status = 0;
-    	r.desc = "failure while parsing the request.";
-    	res.json(r);
-    	return;
-    }
-  	
-  	if ( !imageUrl || imageUrl == '' ) 
-  	{
-	    console.log("DELETEIMAGE:request must contain an image URL.");
-	    r.status = 0;
-	    r.desc = "request must contain an image URL.";
-	    res.json(r);
-	    return;
-  	}
-  	
-  	var temp = imageUrl.split('/');
-  	cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
-  	function(result) 
-  	{ 
-    	console.log("DELETEIMAGE:result is: " + result);
-	    if (result.result == "not found")
-	    {
-	      console.log("DELETEIMAGE:image was not found.");
-	      r.status = 0;
-	      r.desc = "image was not found.";
-	      res.json(r);
-	      return;
-	    }
-	    
-	    console.log("DELETEIMAGE:image was deleted.");
-	    r.status = 1;
-	    r.desc = "image was deleted.";
-	    res.json(r);
-	    return;
-  });
-
-});
-
-
-
-
 
 module.exports = router;

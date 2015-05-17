@@ -387,6 +387,65 @@ var gcm = require('node-gcm');
 });
 
 
+/* /session/deleteImage -- precondition
+  data with imageurl
+
+  /session/deleteImage -- postcondition
+    delete the image from the cloud by its url
+    json data with status 1/0
+*/
+
+router.post('/session/deleteImage', function(req, res) 
+{
+    var imageUrl;
+    var r = { };
+    
+    try
+    {
+      imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
+    }
+    catch( err )
+    {
+      console.log("DELETEIMAGE:failure while parsing the request, the error:" + err);
+      r.status = 0;
+      r.desc = "failure while parsing the request.";
+      res.json(r);
+      return;
+    }
+    
+    if ( !imageUrl || imageUrl == '' ) 
+    {
+      console.log("DELETEIMAGE:request must contain an image URL.");
+      r.status = 0;
+      r.desc = "request must contain an image URL.";
+      res.json(r);
+      return;
+    }
+    
+    var temp = imageUrl.split('/');
+    cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
+    function(result) 
+    { 
+      console.log("DELETEIMAGE:result is: " + result);
+      if (result.result == "not found")
+      {
+        console.log("DELETEIMAGE:image was not found.");
+        r.status = 0;
+        r.desc = "image was not found.";
+        res.json(r);
+        return;
+      }
+      
+      console.log("DELETEIMAGE:image was deleted.");
+      r.status = 1;
+      r.desc = "image was deleted.";
+      res.json(r);
+      return;
+  });
+
+});
+
+
 /* /session/deleteSession -- precondition
   data with sessionId and userId
 
@@ -438,46 +497,26 @@ router.post('/session/deleteSession', function(req, res) {
         }
         else
         {
-          /*var audios = docs.audios.map(function(audio) {
-            var temp = audio.url.split('/');
-            return temp[temp.length-1].split(".")[0];
-          });*/
-
-          /*var images = [];
-          var elements = docs.elements;
-          for (time in elements){
-            if (elements[time] && elements[time].photo){
-              var temp = elements[time].photo.url.split('/');
-              images.push(temp[temp.length-1].split(".")[0]);
-            }
-          }*/
           cloudinary.api.delete_resources_by_tag(data.sessionId,
           function(result)
           { 
             console.log(result) 
-            //cloudinary.api.delete_derived_resources(audios,
-            //function(result){
-              //console.log("audios",result) 
-              if (result.result == "not found")
-              {
-                console.log("session was not found");
-                r.status = 0;
-                r.desc = "session was not found";
-                res.json(r);
-                return;
-              }
-                console.log("session deleted");
-                r.status = 1;
-                r.desc = "session deleted";
-                res.json(r);
-                return;
-             //});
-          },{ keep_original: false });
-         /* r.status = 1;
-          r.res = docs;
-          r.desc = "session "+data.sessionId+" deleted";
-          res.json(r); 
-          return;*/
+            if (result.result == "not found")
+            {
+              console.log("session was not found");
+              r.status = 0;
+              r.desc = "session was not found";
+              res.json(r);
+              return;
+            }
+            console.log("session deleted");
+            r.status = 1;
+            r.desc = "session deleted";
+            res.json(r);
+            return;
+          },
+          { resource_type: 'raw' });
+        
         }
     });  
 
