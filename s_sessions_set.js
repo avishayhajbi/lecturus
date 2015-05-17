@@ -447,7 +447,7 @@ router.post('/session/deleteImage', function(req, res)
 
 
 /* /session/deleteSession -- precondition
-  data with sessionId and userId
+  This function will receive json with with sessionId and owner: email.
 
 
    /session/deleteSession -- postcondition
@@ -462,64 +462,92 @@ router.post('/session/deleteImage', function(req, res)
     sessionId 123456
     userId avishayhajbi@gmail.com
 */
-router.post('/session/deleteSession', function(req, res) {
-  var data = req.body;
-  var r ={};
-  if (!data || data =='' || !data.sessionId || !data.userId) 
-  {
-    console.log("sessionId or userId params not found");
-    r.status = 0;
-    r.desc = "sessionId or userId params not found";
-    res.json(r);
-    return;
-  }
+router.post('/session/deleteSession', function(req, res) 
+{
+  	var sessionId, email;
+  	var r = {};
+  	
+  	try
+  	{
+  		sessionId = req.body.sessionId;
+  		email = req.body.email;
+  	}
+  	catch(err)
+  	{
+	 	console.log("DELETESESSION:failure while parsing the request, the error:", err);
+	 	r.status = 0;
+	 	r.desc = "failure while parsing the request";
+	 	res.json(r);
+		return;  		
+  	}
+  	
+  	if (	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+  			typeof email === 'undefined' || email == null || email == "" ) 
+  	{
+    	console.log("DELETESESSION:request must contain sessionId and owner properties.");
+	    r.status = 0;
+	    r.desc = "request must contain sessionId and owner properties.";
+	    res.json(r);
+	    return;
+  	}
 
-  var query = db.model('sessions').findOne({$and:[{ $or: [ { owner : data.userId }, {participants : data.userId}   ] },{sessionId:data.sessionId}] });
-    query.lean().exec('findOne', function(err, docs)
+	db.model('sessions').find(
+	{ sessionId : sessionId }, 
+    function(err, sessionObj)
     {    
         // failure while connecting to sessions collection
         if (err) 
         {
-            console.log("failure while trying get videos, the error: ", err);
+            console.log("DELETESESSION:failure during session search, the error: ", err);
             r.status = 0;
-            r.desc = "failure while trying get videos.";
-            res.send((JSON.stringify(r)));
+            r.desc = "failure during session search.";
+            res.json(r);
             return;
         }
         
-        else if (!docs)
+		// if the session do not exist
+        if (sessionObj == null)
         {
-            console.log("session "+data.sessionId+" not found or "+data.userId+" now participant/admin");
-            r.status = 0;
-            r.desc = "session "+data.sessionId+" not found or "+data.userId+" now participant/admin";
-            res.json(r); 
-            return;                         
+         	console.log("DELETESESSION:session: " + sessionId + " was not found.");
+          	r.status = 0;
+          	r.desc = "session: " + sessionId + " was not found.";
+         	res.json(r);	
+          	return;
+        }
+        
+        if (sessionObj.owner != email)
+        {
+         	console.log("DELETESESSION:email: " + email + " do not belong to session owner.");
+          	r.status = 0;
+          	r.desc = "email: " + email + " do not belong to session owner.";
+         	res.json(r);	
+          	return;
         }
         else
         {
-          cloudinary.api.delete_resources_by_tag(data.sessionId,
-          function(result)
-          { 
-            console.log(result) 
-            if (result.result == "not found")
-            {
-              console.log("session was not found");
-              r.status = 0;
-              r.desc = "session was not found";
-              res.json(r);
-              return;
-            }
-            console.log("session deleted");
-            r.status = 1;
-            r.desc = "session deleted";
-            res.json(r);
-            return;
-          },
-          { resource_type: 'raw' });
-        
+          	cloudinary.api.delete_resources_by_tag(sessionId,
+          	function(result)
+          	{ 
+				console.log("DELETESESSION:result is: " + result);
+            
+	            if (result.result == "not found")
+	            {
+	              	console.log("DELETESESSION:session was not found in the cloud.");
+	              	r.status = 0;
+	             	r.desc = "session was not found in the cloud.";
+	              	res.json(r);
+	              	return;
+	            }
+	            
+            	console.log("DELETESESSION:session was deleted from the cloud.");
+            	r.status = 1;
+            	r.desc = "session was deleted from the cloud.";
+           		res.json(r);
+            	return;
+          	},
+          	{ resource_type: 'raw' });
         }
-    });  
-
+	});  
 });
 
 /*

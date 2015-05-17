@@ -294,7 +294,7 @@ router.get('/session', function( req, res )
       			return;
     		}
     		
-			// if the org do not exist
+			// if the session do not exist
 	        if (sessionObj == null)
 	        {
 	         	console.log("ADDMEMBERS:session was not found.");
