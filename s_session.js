@@ -2260,10 +2260,10 @@ router.post('/session/deleteSession', function(req, res) {
         }
         else
         {
-          var audios = docs.audios.map(function(audio) {
+          /*var audios = docs.audios.map(function(audio) {
             var temp = audio.url.split('/');
             return temp[temp.length-1].split(".")[0];
-          });
+          });*/
 
           /*var images = [];
           var elements = docs.elements;
@@ -2277,9 +2277,9 @@ router.post('/session/deleteSession', function(req, res) {
           function(result)
           { 
             console.log(result) 
-            cloudinary.api.delete_derived_resources(audios,
-            function(result){
-              console.log("audios",result) 
+            //cloudinary.api.delete_derived_resources(audios,
+            //function(result){
+              //console.log("audios",result) 
               if (result.result == "not found")
               {
                 console.log("session was not found");
@@ -2293,8 +2293,8 @@ router.post('/session/deleteSession', function(req, res) {
                 r.desc = "session deleted";
                 res.json(r);
                 return;
-              });
-          });
+             //});
+          },{ keep_original: false });
          /* r.status = 1;
           r.res = docs;
           r.desc = "session "+data.sessionId+" deleted";
@@ -2304,7 +2304,6 @@ router.post('/session/deleteSession', function(req, res) {
     });  
 
 });
-
 
 /*
  * 

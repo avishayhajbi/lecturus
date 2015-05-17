@@ -486,8 +486,8 @@ router.post("/auxiliary/followedUsers", function(req, res) {
     }
 
 
-    db.model('users').findOne({email:data.email}, {follow:true,org:true,_id:false},
-    function(err, docs)
+    db.model('users').findOne({email:data.email}, {follow:true,org:true,_id:false})
+    .lean().exec(function( err, docs )
     { 
         // failure while connecting to sessions collection
         if (err) 
@@ -501,8 +501,9 @@ router.post("/auxiliary/followedUsers", function(req, res) {
         
         else if (docs)
         {
-
-            var query = db.model('sessions').find({$and:[{owner:{$in:docs.follow}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
+            var arr = docs.follow.splice(data.from,(data.to-data.from));
+            console.log("followed user to find",arr)
+            var query = db.model('sessions').find({$and:[{ owner : {$in:arr}},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({owner:1,views: -1})//.skip(data.from).limit(data.to)
             .exec(function(err, result){
                 if (err) 
@@ -585,7 +586,7 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
         else if (docs)
         {
 
-            var query = db.model('sessions').find({$and:[{owner:data.userId},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
+            var query = db.model('sessions').find({$and:[{$or:[{owner:data.userId},{participants: data.userId }]},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({views: -1}).skip(data.from).limit(data.to)
             .exec(function(err, result){
                 if (err) 
@@ -598,7 +599,7 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
                 }
                 else if (result)
                 {
-                    console.log("all videos found for "+data.email);
+                    console.log("all videos found for "+data.userId);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
