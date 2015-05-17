@@ -106,36 +106,15 @@ fs.readdirSync(__dirname + '/models').forEach( function( fileName)
 });
 //--------------------------------Connect to mongodb using Mongoose--------------------------------//
 
-
-
-//--------------------------------Connect to mongodb using MongoClient--------------------------------//
-
-// var connectMongo = function () 
-// {
-//   console.log('MongoDB: Trying to establish connection.');
-//   MongoClient.connect(config.mongoUrl, options , function(err, db){
-//     if (err) 
-//     {
-//       connectMongo();
-//       return;
-//     }
-//     app.set('mongodb',db);
-//     console.log('MongoDB: Connection established.');
-//   });
-
-// };
-
-// connectMongo();
-
-//--------------------------------Connect to mongodb using MongoClient--------------------------------//
-
 // can use app.use( '/folderName' ,require('lecturus_users'));
-var users = require('./s_users'); 
-app.use(users); 
-var session = require('./s_session'); 
-app.use(session); 
-var auxiliary = require('./s_auxiliary'); 
-app.use(auxiliary); 
+app.use( require('./s_users_set') ); 
+app.use( require('./s_users_get') ); 
+app.use( require('./s_users_get_set') ); 
+app.use( require('./s_sessions_set') ); 
+app.use( require('./s_sessions_get') ); 
+app.use( require('./s_sessions_get_set') ); 
+app.use( require('./s_sessions_uploads') ); 
+app.use( require('./s_auxiliary') ); 
 
 
 process.on("uncaughtException", function(err) { 
