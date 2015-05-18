@@ -504,7 +504,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
             var arr = docs.follow.splice(data.from,(data.to-data.from));
             console.log("followed user to find",arr)
             var query = db.model('sessions').find({$and:[{ owner : {$in:arr}},{stopTime:{$gt:0}}]}, sessionPreview);
-            query.sort({owner:1,views: -1})//.skip(data.from).limit(data.to)
+            query.sort({owner:1,stopTime: 1})//.skip(data.from).limit(data.to)
             .exec(function(err, result){
                 if (err) 
                 {

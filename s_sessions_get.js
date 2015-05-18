@@ -100,7 +100,7 @@ router.get('/session', function( req, res )
     else{
       data.sessionId = uniqueid;
       data.owner = data.email;
-      date.timestamp = date;
+      data.timestamp = date;
       
       var newSession =  new Session(data);
       newSession.save(function (err,obj) {
@@ -503,7 +503,7 @@ router.get('/session', function( req, res )
           {
             var index = userResult.lastViews.indexOf(sessionId);
             if (index != -1)
-              arr.splice(index,1)
+              userResult.lastViews.splice(index,1)
             userResult.lastViews.unshift(sessionId);
             userResult.save(function(err, obj) 
             { 
