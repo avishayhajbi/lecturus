@@ -665,7 +665,8 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         
         else if (docs)
         {
-            db.model('sessions').find({$and:[{sessionId:{$in:docs.favorites}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({owner:1,views: -1}).skip(data.from).limit(data.to)
+            db.model('sessions').find({$and:[{sessionId:{$in:docs.favorites}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
+            .skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
