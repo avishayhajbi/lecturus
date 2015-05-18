@@ -499,8 +499,11 @@ router.get('/session', function( req, res )
             res.json(r);    
             return;
           }
-          else if (userResult.lastViews.indexOf(sessionId) == -1)
+          else 
           {
+            var index = userResult.lastViews.indexOf(sessionId);
+            if (index != -1)
+              arr.splice(index,1)
             userResult.lastViews.unshift(sessionId);
             userResult.save(function(err, obj) 
             { 
@@ -521,14 +524,14 @@ router.get('/session', function( req, res )
            });
             
           }
-          else
-          {
-           console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
-           r.status = 1;
-           r.desc = "session: " + sessionId + " views counter was updated";
-           res.json(r);
-           return;
-         }
+         //  else
+         //  {
+         //   console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
+         //   r.status = 1;
+         //   r.desc = "session: " + sessionId + " views counter was updated";
+         //   res.json(r);
+         //   return;
+         // }
        });
 }
 });	
