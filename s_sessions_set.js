@@ -468,7 +468,7 @@ router.post('/session/deleteImage', function(req, res)
 
 
 /* /session/deleteSession -- precondition
-  This function will receive json with with sessionId and owner: email.
+  This function will receive json with with sessionId and userId.
 
 
    /session/deleteSession -- postcondition
@@ -491,7 +491,7 @@ router.post('/session/deleteSession', function(req, res)
   	try
   	{
   		sessionId = req.body.sessionId;
-  		email = req.body.email;
+  		email = req.body.userId;
   	}
   	catch(err)
   	{
