@@ -421,9 +421,30 @@ router.post('/session/deleteImage', function(req, res)
       res.json(r);
       return;
     }
-    
-    var temp = imageUrl.split('/');
-    cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
+     var temp = imageUrl.split('/');
+
+    cloudinary.api.delete_resources([temp[temp.length-1].split(".")[0]],
+
+    function(result){
+      console.log("DELETEIMAGE:result is: " + result);
+      if (result.result == "not found")
+      {
+        console.log("DELETEIMAGE:image was not found.");
+        r.status = 0;
+        r.desc = "image was not found.";
+        res.json(r);
+        return;
+      }
+      
+      console.log("DELETEIMAGE:image was deleted.");
+      r.status = 1;
+      r.desc = "image was deleted.";
+      res.json(r);
+      return;
+    });
+
+   
+    /*cloudinary.uploader.destroy(temp[temp.length-1].split(".")[0], 
     function(result) 
     { 
       console.log("DELETEIMAGE:result is: " + result);
@@ -441,7 +462,7 @@ router.post('/session/deleteImage', function(req, res)
       r.desc = "image was deleted.";
       res.json(r);
       return;
-  });
+  });*/
 
 });
 
@@ -491,10 +512,11 @@ router.post('/session/deleteSession', function(req, res)
 	    return;
   	}
 
-	db.model('sessions').find(
+	db.model('sessions').findOne(
 	{ sessionId : sessionId }, 
     function(err, sessionObj)
     {    
+      console.log(sessionObj)
         // failure while connecting to sessions collection
         if (err) 
         {
@@ -517,7 +539,7 @@ router.post('/session/deleteSession', function(req, res)
         
         if (sessionObj.owner != email)
         {
-         	console.log("DELETESESSION:email: " + email + " do not belong to session owner.");
+         	console.log("DELETESESSION:email: " + email + " do not belong to session owner. "+sessionObj.owner);
           	r.status = 0;
           	r.desc = "email: " + email + " do not belong to session owner.";
          	res.json(r);	
@@ -528,7 +550,7 @@ router.post('/session/deleteSession', function(req, res)
           	cloudinary.api.delete_resources_by_tag(sessionId,
           	function(result)
           	{ 
-				console.log("DELETESESSION:result is: " + result);
+				      console.log("DELETESESSION:result is: " + result);
             
 	            if (result.result == "not found")
 	            {
@@ -539,11 +561,22 @@ router.post('/session/deleteSession', function(req, res)
 	              	return;
 	            }
 	            
-            	console.log("DELETESESSION:session was deleted from the cloud.");
-            	r.status = 1;
-            	r.desc = "session was deleted from the cloud.";
-           		res.json(r);
-            	return;
+              sessionObj.remove(function (err){
+                if (err)
+                {
+                  console.log("DELETESESSION:session could not be deleted from the cloud.");
+                  r.status = 0;
+                  r.desc = "session could not be was deleted from the cloud.";
+                  res.json(r);
+                  return;
+                }
+                console.log("DELETESESSION:session was deleted from the cloud.");
+                r.status = 1;
+                r.desc = "session was deleted from the cloud.";
+                res.json(r);
+                return;
+              });
+            	
           	},
           	{ resource_type: 'raw' });
         }
