@@ -142,6 +142,8 @@ router.get('/session', function( req, res )
  *
  * /session/getUserSessions -- example
  *  email		vandervidi@gmail.com
+    from 0
+    to 8
  */
  router.post("/session/getUserSessions", function( req, res)
  {

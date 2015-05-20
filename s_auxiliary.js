@@ -504,7 +504,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
             var arr = docs.follow.splice(data.from,(data.to-data.from));
             console.log("followed user to find",arr)
             var query = db.model('sessions').find({$and:[{ owner : {$in:arr}},{stopTime:{$gt:0}}]}, sessionPreview);
-            query.sort({owner:1,stopTime: 1})//.skip(data.from).limit(data.to)
+            query.sort({owner:1,stopTime: -1})//.skip(data.from).limit(data.to)
             .exec(function(err, result){
                 if (err) 
                 {
@@ -665,7 +665,8 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         
         else if (docs)
         {
-            db.model('sessions').find({$and:[{sessionId:{$in:docs.favorites}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
+            var arr = docs.lastViews.splice(data.from,(data.to-data.from))
+            db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
             .skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
@@ -850,8 +851,9 @@ router.post("/auxiliary/lastViews", function(req, res) {
         
         else if (docs)
         {
-            db.model('sessions').find({$and:[{sessionId:{$in:docs.lastViews}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
-            .skip(data.from).limit(data.to)
+            var arr = docs.lastViews.splice(data.from,(data.to-data.from))
+            db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
+            //.skip(data.from).limit(data.to)
             .exec(function(err, result)
             { 
                 // failure while connecting to sessions collection
@@ -866,6 +868,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 
                 else if (result)
                 {
+                    //var temp = orderByArray(result,arr);
                     //console.log("videos found "+ result);
                     r.status = 1;
                     r.length=result.length;
@@ -878,6 +881,11 @@ router.post("/auxiliary/lastViews", function(req, res) {
         }
     });         
 });
+
+function orderByArray(result,source){
+
+    return result;
+}
 
 function createKeyValJSON  (arr , key){
     //arrayName.splice(0,half_length);
