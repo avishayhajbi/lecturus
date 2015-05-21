@@ -452,7 +452,6 @@ router.post("/auxiliary/getTopRated", function(req, res) {
             {           
                 r.users = result;
                 r.status = 1;
-                r.count = count;
                 r.length=docs.length;
                 r.res = docs;
                 r.desc = "get videos.";
