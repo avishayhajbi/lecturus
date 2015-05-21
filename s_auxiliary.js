@@ -237,7 +237,7 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?:from?:to?", f
     {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
     sessionPreview);
     query.count(function(err, count) {
-        query.skip(data.from).limit(data.to).exec('find', function(err, docs)
+        query.sort({timestamp:-1}).skip(data.from).limit(data.to).exec('find', function(err, docs)
         {    
             // failure while connecting to sessions collection
             if (err) 
@@ -331,7 +331,7 @@ router.post("/auxiliary/searchSessions", function(req, res) {
     {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
     { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },sessionPreview);
     query.count(function(err, count) {
-        query.skip(data.from).limit(data.to).exec('find', function(err, docs)
+        query.sort({timestamp:-1}).skip(data.from).limit(data.to).exec('find', function(err, docs)
         {    
             // failure while connecting to sessions collection
             if (err) 
