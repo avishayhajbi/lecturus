@@ -343,16 +343,30 @@ router.post("/auxiliary/searchSessions", function(req, res) {
                 return;
             }
             
-            else if (docs)
+            else if (docs.length)
             {
-                //console.log("videos found "+ docs);
+                createUsersJson(docs, function(result)
+                {           
+                    r.users = result;
+                    r.status = 1;
+                    r.count = count;
+                    r.length=docs.length;
+                    r.res = docs;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;
+                });
+                                         
+            }
+            else
+            {
                 r.status = 1;
-                r.count = count;
-                r.length=docs.length;
+                r.count = 0;
+                r.length=0;
                 r.res = docs;
-                r.desc = "get videos.";
-                res.send((JSON.stringify(r))); 
-                return;                         
+                r.desc = "get videos empty.";
+                res.json(r); 
+                return;
             }
         });         
     });
@@ -434,13 +448,18 @@ router.post("/auxiliary/getTopRated", function(req, res) {
         
         else if (docs)
         {
-            //console.log("videos found "+ docs);
-            r.status = 1;
-            r.length=docs.length;
-            r.res = docs;
-            r.desc = "get videos.";
-            res.json(r); 
-            return;                         
+            createUsersJson(docs, function(result)
+            {           
+                r.users = result;
+                r.status = 1;
+                r.count = count;
+                r.length=docs.length;
+                r.res = docs;
+                r.desc = "get videos.";
+                res.json(r); 
+                return;
+            });
+                                       
         }
     });         
 });
@@ -505,7 +524,7 @@ router.post("/auxiliary/followedUsers", function(req, res) {
             console.log("followed user to find",arr)
             var query = db.model('sessions').find({$and:[{ owner : {$in:arr}},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({owner:1,stopTime: -1})//.skip(data.from).limit(data.to)
-            .exec(function(err, result){
+            .exec(function(err, docs){
                 if (err) 
                 {
                     console.log("failure while trying get videos, the error: ", err);
@@ -514,16 +533,28 @@ router.post("/auxiliary/followedUsers", function(req, res) {
                     res.json(r);
                     return;
                 }
-                else if (result)
+                else if (docs)
                 {
-                    result = createKeyValJSON(result,'owner');
-                    console.log("followed videos found for "+data.email);
-                    r.status = 1;
-                    r.length=result.length;
-                    r.res = result;
-                    r.desc = "get videos.";
-                    res.json(r); 
-                    return;                         
+                    createUsersJson(docs, function(result)
+                    {   
+                        docs = createKeyValJSON(docs,'owner');
+                        r.users = result;
+                        r.status = 1;
+                        r.length=docs.length;
+                        r.res = docs;
+                        r.desc = "get videos.";
+                        res.json(r); 
+                        return;
+                    });
+                    
+                    // console.log("followed videos found for "+data.email);
+                    // r.status = 1;
+                    // r.length=docs.length;
+                    // r.res = docs;
+                    // r.desc = "get videos.";
+                    // res.json(r); 
+                    // return; 
+
                 }
             });
         }
@@ -588,7 +619,7 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
 
             var query = db.model('sessions').find({$and:[{$or:[{owner:data.userId},{participants: data.userId }]},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({views: -1}).skip(data.from).limit(data.to)
-            .exec(function(err, result){
+            .exec(function(err, docs){
                 if (err) 
                 {
                     console.log("failure while trying get videos, the error: ", err);
@@ -597,15 +628,25 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
                     res.json(r);
                     return;
                 }
-                else if (result)
-                {
-                    console.log("all videos found for "+data.userId);
+                else if (docs)
+                {   
+                    createUsersJson(docs, function(result)
+                    {           
+                        r.users = result;
+                        r.status = 1;
+                        r.length=docs.length;
+                        r.res = docs;
+                        r.desc = "get videos.";
+                        res.json(r); 
+                        return;
+                    });
+                    /*console.log("all videos found for "+data.userId);
                     r.status = 1;
                     r.length=result.length;
                     r.res = result;
                     r.desc = "get user videos.";
                     res.json(r); 
-                    return;                         
+                    return;   */                      
                 }
             });
         }
@@ -668,7 +709,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
             var arr = docs.lastViews.splice(data.from,(data.to-data.from))
             db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
             .skip(data.from).limit(data.to)
-            .exec(function(err, result)
+            .exec(function(err, docs)
             { 
                 // failure while connecting to sessions collection
                 if (err) 
@@ -680,15 +721,26 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
                     return;
                 }
                 
-                else if (result)
+                else if (docs)
                 {
+                    createUsersJson(docs, function(result)
+                    {           
+                        r.users = result;
+                        r.status = 1;
+                        r.length=docs.length;
+                        r.res = docs;
+                        r.desc = "get videos.";
+                        res.json(r); 
+                        return;
+                    });
+                    /*
                     console.log("favorites videos found for "+ data.userId);
                     r.status = 1;
-                    r.length=result.length;
-                    r.res = result;
+                    r.length=docs.length;
+                    r.res = docs;
                     r.desc = "get videos.";
                     res.json(r); 
-                    return;                         
+                    return;  */                       
                 }
             });                        
         }
@@ -854,7 +906,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
             var arr = docs.lastViews.splice(data.from,(data.to-data.from))
             db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
             //.skip(data.from).limit(data.to)
-            .exec(function(err, result)
+            .exec(function(err, docs)
             { 
                 // failure while connecting to sessions collection
                 if (err) 
@@ -866,16 +918,28 @@ router.post("/auxiliary/lastViews", function(req, res) {
                     return;
                 }
                 
-                else if (result)
+                else if (docs)
                 {
                     //var temp = orderByArray(result,arr);
                     //console.log("videos found "+ result);
+                    createUsersJson(docs, function(result)
+                    {           
+                        r.users = result;
+                        r.status = 1;
+                        r.length=docs.length;
+                        r.res = docs;
+                        r.desc = "get videos.";
+                        res.json(r); 
+                        return;
+                    });
+
+                    /*
                     r.status = 1;
-                    r.length=result.length;
-                    r.res = result;
+                    r.length=docs.length;
+                    r.res = docs;
                     r.desc = "lastViews.";
                     res.json(r); 
-                    return;                         
+                    return; */                        
                 }
             });                        
         }

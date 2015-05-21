@@ -608,7 +608,7 @@ router.post('/session/getSessionById', function (req, res)
             r.desc = "the session: " + sessionId + " was found.";
             res.json(r); 
             return;
-            }); 
+          }); 
       }
         else
         {
@@ -621,6 +621,50 @@ router.post('/session/getSessionById', function (req, res)
         }
   });
 });
+
+createUsersJson = function(docs, callback){
+  var usersList = [];
+  docs.forEach(function(doc){
+    usersList.push(doc.owner);
+    usersList.push(doc.participants.filter(function(v){
+      return v;
+    }));
+  });
+  var merged = [ ];
+  var merged = merged.concat.apply(merged, usersList);
+  var uniqueArray = merged.filter(function(item, pos) 
+  {
+      return merged.indexOf(item) == pos;
+  });
+
+  //console.log(uniqueArray);
+
+  db.model('users').find( { email : { $in : uniqueArray } },
+  { _id : false, name : true, lastName : true, image : true, email : true},
+  function (err, result)
+  {
+      // failure during user search
+      if (err) 
+      {
+          callback(0);    
+      }
+      else
+      {
+          var users = { };
+          for (var val in result)
+          {   
+              users[result[val].email] = {
+                  name : result[val].name,
+                  lastName : result[val].lastName,
+                  image : result[val].image,
+                  email : result[val].email
+              };
+          }
+
+          callback(users);
+      }   
+  });
+}
 
 function getUsersData (doc, userid, callback) 
 {
