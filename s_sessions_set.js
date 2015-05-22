@@ -318,6 +318,7 @@ var gcm = require('node-gcm');
   		res.json(r);
   		return;
 	}
+	
     if ( 	typeof email === 'undefined' || email == null || email == "" ||
     		typeof sessionId === 'undefined' || sessionId == null || sessionId == ""  )	// if email and sessionId properties do not exist in the request and empty
     {
@@ -327,6 +328,8 @@ var gcm = require('node-gcm');
       	res.json(r); 
       	return;
     }
+    
+    console.log("JOINSESSION:email: " + email + ", sessionId: " + sessionId);
     
     db.model('sessions').findOne( { sessionId : sessionId },
     //{ participants : true, owner : true, _id : false },	- does not wotk with this
@@ -350,6 +353,16 @@ var gcm = require('node-gcm');
      	}
      	else
      	{
+     		//TODO. REMOVE. validation for Rami...
+     		if ( result.participants.indexOf(email) == -1 ) 
+     		{ 
+     			console.log("JOINSESSION:participant");
+     		}
+     		if ( result.owner != email ) 
+     		{ 
+     			console.log("JOINSESSION:owner");
+     		}
+     		
        		if (result.participants.indexOf(email) == -1 && result.owner != email )
        		{
         		result.participants.push(email);
@@ -707,7 +720,6 @@ router.post('/session/switchSessionOwner', function(req, res)
 		    		}
 		    		else
 		    		{
-		    			message.addData('message', 'record action');
 						message.addData('sessionId', sessionId);
 						message.delay_while_idle = 1;
 						
@@ -720,6 +732,7 @@ router.post('/session/switchSessionOwner', function(req, res)
 					      		var newOwnerRegId = [];
 				      			newOwnerRegId.push(user.regId);
 				      		
+				      			message.addData('message', 'owner');
 				      			message.addData('status', '5');			//TODO. check for the right number
 				      			
 				      			//send a gcm message to the current session owner
@@ -740,6 +753,7 @@ router.post('/session/switchSessionOwner', function(req, res)
 								var oldOwnerRegId = [];
 				      			oldOwnerRegId.push(user.regId);
 				      			
+				      			message.addData('message', 'participant');
 								message.addData('status', '6');			//TODO. check for the right number						
 									   		
 					      		//send a gcm message to the previos session owner

@@ -313,7 +313,8 @@ function informSessionStart(sessionId)
     		}
     		else
     		{
-    			message.addData('message', '2');
+    			message.addData('message', 'start session');
+    			message.addData('status', '2');
 				message.addData('sessionId', sessionId);
 				message.delay_while_idle = 1;
 				
@@ -393,7 +394,8 @@ function informSessionStop(sessionId)
     		}
     		else
     		{
-    			message.addData('message', '3');
+    			message.addData('message', 'stop session');
+    			message.addData('status', '3');
 				message.addData('sessionId', sessionId);
 				message.delay_while_idle = 1;
 				
@@ -446,12 +448,6 @@ router.post('/session/seekSessionStandby', function(req, res)
     	res.json(r);
     	return;
     }
-    
-    //set message details
-	message.addData('message', 'switch owner');
-	message.addData('status', '4');
-	message.addData('sessionId', sessionId);
-	message.delay_while_idle = 1; 
 	
     if (	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
     		typeof email === 'undefined' || email == null || email == "" )	//check if sessionId, currOwner and futureOwner properties exist in the request and not empty
@@ -526,7 +522,13 @@ router.post('/session/seekSessionStandby', function(req, res)
 		         	res.json(r);	
 		          	return;
 		        }
-		
+				
+			    //set message details
+				message.addData('message', 'switch owner');
+				message.addData('status', '4');
+				message.addData('sessionId', sessionId);
+				message.delay_while_idle = 1; 
+	
 				var participantRegId = [];
       			participantRegId.push(userObj.regId);						
 					   		
@@ -588,17 +590,20 @@ router.post('/session/seekSessionStandby', function(req, res)
 	      			ownerRegId.push(userObj.regId);	
       			
         			//send gcm message to session owner = stop this session
-					message.addData('status', '7');					
+					message.addData('message', 'standby not found');
+					message.addData('status', '7');
+					message.addData('sessionId', sessionId);
+					message.delay_while_idle = 1; 				
 								   		
 	      			sender.sendNoRetry(message, ownerRegId, function(err, sentResult) 
 					{
 					  	if(err) 
 					  	{
-					  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+					  		console.error("SEEKSESSIONSTANDBY:error is: " + err);
 					  	}
 					  	else 
 					  	{
-					  	   console.log("SWITCHSESSIONOWNER:message sending to: " + userObj.regId + " resulted with:" + sentResult);
+					  	   console.log("SEEKSESSIONSTANDBY:message sending to: " + userObj.regId + " resulted with:" + sentResult);
 				  	  	}
 					});
 				
@@ -638,6 +643,11 @@ router.post('/session/seekSessionStandby', function(req, res)
 			          	return;
 			        }
 			
+					message.addData('message', 'switch owner');
+					message.addData('status', '4');
+					message.addData('sessionId', sessionId);
+					message.delay_while_idle = 1; 
+					
 					var nextParticipantRegId = [];
 	      			nextParticipantRegId.push(userObj.regId);	
       			
@@ -646,11 +656,11 @@ router.post('/session/seekSessionStandby', function(req, res)
 					{
 					  	if(err) 
 					  	{
-					  		console.error("SWITCHSESSIONOWNER:error is: " + err);
+					  		console.error("SEEKSESSIONSTANDBY:error is: " + err);
 					  	}
 					  	else 
 					  	{
-					  	   console.log("SWITCHSESSIONOWNER:message sending to: " + userObj.regId + " resulted with:" + sentResult);
+					  	   console.log("SEEKSESSIONSTANDBY:message sending to: " + userObj.regId + " resulted with:" + sentResult);
 				  	  	}
 					});
 				
