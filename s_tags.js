@@ -86,16 +86,17 @@ router.post("/tags/insertTag", function(req, res)
               }
           }
       };
-      if (doc.elements[data.time])
+      if (!doc.elements[data.time])
       {
-        if (doc.elements[data.time].tags)
-          doc.elements[data.time].tags.push(newTag)
-        else 
-        {
-          doc.elements[data.time].tags=[];
-          doc.elements[data.time].tags.push(newTag);
-        }
+        doc.elements[data.time]={ tags: [] };
       }
+      else
+      {
+        if (!doc.elements[data.time].tags)
+          doc.elements[data.time].tags = [];
+      }
+      doc.elements[data.time].tags.push(newTag);
+
       collection.update({sessionId:data.sessionId},{ $set : {elements : doc.elements} }, {upsert:false ,safe:true , fsync: true}, 
       function(err, result) { 
         if (err)
