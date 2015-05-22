@@ -8,8 +8,8 @@ var router = express.Router();
  * /tags/insertTag -- description
  *
  * /tags/insertTag -- example
- *  sessionId       142964947916810933728
- *  time            25
+    sessionId       142964947916810933728
+    time            25
     tagId           123456789
     userId          avishayhajbi@gmail.com
     tagText         bla bla 
@@ -138,8 +138,8 @@ router.post("/tags/insertTag", function(req, res)
  * /tags/updateTag -- description
  *
  * /tags/updateTag -- example
- *  sessionId       142964947916810933728
- *  time            25
+    sessionId       142964947916810933728
+    time            25
     tagId           123456789
     userId          avishayhajbi@gmail.com
     tagText         bla bla 
@@ -265,11 +265,10 @@ router.post("/tags/updateTag", function(req, res)
  * /tags/deleteTag -- description
  *
  * /tags/deleteTag -- example
- *  sessionId       142964947916810933728
- *  time            25
+    sessionId       142964947916810933728
+    time            25
     tagId           123456789
     userId          avishayhajbi@gmail.com
-    tagText         bla bla 
  */
 router.post("/tags/deleteTag", function(req, res) 
 {
@@ -401,8 +400,8 @@ router.post("/tags/deleteTag", function(req, res)
  * /tags/updateTagRating -- description
  *
  * /tags/updateTagRating -- example
- *  sessionId       142964947916810933728
- *  time            25
+    sessionId       142964947916810933728
+    time            25
     tagId           123456789
     userId          avishayhajbi@gmail.com
     vote            true/false
@@ -466,7 +465,7 @@ router.post("/tags/updateTagRating", function(req, res)
       //console.log("updateTagRating:tag: " + data.tagId + " was successfully updated.");
       else if (doc)
       {
-      var check = false;
+      var check = false, voteUp=false, voteDown=false;
       var selectedTag;
       if (doc.elements[data.time] && doc.elements[data.time].tags)
       {
@@ -486,6 +485,7 @@ router.post("/tags/updateTagRating", function(req, res)
           var index = selectedTag.rating.positive.users.indexOf(data.userId);
           if (index == -1)
           {
+            voteUp=true;
             selectedTag.rating.positive.users.push(data.userId);
             selectedTag.rating.positive.value = parseInt(selectedTag.rating.positive.value)+1;
           }
@@ -508,6 +508,7 @@ router.post("/tags/updateTagRating", function(req, res)
           var index = selectedTag.rating.negative.users.indexOf(data.userId);
           if (index == -1)
           {
+            voteDown=true;
             selectedTag.rating.negative.users.push(data.userId);
             selectedTag.rating.negative.value = parseInt(selectedTag.rating.negative.value)+1;
           }
@@ -548,8 +549,11 @@ router.post("/tags/updateTagRating", function(req, res)
           } 
           else 
           {
+            selectedTag.rating.positive.users = voteUp;
+            selectedTag.rating.negative.users = voteDown;
             console.log("tag rate updated");
             r.status=1;
+            r.rating = selectedTag.rating;
             r.desc="tag rate updated";
             db.close(); 
             res.json(r);
