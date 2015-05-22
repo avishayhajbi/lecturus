@@ -342,7 +342,8 @@ router.get('/session', function( req, res )
 	    		}
 	    		else
 	    		{
-	    			message.addData('message', 'join session.');
+	    			message.addData('message', 'join session');
+	    			message.addData('status', '1');
 					message.addData('sessionId', sessionId);
 					message.addData('ownerId', sessionOnwer);
 					message.delay_while_idle = 1;
