@@ -115,6 +115,7 @@ app.use( require('./s_sessions_get') );
 app.use( require('./s_sessions_get_set') ); 
 app.use( require('./s_sessions_uploads') ); 
 app.use( require('./s_auxiliary') ); 
+app.use( require('./s_tags') ); 
 
 
 process.on("uncaughtException", function(err) { 

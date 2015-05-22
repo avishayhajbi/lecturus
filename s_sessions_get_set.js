@@ -202,6 +202,7 @@ var gcm = require('node-gcm');
   	   	
    	(oldElements.tags).forEach(function (tag) 
    	{
+      tag.id = new Date().getTime();
      	if (elemTemp[tag.timestamp])
      	{
        		elemTemp[tag.timestamp].tags.push(tag);
@@ -215,6 +216,7 @@ var gcm = require('node-gcm');
 	});
    	(oldElements.images).forEach(function (image) 
    	{
+      image.id = new Date().getTime();
     	if (elemTemp[image.timestamp])
     	{
           	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
