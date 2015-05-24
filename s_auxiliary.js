@@ -237,7 +237,7 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?:from?:to?", f
     {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
     sessionPreview);
     query.count(function(err, count) {
-        query.sort({timestamp:-1}).skip(data.from).limit(data.to).exec('find', function(err, docs)
+        query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
         {    
             // failure while connecting to sessions collection
             if (err) 
@@ -251,14 +251,17 @@ router.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?:from?:to?", f
             
             else if (docs)
             {
-                //console.log("videos found "+ docs);
-                r.status = 1;
-                r.count = count;
-                r.length=docs.length;
-                r.res = docs;
-                r.desc = "get videos.";
-                res.send((JSON.stringify(r))); 
-                return;                         
+                createUsersJson(docs, function(result)
+                {           
+                    r.users = result;
+                    r.status = 1;
+                    r.length=docs.length;
+                    r.count = count;
+                    r.res = docs;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;
+                });
             }
         });         
     });
@@ -309,8 +312,8 @@ router.post("/auxiliary/searchSessions", function(req, res) {
     try
     {
         data = req.body;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 24;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 24;
     }catch(err){
         var r ={
             status:0,
@@ -331,7 +334,7 @@ router.post("/auxiliary/searchSessions", function(req, res) {
     {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
     { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },sessionPreview);
     query.count(function(err, count) {
-        query.sort({timestamp:-1}).skip(data.from).limit(data.to).exec('find', function(err, docs)
+        query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
         {    
             // failure while connecting to sessions collection
             if (err) 
@@ -414,8 +417,8 @@ router.post("/auxiliary/getTopRated", function(req, res) {
     try
     {
         data = req.body;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 24;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 24;
     }catch(err){
         var r ={
             status:0,
@@ -432,8 +435,8 @@ router.post("/auxiliary/getTopRated", function(req, res) {
         return;
     }
 
-    console.log("looking for videos: "+data.ord);
-    db.model('sessions').find({$and:[{org:data.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to)
+    console.log("looking for videos: "+data.org);
+    db.model('sessions').find({$and:[{org:data.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to-data.from)
     .exec(function(err, docs)
     { 
         // failure while connecting to sessions collection
@@ -536,11 +539,11 @@ router.post("/auxiliary/followedUsers", function(req, res) {
                 {
                     createUsersJson(docs, function(result)
                     {   
-                        docs = createKeyValJSON(docs,'owner');
+                        temp = createKeyValJSON(docs,'owner');
                         r.users = result;
                         r.status = 1;
                         r.length=docs.length;
-                        r.res = docs;
+                        r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
                         return;
@@ -617,7 +620,7 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
         {
 
             var query = db.model('sessions').find({$and:[{$or:[{owner:data.userId},{participants: data.userId }]},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
-            query.sort({views: -1}).skip(data.from).limit(data.to)
+            query.sort({views: -1}).skip(data.from).limit(data.to-data.from)
             .exec(function(err, docs){
                 if (err) 
                 {
@@ -672,8 +675,8 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
     try
     {
         data = req.body;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 4;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 4;
     }catch(err){
         var r ={
             status:0,
@@ -705,9 +708,10 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
         
         else if (docs)
         {
-            var arr = docs.lastViews.splice(data.from,(data.to-data.from))
+            if (docs.favorites.length)
+            var arr = docs.favorites.splice(data.from,(data.to-data.from))
             db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
-            .skip(data.from).limit(data.to)
+            .skip(data.from).limit(data.to-data.from)
             .exec(function(err, docs)
             { 
                 // failure while connecting to sessions collection
@@ -742,6 +746,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
                     res.json(r); 
                     return;  */                       
                 }
+                
             });                        
         }
     });         
@@ -870,8 +875,8 @@ router.post("/auxiliary/lastViews", function(req, res) {
     try
     {
         data = req.body;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 24;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 24;
     }catch(err){
         var r ={
             status:0,
@@ -947,7 +952,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
 });
 
 function orderByArray(docs,arr){
-    
+
     return docs;
 }
 

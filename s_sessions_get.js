@@ -193,12 +193,17 @@ router.get('/session', function( req, res )
       }
       else
       {
-        console.log("sessions with user: " + userId + " participation: " + docs);
-        r.length = docs.length;
-        r.status = 1;
-        r.userRecordings = docs;
-        r.desc = "sessions with user: " + userId + " participation.";
-        res.json(r);		                	
+        createUsersJson(docs, function(result)
+        {           
+            r.users = result;
+            console.log("sessions with user: " + userId + " participation: " + docs);
+            r.length = docs.length;
+            r.status = 1;
+            r.userRecordings = docs;
+            r.desc = "sessions with user: " + userId + " participation.";
+            res.json(r);  
+        });
+        	                	
       }
     });
   }
