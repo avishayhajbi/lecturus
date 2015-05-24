@@ -112,6 +112,7 @@ router.post("/tags/insertTag", function(req, res)
         {
           console.log("tag added");
           r.status=1;
+          r.tag = newTag;
           r.desc="tag added";
           db.close(); 
           res.json(r);

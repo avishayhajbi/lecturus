@@ -653,17 +653,17 @@ router.post("/auxiliary/getUserSessions", function(req, res) {
 });
 
 /*  
-    auxiliary/userFavorites -- precondition
+    auxiliary/getUserFavorites -- precondition
     This function will receive data with userId
 
-    /auxiliary/userFavorites -- postcondition
+    /auxiliary/getUserFavorites -- postcondition
     return all related videos user favorite list
     json data with status 1/0, length, res (for the results)
 
-    /auxiliary/favritesActions -- description
+    /auxiliary/getUserFavorites -- description
     This function will return all user favorites ordered by last update.
   
-    /auxiliary/favritesActions -- example
+    /auxiliary/getUserFavorites -- example
     userId           avishayhajbi@gmail.com
 */
 router.post("/auxiliary/getUserFavorites", function(req, res) {
@@ -722,6 +722,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
                 
                 else if (docs)
                 {
+                    var temp = orderByArray(docs,arr);
                     createUsersJson(docs, function(result)
                     {           
                         r.users = result;
@@ -919,7 +920,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
                 
                 else if (docs)
                 {
-                    //var temp = orderByArray(result,arr);
+                    var temp = orderByArray(docs,arr);
                     //console.log("videos found "+ result);
                     createUsersJson(docs, function(result)
                     {           
@@ -945,9 +946,9 @@ router.post("/auxiliary/lastViews", function(req, res) {
     });         
 });
 
-function orderByArray(result,source){
-
-    return result;
+function orderByArray(docs,arr){
+    
+    return docs;
 }
 
 function createKeyValJSON  (arr , key){
