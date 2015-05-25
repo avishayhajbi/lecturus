@@ -181,7 +181,7 @@ router.post("/session/uploadTags", function( req, res )
  */
  router.post('/session/uploadImage', function( req, res ) 
  {
-  	var userip = request.connection.remoteAddress.replace(/\./g , '');
+  	var userip = req.connection.remoteAddress.replace(/\./g , '');
   	var uniqueid = new Date().getTime()+userip;
   	var sessionId, timestamp, email; 
   	var file; //store file information
@@ -255,7 +255,7 @@ router.post("/session/uploadTags", function( req, res )
 		  			{
 		    			console.log("UPLOADIMAGE:failure during session search, the error: ", err);
 		   				r.status = 0;
-		    			r.desc = "failure during session search";
+		    			r.desc = "failure during session search.";
 		    			res.json(r);
 		    			nativeDB.close();	
 		    			return;
@@ -267,7 +267,7 @@ router.post("/session/uploadTags", function( req, res )
 		      		{
 		       			console.log("UPLOADIMAGE:session: " + sessionId + " was not found.");
 		       			r.status = 0;
-		       			r.desc = "session: " + sessionId + " was not found";
+		       			r.desc = "session: " + sessionId + " was not found.";
 		       			res.json(r);
 		       			nativeDB.close();
 		       			return;
