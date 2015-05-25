@@ -154,8 +154,8 @@ router.get('/session', function( req, res )
         // try to parse the json data
         data = req.body;
         userId = req.body.email;
-        data.from = req.body.from || 0;
-        data.to = req.body.to || 8;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 8;
       }
       catch(err)
       {
@@ -193,12 +193,17 @@ router.get('/session', function( req, res )
       }
       else
       {
-        console.log("sessions with user: " + userId + " participation: " + docs);
-        r.length = docs.length;
-        r.status = 1;
-        r.userRecordings = docs;
-        r.desc = "sessions with user: " + userId + " participation.";
-        res.json(r);		                	
+        createUsersJson(docs, function(result)
+        {           
+            r.users = result;
+            console.log("sessions with user: " + userId + " participation: " + docs);
+            r.length = docs.length;
+            r.status = 1;
+            r.userRecordings = docs;
+            r.desc = "sessions with user: " + userId + " participation.";
+            res.json(r);  
+        });
+        	                	
       }
     });
   }
