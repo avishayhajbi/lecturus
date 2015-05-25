@@ -910,7 +910,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         {
             var arr = docs.lastViews.splice(data.from,(data.to-data.from))
             db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
-            //.skip(data.from).limit(data.to)
+            .skip(data.from).limit(data.to-data.from)
             .exec(function(err, docs)
             { 
                 // failure while connecting to sessions collection
