@@ -341,6 +341,10 @@ router.post("/tags/deleteTag", function(req, res)
             if (doc.elements[data.time].tags[index].email == data.userId){
               console.log('tag '+data.tagId+" was found");
               doc.elements[data.time].tags.splice(index,1);
+              if (!doc.elements[data.time].tags.length)
+                delete doc.elements[data.time].tags;
+              if (!doc.elements[data.time].photo)
+                delete doc.elements[data.time];
               deleteTag=true;
             }
           }
