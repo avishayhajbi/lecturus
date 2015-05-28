@@ -480,6 +480,73 @@ router.post('/session/deleteImage', function(req, res)
 });
 
 
+/* /session/rotateImage -- precondition
+  data with imageurl
+
+  /session/rotateImage -- postcondition
+    delete the image from the cloud by its url
+    json data with status 1/0
+*/
+
+router.post('/session/rotateImage', function(req, res) 
+{
+    var imageUrl;
+    var r = { };
+    
+    try
+    {
+      imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
+    }
+    catch( err )
+    {
+      console.log("rotateImage:failure while parsing the request, the error:" + err);
+      r.status = 0;
+      r.desc = "failure while parsing the request.";
+      res.json(r);
+      return;
+    }
+    
+    if ( !imageUrl || imageUrl == '' ) 
+    {
+      console.log("rotateImage:request must contain an image URL.");
+      r.status = 0;
+      r.desc = "request must contain an image URL.";
+      res.json(r);
+      return;
+    }
+     var temp = imageUrl.split('/');
+     var imageid = temp[temp.length-1].split(".")[0];
+    cloudinary.uploader.upload(imageid,
+
+    function(result){
+      console.log("rotateImage:result is: " + result);
+      if (result.result == "not found")
+      {
+        console.log("rotateImage:image was not found.");
+        r.status = 0;
+        r.desc = "image was not found.";
+        res.json(r);
+        return;
+      }
+      
+      console.log("rotateImage:image was deleted.");
+      r.status = 1;
+      r.desc = "image was rotated.";
+      res.json(r);
+      return;
+    },
+    {
+        public_id: imageid, 
+        crop: 'limit',
+        width: 640,
+        height: 360,
+        angle: 50,                                   
+        tags: ['lecturus']
+    });
+
+
+});
+
 /* /session/deleteSession -- precondition
   This function will receive json with with sessionId and userId.
 

@@ -304,8 +304,9 @@ router.post("/session/uploadTags", function( req, res )
   			public_id: uniqueid, 
   			crop: 'limit',
   			width: 640,
-  			height: 360,                                    
-        	tags: [sessionId, 'lecturus']
+  			height: 360, 
+        angle: 'exif',                                   
+        tags: [sessionId, 'lecturus']
       	});
       	
 		var file_reader = fs.createReadStream(temp_path).pipe(stream);
