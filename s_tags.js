@@ -110,6 +110,8 @@ router.post("/tags/insertTag", function(req, res)
         } 
         else 
         {
+          newTag.rating.positive.users = false;
+          newTag.rating.negative.users = false;
           console.log("tag added");
           r.status=1;
           r.tag = newTag;
