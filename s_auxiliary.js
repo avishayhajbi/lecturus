@@ -953,8 +953,8 @@ router.post("/auxiliary/lastViews", function(req, res) {
 });
 
 function orderByArray(docs,arr){
-    console.log(arr)
-    console.log(docs)
+    //console.log(arr)
+    //console.log(docs)
     //var temp = [] ;
     for (var i = 0 ; i < arr.length ; i++){
        for (var j = i ; j < arr.length ; j++){
@@ -967,7 +967,7 @@ function orderByArray(docs,arr){
             }
         } 
     }
-    console.log(docs)
+    //console.log(docs)
     return docs;
 }
 
