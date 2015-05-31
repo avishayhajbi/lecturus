@@ -732,7 +732,7 @@ router.post("/auxiliary/getUserFavorites", function(req, res) {
                         r.users = result;
                         r.status = 1;
                         r.length=docs.length;
-                        r.res = docs;
+                        r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
                         return;
@@ -885,10 +885,10 @@ router.post("/auxiliary/lastViews", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.userId == '' )  // if data.name property exists in the request is not empty
+      if ( !data || data.userId ||data.userId == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
-        r.desc = "request must contain a property name or its empty";
+        r.desc = "request must contain a property userId or its empty";
         res.json(r); 
         return;
     }
@@ -933,7 +933,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
                         r.users = result;
                         r.status = 1;
                         r.length=docs.length;
-                        r.res = docs;
+                        r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
                         return;
@@ -953,7 +953,21 @@ router.post("/auxiliary/lastViews", function(req, res) {
 });
 
 function orderByArray(docs,arr){
-
+    console.log(arr)
+    console.log(docs)
+    //var temp = [] ;
+    for (var i = 0 ; i < arr.length ; i++){
+       for (var j = i ; j < arr.length ; j++){
+            if (docs[j].sessionId == arr[i]){
+                var doc = docs[i];
+                docs[i] = docs[j];
+                docs[j]=doc;
+                //temp.push(docs[i]);
+                continue;
+            }
+        } 
+    }
+    console.log(docs)
     return docs;
 }
 
