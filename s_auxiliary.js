@@ -885,7 +885,7 @@ router.post("/auxiliary/lastViews", function(req, res) {
         res.json(r);
         return;
     }
-      if ( !data || data.userId ||data.userId == '' )  // if data.name property exists in the request is not empty
+      if ( !data || !data.userId ||data.userId == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property userId or its empty";
