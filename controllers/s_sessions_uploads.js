@@ -307,7 +307,6 @@ exports.uploadImage=function(req,res,next){
         crop: 'limit',
         width: 640,
         height: 360, 
-        angle: 'exif',                                   
         tags: [sessionId, 'lecturus']
         });
         

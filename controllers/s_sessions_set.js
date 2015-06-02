@@ -492,19 +492,21 @@ exports.deleteImage=function (req,res,next){
 
 
 /* /session/rotateImage -- precondition
-  data with imageurl
+  data with imageurl, angle
 
   /session/rotateImage -- postcondition
     delete the image from the cloud by its url
     json data with status 1/0
 */
 exports.rotateImage=function (req,res,next){
-  var imageUrl;
+  var imageUrl, angle, sessionId;
     var r = { };
     
     try
     {
       imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
+      angle = req.body.angle||0;
+      sessionId = req.body.sessionId;
     }
     catch( err )
     {
@@ -515,7 +517,7 @@ exports.rotateImage=function (req,res,next){
       return;
     }
     
-    if ( !imageUrl || imageUrl == '' ) 
+    if ( !sessionId || sessionId == '' || !imageUrl || imageUrl == '' ) 
     {
       console.log("rotateImage:request must contain an image URL.");
       r.status = 0;
@@ -525,7 +527,7 @@ exports.rotateImage=function (req,res,next){
     }
      var temp = imageUrl.split('/');
      var imageid = temp[temp.length-1].split(".")[0];
-    cloudinary.uploader.upload(imageid,
+     cloudinary.uploader.upload(imageid,
 
     function(result){
       console.log("rotateImage:result is: " + result);
@@ -549,8 +551,8 @@ exports.rotateImage=function (req,res,next){
         crop: 'limit',
         width: 640,
         height: 360,
-        angle: 50,                                   
-        tags: ['lecturus']
+        angle: angle,                                   
+        tags: [sessionId,'lecturus']
     });
 }
 // router.post('/session/rotateImage', function(req, res) 
