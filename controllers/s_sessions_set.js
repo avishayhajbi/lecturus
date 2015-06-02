@@ -492,7 +492,7 @@ exports.deleteImage=function (req,res,next){
 
 
 /* /session/rotateImage -- precondition
-  data with imageurl, angle
+  data with imageurl, angle (insert a_90 before the image name for testing in the url)
 
   /session/rotateImage -- postcondition
     delete the image from the cloud by its url
@@ -505,7 +505,7 @@ exports.rotateImage=function (req,res,next){
     try
     {
       imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
-      angle = req.body.angle||0;
+      angle = req.body.angle||'exif';
       sessionId = req.body.sessionId;
     }
     catch( err )
@@ -527,32 +527,32 @@ exports.rotateImage=function (req,res,next){
     }
      var temp = imageUrl.split('/');
      var imageid = temp[temp.length-1].split(".")[0];
-     cloudinary.uploader.upload(imageid,
 
+     cloudinary.uploader.upload(imageUrl,
     function(result){
-      console.log("rotateImage:result is: " + result);
-      if (result.result == "not found")
+      //console.log("rotateImage:result is: " , result);
+      if (result.result == "not found" || result.error)
       {
-        console.log("rotateImage:image was not found.");
+        console.log("rotateImage:image was not found or error occured.");
         r.status = 0;
-        r.desc = "image was not found.";
+        r.desc = "image was not found or error occured.";
         res.json(r);
         return;
       }
       
-      console.log("rotateImage:image was deleted.");
+      console.log("rotateImage:image was rotated.");
       r.status = 1;
       r.desc = "image was rotated.";
       res.json(r);
       return;
     },
     {
-        public_id: imageid, 
-        crop: 'limit',
-        width: 640,
-        height: 360,
-        angle: angle,                                   
-        tags: [sessionId,'lecturus']
+      public_id: imageid, 
+      crop: 'limit',
+      width: 640,
+      height: 360,
+      angle: angle,                                   
+      tags: [sessionId,'lecturus']
     });
 }
 // router.post('/session/rotateImage', function(req, res) 
