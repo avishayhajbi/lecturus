@@ -329,14 +329,14 @@ exports.uploadImage=function(req,res,next){
  * if recordStarts true can insert image into session id
  */
 exports.uploadAudio=function(req,res,next){
-  var userip = request.connection.remoteAddress.replace(/\./g , '');
+  var userip = req.connection.remoteAddress.replace(/\./g , '');
   var uniqueid = new Date().getTime()+userip;
   var sessionId; // save session id
   var timestamp, email, file, audioLength;
   console.log('-->UPLOAD AUDIO<--');
   var form = new formidable.IncomingForm();
 
-  form.parse(request, function(error, fields, files) 
+  form.parse(req, function(error, fields, files) 
   {
     console.log('-->PARSE<--');
       //logs the file information 
@@ -387,7 +387,7 @@ exports.uploadAudio=function(req,res,next){
                 console.log("connection error ",err);
                 r.status=0;
                 r.desc="err db";
-                response.json(r);
+                res.json(r);
                 return;
             }
             
@@ -416,7 +416,7 @@ exports.uploadAudio=function(req,res,next){
                         r.status = 1;
                         r.desc = "audio uploaded";
                         dataBase.close();
-                        response.json(r);
+                        res.json(r);
                     });
                   }
                 else 
@@ -425,7 +425,7 @@ exports.uploadAudio=function(req,res,next){
                     r.status = 0;
                     r.desc="session not exist";
                     dataBase.close();
-                    response.json(r);
+                    res.json(r);
                 }
               });
         });
@@ -459,7 +459,7 @@ exports.uploadAudio=function(req,res,next){
                console.log("converting failed ", sessionId);
                 r.status = 0;
                 r.desc = "converting failed";
-                response.json(r);
+                res.json(r);
                 return;
             }
         });
