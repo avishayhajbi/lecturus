@@ -1,2 +1,2 @@
-// require('./core/database')
+require('./core/database')
 require('./core/index')
