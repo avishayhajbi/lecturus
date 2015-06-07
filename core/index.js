@@ -23,10 +23,14 @@ app.set('port', port);
 app.set('view engine', 'ejs');
 
 
-var controllers = {} , controllers_path = process.cwd() + '/controllers'
-fs.readdirSync(controllers_path).forEach(function (file) {
-    if (file.indexOf('.js') != -1) {
-        controllers[file.split('.')[0]] = require(controllers_path + '/' + file)
+var controllers = { };
+controllers_path = process.cwd() + '/controllers';
+
+fs.readdirSync(controllers_path).forEach(function (file) 
+{
+    if (file.indexOf('.js') != -1) 
+    {
+        controllers[file.split('.')[0]] = require(controllers_path + '/' + file);
     }
 });
 
@@ -80,18 +84,19 @@ app.post("/users/updateUser", controllers.s_users_set.updateUser);
 app.post("/users/registerUser", controllers.s_users_set.registerUser);
 
 
-process.on("uncaughtException", function(err) { 
-  console.log(err);
+process.on("uncaughtException", function(err) 
+{ 
+  	console.log(err);
 });
 
 app.listen(app.get('port'), function() 
 {
-  console.log('LecturuS Server running...' + app.get('port'));
+  	console.log('LecturuS Server running...' + app.get('port'));
 });
 
 app.get('/', function(req, res) 
 {
-  res.render('index', {
+  	res.render('index', {
 		title:"LecturuS"
 	});
 });

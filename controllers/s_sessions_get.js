@@ -36,7 +36,8 @@ cloudinary.config({
  * /session/createSession -- example
  *	email		vandervidi@gmail.com
  */
-exports.createSession = function(req,res,next){
+exports.createSession = function(req,res,next)
+{
   // create timestamp and uniqeid
   var date = new Date().getTime();
   var userip = req.connection.remoteAddress.replace(/\./g , '');

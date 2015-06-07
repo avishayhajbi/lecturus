@@ -10,7 +10,10 @@ var ffmpeg = require('fluent-ffmpeg');
 var ffmpegCommand = ffmpeg();
 var gcm = require('node-gcm');
 
+//delay for 2 minutes before updating the elements
+arrangeElementsDelayMS = 120000;
 
+ 
 /* /session/updateSessionStatus -- precondition
  *  This function will receive json with sessionId, email: session owner's email, status: 1 = start / 0 = stop.
  * 	
@@ -27,7 +30,8 @@ var gcm = require('node-gcm');
  *	status	    	0 (stop) or 1 (start) // TODO. check why does not work with booleans
  * 	timestamp		1023103210
  */
-exports.updateSessionStatus = function (req,res,next){
+exports.updateSessionStatus = function (req,res,next)
+{
   //create new empty variables
   var reqOwner, reqSession, reqStatus, reqTimestamp;  //temporary variables
   var r = { };                    //response object 
@@ -149,7 +153,7 @@ exports.updateSessionStatus = function (req,res,next){
               }
               
                 tempElements = result.elements; 
-                var AsessionId = result.sessionId;  //TODO. erase
+                //var AsessionId = result.sessionId;  //TODO. erase
              
             result.stopTime = reqTimestamp;
               result.save(function(err, obj) 
@@ -163,8 +167,13 @@ exports.updateSessionStatus = function (req,res,next){
                     return;           
                   }
               
-                    //rearrange elements value
-                    updateSessionElements(tempElements, AsessionId);
+                    //re-arrange elements value
+                    //updateSessionElements(tempElements, AsessionId);
+                    // re-arrange elements after 30 seconds
+              		setTimeout(function()
+              		{
+              			arrangeSessionElements(tempElements, reqSession);
+              		}, arrangeElementsDelayMS);
               
                     //inform participants that session has stopped sesstion
                     informSessionStop(reqSession);
@@ -189,22 +198,19 @@ exports.updateSessionStatus = function (req,res,next){
           //} 
       }                               
   });
-}
-// router.post("/session/updateSessionStatus", function(req, res ) 
-// {
-	
-// });
+};
 
 /*
- * This function will reagange session events according to their timestamp and so will create the session format for web site use.
+ * This function will reagange session elents according to their timestamp and so will create the session format for web site use.
  */
-function updateSessionElements(oldElements, session){
+function arrangeSessionElements(oldElements, sessionId)
+{
  	console.log("UPDATESESSIONELEMENTS.");
 	var elemTemp = { };
   	   	
    	(oldElements.tags).forEach(function (tag) 
    	{
-      tag.id = new Date().getTime();
+      	tag.id = new Date().getTime();
      	if (elemTemp[tag.timestamp])
      	{
        		elemTemp[tag.timestamp].tags.push(tag);
@@ -218,7 +224,7 @@ function updateSessionElements(oldElements, session){
 	});
    	(oldElements.images).forEach(function (image) 
    	{
-      image.id = new Date().getTime();
+      	image.id = new Date().getTime();
     	if (elemTemp[image.timestamp])
     	{
           	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
@@ -233,7 +239,7 @@ function updateSessionElements(oldElements, session){
 
 	MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, dataBase) // TODO. REMOVE *
 	{
-		console.log("Trying to connect to the db.");
+		console.log("UPDATESESSIONELEMENTS:Trying to connect to the db.");
 		             
   		// if connection failed
       	if (err) 
@@ -246,18 +252,18 @@ function updateSessionElements(oldElements, session){
       	var collection = dataBase.collection('sessions');
       	          
       	//collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true},
-      	collection.update({ sessionId : session }, { $set : {elements : elemTemp} }, { upsert : false, safe : true, fsync : true }, 
+      	collection.update({ sessionId : sessionId }, { $set : {elements : elemTemp} }, { upsert : false, safe : true, fsync : true }, 
       	function(err) 
       	{ 
         	if (err)
         	{
-          		console.log("session not updated "+err);
+          		console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was not updated, err is: " + err);
             	dataBase.close(); // TODO REMOVE 
             	return;
           	} 
           	else 
           	{
-            	console.log("session updated");
+            	console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was updated successfully.");
             	dataBase.close(); // TODO REMOVE 
             	return;
           	}
@@ -270,7 +276,8 @@ function updateSessionElements(oldElements, session){
 /*
  * 
  */
-function informSessionStart(sessionId) {  	
+function informSessionStart(sessionId) 
+{  	
 	//create new empty variables
 	var message = new gcm.Message();	//create new gcm message
 	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
