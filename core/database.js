@@ -1,8 +1,3 @@
-/**
- * @project lecturus
- * @author avishay and max
- * @license shenkar collage.
- */
 mongoDb = require('mongodb').Db,
     MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,

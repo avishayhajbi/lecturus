@@ -1,18 +1,19 @@
-/**
- * @project lecturus
- * @author avishay and max
- * @license shenkar collage.
- */
+
 var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
 app = express();
 
+/**
+ * @project lecturus
+ * @author avishay and max
+ * @license shenkar collage.
+ */
 
-//--------------------------------Connect to mongodb using Mongoose--------------------------------//
-
-app.use(express.static(path.join(__dirname ,'views')));
+app.set('views',process.cwd() + '/views');
+app.set('view engine', 'ejs');
+app.use(express.static(process.cwd() + '/out'));
 app.use(bodyParser()); 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -96,9 +97,7 @@ app.listen(app.get('port'), function()
 
 app.get('/', function(req, res) 
 {
-  res.render('index', {
-		title:"LecturuS"
-	});
+  res.sendFile(process.cwd() + '/out/index.html')
 });
 
 app.get('/*', function(req, res) 
