@@ -1,3 +1,8 @@
+/**
+ * @project lecturus
+ * @author avishay and max
+ * @license shenkar collage.
+ */
 var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
