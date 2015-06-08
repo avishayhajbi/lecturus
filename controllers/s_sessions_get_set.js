@@ -192,7 +192,7 @@ exports.updateSessionStatus = function (req,res,next){
 /*
  * This function will reagange session events according to their timestamp and so will create the session format for web site use.
  */
-exports.updateSessionElements = function(oldElements, session){
+updateSessionElements = function(oldElements, session){
  	console.log("UPDATESESSIONELEMENTS.");
 	var elemTemp = { };
   	   	
@@ -262,7 +262,7 @@ exports.updateSessionElements = function(oldElements, session){
 /*
 *
 */
-exports.informSessionStart = function(sessionId) {  	
+informSessionStart = function(sessionId) {  	
 	//create new empty variables
 	var message = new gcm.Message();	//create new gcm message
 	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
@@ -341,7 +341,7 @@ exports.informSessionStart = function(sessionId) {
 /*
 *
 */
-exports.informSessionStop = function(sessionId) {  	
+informSessionStop = function(sessionId) {  	
 	//create new empty variables
 	var message = new gcm.Message();	//create new gcm message
 	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object

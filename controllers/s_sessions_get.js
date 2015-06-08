@@ -605,7 +605,7 @@ exports.getSessionById = function(req,res,next){
   });
 }
 
-exports.createUsersJson = function(docs, callback){
+createUsersJson = function(docs, callback){
   var usersList = [];
   docs.forEach(function(doc){
     usersList.push(doc.owner);
@@ -649,7 +649,7 @@ exports.createUsersJson = function(docs, callback){
   });
 }
 
-exports.getUsersData = function (doc, userid, callback) {
+getUsersData = function (doc, userid, callback) {
     var tmpEmails = [userid];
     tmpEmails.push(doc.participants.map(function(email) 
     {

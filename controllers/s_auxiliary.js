@@ -910,7 +910,7 @@ exports.lastViews= function(req, res, next){
 }
 
 
-function orderByArray(docs,arr){
+orderByArray = function (docs,arr){
     for (var i = 0 ; i < arr.length ; i++){
        for (var j = i ; j < arr.length ; j++){
             if (docs[j].sessionId == arr[i]){
@@ -924,7 +924,7 @@ function orderByArray(docs,arr){
     return docs;
 }
 
-function createKeyValJSON  (arr , key){
+createKeyValJSON=function  (arr , key){
     var temp = {}, uid = '' ,count=0;
     for ( k in arr ){
         if (count==4 && uid == arr[k][key]) continue;
