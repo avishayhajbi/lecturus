@@ -2,13 +2,8 @@ var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
-var Log = require('log');
-log=new Log('debug',fs.createWriteStream(process.cwd() + '/logs/debug.log',{flags: 'a'}));
-/*
-log.debug('preparing email');
-log.info('sending email');
-log.error('failed to send email');
-*/
+require( process.cwd() + '/logs/init.js');
+
 
 app = express();
 app.use(express.static(process.cwd() + '/out'));
@@ -87,22 +82,23 @@ app.post("/users/updateUser", controllers.s_users_set.updateUser);
 app.post("/users/registerUser", controllers.s_users_set.registerUser);
 
 
-process.on("uncaughtException", function(err) { 
-  console.log(err);
+process.on("uncaughtException", function(err) {
+  logger.error({data:'uncaughtException', err: err}); 
 });
 
 app.listen(app.get('port'), function() 
 {
+  logger.info('LecturuS Server running...' + app.get('port'));
   console.log('LecturuS Server running...' + app.get('port'));
 });
 
 app.get('/', function(req, res) 
 {
-
   res.sendFile(process.cwd() + '/out/index.html');
 });
 
 app.get('/*', function(req, res) 
 {
+  logger.debug({data:'page not found', url: req.url});
 	res.send(405,'page not allowed lecturus');
 });
