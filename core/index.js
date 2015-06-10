@@ -2,12 +2,14 @@ var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
+require( process.cwd() + '/logs/init.js');
+
+
 app = express();
-
-
-//--------------------------------Connect to mongodb using Mongoose--------------------------------//
-
-app.use(express.static(path.join(__dirname ,'views')));
+app.use(express.static(process.cwd() + '/out'));
+app.use(express.static(process.cwd() + '/logs'));
+app.set('views',process.cwd() + '/views');
+app.set('view engine', 'ejs');
 app.use(bodyParser()); 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -85,23 +87,23 @@ app.post("/users/registerUser", controllers.s_users_set.registerUser);
 
 
 process.on("uncaughtException", function(err) 
-{ 
-  	console.log(err);
+{
+  	logger.error({data:'uncaughtException', err: err}); 
 });
 
 app.listen(app.get('port'), function() 
 {
+  	logger.info('LecturuS Server running...' + app.get('port'));
   	console.log('LecturuS Server running...' + app.get('port'));
 });
 
 app.get('/', function(req, res) 
 {
-  	res.render('index', {
-		title:"LecturuS"
-	});
+ 	res.sendFile(process.cwd() + '/out/index.html');
 });
 
 app.get('/*', function(req, res) 
 {
+  	logger.debug({data:'page not found', url: req.url});
 	res.send(405,'page not allowed lecturus');
 });

@@ -1,32 +1,26 @@
-// var express = require('express');
 var fs = require("fs-extra");
 var multiparty = require('multiparty');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var formidable = require('formidable');
-// var router = express.Router();
 var cloudinary = require('cloudinary');
 var ffmpeg = require('fluent-ffmpeg');
 var ffmpegCommand = ffmpeg();
 //var gcm = require('node-gcm');
 
-/* /session/uploadTags -- precondition
- * 	This function will receive json with sessionId, email: uploader's id and tags: an array oj JSON objects [{timestamp ,text}].
- *
- * /session/uploadTags -- postcondition
- * 	This function will return json with status: 1 = success / 0 = failure.
- *
- * /session/uploadTags -- description
- * 	This function will find the suitable 'session' document in 'sessions' collection. 
- * 	Tags could be uploaded only after the session was stated and until it was ended.
- * 
- * /session/uploadTags -- example
- *  sessionId				142964947916810933728
- * 	email					somemail1@gmail.com
- * 	tags[0][timestamp]		11
- * 	tags[0][text]			tag1
- * 	tags[1][timestamp]		36
- * 	tags[1][text]			tag2
+/** @namespace session */
+
+/**
+ * @inner
+ * @memberof session
+ * @function uploadTags
+ * @desc This function will find the suitable 'session' document in 'sessions' collection. 
+ *  Tags could be uploaded only after the session was stated and until it was ended.
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @param {string} data.sessionId - text
+ * @param {array} data.tags - [{timestamp: number , text: text}]
+ * @returns {json} status: 1/0
  */
 exports.uploadTags = function(req, res, next)
 {
@@ -158,7 +152,7 @@ exports.uploadTags = function(req, res, next)
                       		nativeDB.close();   
                       		return;           
                   		}
-
+                  		
 	                    console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
                     	r.status = 1;
 	                    r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
@@ -181,14 +175,16 @@ exports.uploadTags = function(req, res, next)
   	}); 
 };
 
-/* /session/uploadImage -- precondition
- *  json data with file, sessionId, timestamp, email
- *
- * /session/uploadImage -- postcondition
- * json data with status 1/0
- *
- * /session/uploadImage -- postcondition
- * if recordStarts true can insert image into session id
+/**
+ * @inner
+ * @memberof session
+ * @function uploadImage
+ * @desc insert image into session id if recordStarts true
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @param {string} data.sessionId - text
+ * @param {number} data.timastamp - {0-9}*
+ * @returns {json} status: 1/0
  */
 exports.uploadImage = function(req, res, next)
 {
@@ -306,9 +302,18 @@ exports.uploadImage = function(req, res, next)
                 		return;
             		}
             		else                // if the session exists, update
-                	{
-                		//TODO. check if email belongs to the participant or to the owner
-                		
+                	{              		
+						//check that the uploader belong to the session
+						if (sessionObj.participants.indexOf(email) == -1 && sessionObj.owner != email )
+            			{
+	                		console.log("UPLOADIMAGE:user: " + email + " does not belong to the session: "+ sessionId);
+	                		r.status = 0;
+	                		r.desc = "user: " + email + " does not belong to the session: "+ sessionId;
+	                		res.json(r);
+	                		nativeDB.close();
+	                		return;
+            			}
+            			
 	                	imageToAdd.email = email;
 	                	imageToAdd.timestamp = timestamp;
 	                	imageToAdd.url = result.url;
@@ -353,14 +358,17 @@ exports.uploadImage = function(req, res, next)
   	});
 };
 
-/* /session/uploadAudio -- precondition
- *  json data with file, sessionId, timestamp, email
- *
- * /session/uploadAudio -- postcondition
- * json data with status 1/0
- *
- * /session/uploadAudio -- postcondition
- * if recordStarts true can insert image into session id
+
+/**
+ * @inner
+ * @memberof session
+ * @function uploadAudio
+ * @desc insert audio into session id if recordStarts true
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @param {string} data.sessionId - text
+ * @param {number} data.timastamp - {0-9}*
+ * @returns {json} status: 1/0
  */
 exports.uploadAudio = function(req, res, next)
 {
@@ -371,30 +379,32 @@ exports.uploadAudio = function(req, res, next)
   	console.log('-->UPLOAD AUDIO<--');
   	var form = new formidable.IncomingForm();
 
-  form.parse(req, function(error, fields, files) 
-  {
-    console.log('-->PARSE<--');
-      //logs the file information 
-      //console.log("request", JSON.stringify(request));
-      console.log("files", JSON.stringify(files));
-      console.log("fields", JSON.stringify(fields));
-      sessionId= fields.sessionId;
-      timestamp = fields.timestamp;
-      email = fields.email;
-      audioLength = parseInt(fields.audioLength, 10);
-  });
+  	form.parse(req, function(error, fields, files) 
+  	{
+    	console.log('-->PARSE<--');
+      
+      	//logs the file information 
+      	console.log("files", JSON.stringify(files));
+      	console.log("fields", JSON.stringify(fields));
+      	sessionId= fields.sessionId;
+      	timestamp = fields.timestamp;
+      	email = fields.email;
+      	audioLength = parseInt(fields.audioLength, 10);
+  	});
 
-  form.on('progress', function(bytesReceived, bytesExpected) 
+  	/*TODO. REMOVE - only for debug purpose
+  	form.on('progress', function(bytesReceived, bytesExpected) 
     {
-      var percent_complete = (bytesReceived / bytesExpected) * 100;
-      console.log(percent_complete.toFixed(2));
+      	var percent_complete = (bytesReceived / bytesExpected) * 100;
+      	console.log(percent_complete.toFixed(2));
     });
-
+	*/
+	
     form.on('error', function(err) 
     {
-      console.log("-->ERROR<--");
-      console.error(err);
-  });
+      	console.log("-->ERROR<--");
+      	console.error(err);
+  	});
 
     form.on('end', function(error, fields, files) 
     {
@@ -502,9 +512,3 @@ exports.uploadAudio = function(req, res, next)
   //var file_reader = fs.createReadStream(temp_path).pipe(stream);
     });
 };
-//  router.post('/session/uploadAudio', function(request, response) 
-//  {
- 	
-// });
-
-// module.exports = router;
