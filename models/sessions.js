@@ -28,10 +28,9 @@ var sessionsSchema = new Schema(
     },
 	participants :  { type : Array , default : [] },
 	audios : [ { lenght : Number, email : String, url : String, startAt : Number ,  default : [] } ],
-	elements : {
-		tags : { type : Array , default : [] },
-		images : { type : Array , default : [] }
-	},
+	elements : { any: Schema.Types.Mixed },
+	tags : { type : Array , default : [] },
+	images : { type : Array , default : [] },
 	views : { type : Number , default : 0 },
 	active : { type : Boolean , default : true },
 	public : { type : Boolean , default : true },

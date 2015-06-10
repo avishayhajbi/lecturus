@@ -35,7 +35,6 @@ exports.updateSessionStatus = function (req,res,next)
   //create new empty variables
   var reqOwner, reqSession, reqStatus, reqTimestamp;  //temporary variables
   var r = { };                    //response object 
-  var tempElements;
   
   try
   {
@@ -151,11 +150,8 @@ exports.updateSessionStatus = function (req,res,next)
                   res.json(r);  
                   return;             
               }
-              
-                tempElements = result.elements; 
-                //var AsessionId = result.sessionId;  //TODO. erase
              
-            result.stopTime = reqTimestamp;
+				result.stopTime = reqTimestamp;
               result.save(function(err, obj) 
               { 
                   if (err)
@@ -172,7 +168,7 @@ exports.updateSessionStatus = function (req,res,next)
                     // re-arrange elements after 30 seconds
               		setTimeout(function()
               		{
-              			arrangeSessionElements(tempElements, reqSession);
+              			arrangeSessionElements(reqSession);
               		}, arrangeElementsDelayMS);
               
                     //inform participants that session has stopped sesstion
@@ -203,72 +199,109 @@ exports.updateSessionStatus = function (req,res,next)
 /*
  * This function will reagange session elents according to their timestamp and so will create the session format for web site use.
  */
-function arrangeSessionElements(oldElements, sessionId)
+function arrangeSessionElements(sessionId)
 {
  	console.log("UPDATESESSIONELEMENTS.");
-	var elemTemp = { };
-  	   	
-   	(oldElements.tags).forEach(function (tag) 
-   	{
-      	tag.id = new Date().getTime();
-     	if (elemTemp[tag.timestamp])
-     	{
-       		elemTemp[tag.timestamp].tags.push(tag);
-     	}
-     	else
-     	{
-       		elemTemp[tag.timestamp] = {
-         	tags:[tag]
-       		};
-     	}
-	});
-   	(oldElements.images).forEach(function (image) 
-   	{
-      	image.id = new Date().getTime();
-    	if (elemTemp[image.timestamp])
-    	{
-          	elemTemp[image.timestamp].photo = image; //it should push the image one minutes right
-        }
-        else
-        {
-          	elemTemp[image.timestamp] = {
-            photo:image
-          };
-        }
-  	});
-
-	MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, dataBase) // TODO. REMOVE *
+	var elemStructure = { };
+	
+	//connect to the database
+	MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, nativeDB) 
 	{
 		console.log("UPDATESESSIONELEMENTS:Trying to connect to the db.");
 		             
   		// if connection failed
       	if (err) 
       	{
-        	console.log("MongoLab connection error: ", err);
-        	return;
+			console.log("UPDATESESSIONELEMENTS:connection error ",err);
+			return;
       	}
       	
-      	// get sessions collection 
-      	var collection = dataBase.collection('sessions');
-      	          
-      	//collection.update({ sessionId : data.sessionId }, { $set : result }, {upsert:false ,safe:true , fsync: true},
-      	collection.update({ sessionId : sessionId }, { $set : {elements : elemTemp} }, { upsert : false, safe : true, fsync : true }, 
-      	function(err) 
-      	{ 
-        	if (err)
-        	{
-          		console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was not updated, err is: " + err);
-            	dataBase.close(); // TODO REMOVE 
-            	return;
-          	} 
-          	else 
-          	{
-            	console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was updated successfully.");
-            	dataBase.close(); // TODO REMOVE 
-            	return;
-          	}
-        });
- 	});      
+       	//select users collection
+      	var collection = nativeDB.collection('sessions');
+  
+      	// find session from sessions collection
+      	collection.findOne({ sessionId : sessionId }, 
+      	function (err, sessionObj) 
+      	{
+  			//check if error occured during session search
+ 			if (err) 
+    		{
+      			console.log("UPDATESESSIONELEMENTS:failure during session search, the error: ", err);
+      			nativeDB.close(); 
+      			return;
+			}
+
+			//check that the session was found - highliy unexpetable
+      		if ( !sessionObj )
+      		{
+        		console.log("UPLOADIMAGE:session: " + sessionId + " was not found.");
+        		nativeDB.close();
+        		return;
+    		}
+    		else                // if the session exists, update
+        	{ 
+        		//rearange the tags in order to fit the structure    	 	   	
+			   	(sessionObj.tags).forEach(function (tag) 
+			   	{
+			   		//create unique id for current tag
+			      	tag.id = new Date().getTime();
+			      	
+			      	//check that the spot is available in the structure (using timestamp)
+			     	if (elemStructure[tag.timestamp])
+			     	{
+			     		//not available - add (using ush because that saved in an array)
+			       		elemStructure[tag.timestamp].tags.push(tag);
+			     	}
+			     	else
+			     	{
+			     		//available - create new array
+			       		elemStructure[tag.timestamp] = {
+			         		tags:[tag]
+			       		};
+			     	}
+				});
+		
+				//rearange the images in order to fit the structure 
+			   	(sessionObj.images).forEach(function (image) 
+			   	{
+			   		//create unique id for current image
+			      	image.id = new Date().getTime();
+			      	
+			      	//check that the spot is available in the structure (using timestamp)
+			    	if (elemStructure[image.timestamp])
+			    	{
+			          	elemStructure[image.timestamp].photo = image; //it should push the image one minute right
+			        }
+			        else
+			        {
+			          	elemStructure[image.timestamp] = {
+			            	photo:image
+			          };
+			        }
+			  	});
+      
+		      	collection.update(
+		  		{ sessionId : sessionId }, 
+		  		{ $set : {elements : elemStructure} }, 
+		  		{ upsert : false, safe : true, fsync : true }, 
+		      	function(err) 
+		      	{ 
+		        	if (err)
+		        	{
+		          		console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was not updated, err is: " + err);
+		            	nativeDB.close(); // TODO REMOVE 
+		            	return;
+		          	} 
+		          	else 
+		          	{
+		            	console.log("UPDATESESSIONELEMENTS:session: " + sessionId + " was updated successfully.");
+		            	nativeDB.close(); // TODO REMOVE 
+		            	return;
+		          	}
+		        });
+			}
+		});
+	});       
  }
  
 
@@ -437,7 +470,8 @@ function informSessionStop(sessionId) {
 /*
  * 
  */
-exports.seekSessionStandby = function (req,res,next){
+exports.seekSessionStandby = function (req,res,next)
+{
     var sessionId, email;
     var r = { };
       var message = new gcm.Message();  //create new gcm message
@@ -681,7 +715,7 @@ exports.seekSessionStandby = function (req,res,next){
       }
       }
       });
-}
+};
 // router.post('/session/seekSessionStandby', function(req, res)
 // {
   
