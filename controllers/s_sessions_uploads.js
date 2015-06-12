@@ -61,28 +61,28 @@ exports.uploadTags = function(req, res, next)
         return;
 	}
  
-    MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, nativeDB)
-  	{
-    	console.log("UPLOADTAGS:Trying to connect to the db");
+   //  MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, nativeDB)
+  	// {
+   //  	console.log("UPLOADTAGS:Trying to connect to the db");
     
-      	//check if connection failed
-      	if (err) 
-      	{
-        	console.log("MongoLab connection error: ", err);
-        	r.status = 0;
-        	r.desc = "failed to connect to MongoLab.";
-        	res.json(r);
-        	return;
-      	}
+   //    	//check if connection failed
+   //    	if (err) 
+   //    	{
+   //      	console.log("MongoLab connection error: ", err);
+   //      	r.status = 0;
+   //      	r.desc = "failed to connect to MongoLab.";
+   //      	res.json(r);
+   //      	return;
+   //    	}
     
-      //specify the collection
-        var collection = nativeDB.collection('sessions');
+   //    //specify the collection
+   //      var collection = nativeDB.collection('sessions');
         
         //find needed session document
-        collection.findOne(
-      	{ sessionId : sessionId },
-      	{ _id: false }, 
-      	{upsert:false ,safe:true , fsync: true},    
+
+        //TODO do all the insert in a one query
+        db.model('sessions').findOne(
+      	{ sessionId : sessionId },    
     	function(err, sessionObj)
     	{
       		//check if error occured during session search
@@ -92,7 +92,7 @@ exports.uploadTags = function(req, res, next)
           		r.status = 0;
           		r.desc = "failure during session search";
           		res.json(r);
-          		nativeDB.close(); 
+          		// nativeDB.close(); 
           		return;
         	}
         
@@ -103,7 +103,7 @@ exports.uploadTags = function(req, res, next)
             	r.status = 0;
             	r.desc = "session: " + sessionId + " was not found";
             	res.json(r);
-            	nativeDB.close();
+            	// nativeDB.close();
             	return;
         	}
         	else
@@ -120,7 +120,7 @@ exports.uploadTags = function(req, res, next)
 	              	r.status = 0;
 	              	r.desc = "session: " + sessionId + " is not in progress";
 	              	res.json(r);
-	              	nativeDB.close(); 
+	              	// nativeDB.close(); 
 	              	return;           
 	            }
 
@@ -136,11 +136,10 @@ exports.uploadTags = function(req, res, next)
                 	});
 
               
-              		collection.update( 
+                db.model('sessions').update( 
           			{ sessionId : sessionId }, 
           			{ $push: { tags: { $each : tagsToAdd } } }, 
-          			//{ upsert : false, safe : true, fsync : true }, 
-              		function(err, obj) 
+              	function(err, obj) 
               		{  
                 		//console.log("UPLOADTAGS: save");
                 		if (err)
@@ -149,7 +148,7 @@ exports.uploadTags = function(req, res, next)
                       		r.status = 0;
                       		r.desc = "failure session save";
                       		res.json(r);
-                      		nativeDB.close();   
+                      		//nativeDB.close();   
                       		return;           
                   		}
                   		
@@ -157,7 +156,7 @@ exports.uploadTags = function(req, res, next)
                     	r.status = 1;
 	                    r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
 	                    res.json(r);
-	                    nativeDB.close(); 
+	                   // nativeDB.close(); 
 	                    return; 
                 	});
             	}
@@ -167,12 +166,13 @@ exports.uploadTags = function(req, res, next)
 	                r.status = 0;
 	                r.desc = "user: " + email + " does not participate in the session: " + sessionId;
 	                res.json(r);
-	                nativeDB.close(); 
+	                //nativeDB.close(); 
 	                return;
               	}
-          	}    
+          	}
+
     	});
-  	}); 
+  	//}); 
 };
 
 /**
