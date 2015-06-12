@@ -1,77 +1,7 @@
 var fs = require("fs-extra");
 var gcm = require('node-gcm');
-//var gcm = require('gcm').GCM;
 
 /** @namespace auxiliary */
-
-/**
- * @inner
- * @memberof auxiliary
- * @function getCourses
- * @desc find the related courses to user by email
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @returns {json} status: 1/0 , degrees
- */
-exports.getCourses= function(req, res, next){
-    try{
-        // try to get data
-        var email = req.body.email;    
-
-        // check if email field exist and no empty
-        if (email && email!="")
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // ask for users collection
-            var collection = db.collection('users');
-            // try to find user id 
-            collection.find({email:email}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.uid=0;
-                    r.status=0;
-                    r.desc="uid not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    delete docs[0]._id
-                    var org = docs[0].org;
-                    r ={
-                        status:1,
-                        degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
-                    }
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-            });
-        });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="uid error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
-    }catch(err){
-        var r={};
-        r.status=0;
-        r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
-    }   
-}
-
 
 /**
  * @inner
@@ -83,60 +13,56 @@ exports.getCourses= function(req, res, next){
  * @returns {json} status: 1/0 , degrees
  */
 exports.getCoursesByOrg= function(req, res, next){
+    var org, r={};
     try{
         // try to get data
-        var org = req.body.org;    
-
-        // check if email field exist and no empty
-        if (org && org!="")
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // ask for users collection
-            var collection = db.collection('academic_degrees');
-            // try to find user id 
-            collection.find({org:org}, {_id:false, academicId:false, org: false}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.status=0;
-                    r.desc="org not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    r ={
-                        status:1,
-                        check: docs[0].check,
-                        degrees: docs[0][org]
-                    }
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-            });
-        });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="org error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
+        logger.debug(req.body)
+        org = req.body.org;    
     }catch(err){
-        var r={};
         r.status=0;
         r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
-    }    
+        res.json(r);
+        return;
+    } 
+        // check if org field exist and not empty
+        if (org && org!="")
+            db.model('academic_degrees').findOne({org:org}, {_id:false, academicId:false, org: false},
+                function (err, doc) {
+                if (err) {
+                    r.status=0;
+                    r.desc="org not exist";
+                    res.json(r)
+                    return;
+                }
+                // if the user exist return organization courses
+                else if(doc){
+                    logger.debug("doc exist")
+                    r ={
+                        status:1,
+                        check: doc.check,
+                        degrees: doc.degrees
+                    }
+                    res.json(r)
+                    return;
+                }
+                else {
+                    logger.debug("doc is not exist")
+                    r ={
+                        status:0,
+                        desc: org+" is not found"
+                    }
+                    res.json(r)
+                    return;
+                }
+            });
+        else {
+            r ={
+                status:0,
+                desc: "org is empty or not exist"
+            }
+            res.json(r)
+            return;
+        }
 }
 
 /**
@@ -150,69 +76,61 @@ exports.getCoursesByOrg= function(req, res, next){
  * @returns {json} status: 1/0 , degrees
  */
 exports.checkCoursesChanges= function(req, res, next){
+    var r={};
+    var data='';
    try{
         // try to get data
-        var data = req.body;    
-        
-        // check if email field exist and no empty
-        if (data && data!="" )
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // ask for users collection
-            var collection = db.collection('academic_degrees');
-            // try to find user id 
-            collection.find({org:data.org}, {_id:false, academicId:false, org: false}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.status=0;
-                    r.desc="org not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    data.check = data.check || 0;
-                    if (docs[0].check == data.check)
-                        r ={
-                            status:2,
-                            desc:'no courses changes'
-                        //info: docs[0]
-                        //degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
-                    }
-                    else 
-                        r ={
-                            status:1,
-                            check: docs[0].check,
-                            degrees: docs[0][data.org]  
-                        }
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                    }
-                });
-        });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="org error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
+        data = req.body;    
+     // if the parsing failed
     }catch(err){
-        var r={};
         r.status=0;
         r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
+        res.json(r);
+        return;
     }   
+        // check if email field exist and no empty
+    if (data && data!="" )
+     db.model('academic_degrees').findOne({org:data.org}, {_id:false, academicId:false, org: false},
+     function (err, doc) {
+        if (err) {
+            r.status=0;
+            r.desc="err occured";
+            res.json(r);
+            return;
+        }
+        if (!doc) {
+            r.status=0;
+            r.desc="org not exist";
+            res.json(r)
+            return;
+        }
+        // if the user exist return organization courses
+        else {
+            data.check = data.check || 0;
+            if (doc.check == data.check)
+            {
+                r ={
+                    status:2,
+                    desc:'no courses changes'
+                }
+            }
+            else {
+                r ={
+                    status:1,
+                    check: doc.check,
+                    degrees: doc.degrees 
+                }
+            }
+            res.json(r);
+            return;
+        }
+        });
+        else{
+            r.status=0;
+            r.desc="org is empty or not exist";
+            res.json(r);   
+            return;  
+        }
 }
 
 /**

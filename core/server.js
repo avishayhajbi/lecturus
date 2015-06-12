@@ -36,7 +36,6 @@ fs.readdirSync(controllers_path).forEach(function (file)
     }
 });
 
-app.post("/auxiliary/getCourses", controllers.s_auxiliary.getCourses);
 app.post("/auxiliary/getCoursesByOrg", controllers.s_auxiliary.getCoursesByOrg);
 app.post("/auxiliary/checkCoursesChanges", controllers.s_auxiliary.checkCoursesChanges);
 app.get("/auxiliary/getSessionsByCourse/:email?:degree?:course?:from?:to?", controllers.s_auxiliary.getSessionsByCourse);
@@ -88,13 +87,12 @@ app.post("/users/registerUser", controllers.s_users_set.registerUser);
 
 process.on("uncaughtException", function(err) 
 {
-  	logger.error({data:'uncaughtException', err: err}); 
+  	logger.error({data:'uncaughtException', error: err || 'unknown'}); 
 });
 
 app.listen(app.get('port'), function() 
 {
   	logger.info('LecturuS Server running...' + app.get('port'));
-  	console.log('LecturuS Server running...' + app.get('port'));
 });
 
 app.get('/', function(req, res) 
@@ -104,6 +102,6 @@ app.get('/', function(req, res)
 
 app.get('/*', function(req, res) 
 {
-  	logger.debug({data:'page not found', url: req.url});
+  logger.debug({data:'page not found', url: req.url});
 	res.send(405,'page not allowed lecturus');
 });

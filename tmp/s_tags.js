@@ -30,7 +30,6 @@ exports.insertTag = function (req,res,next){
       res.json(r);
       return;
     }
-
     if ( !data || !data.sessionId || !data.userId ) 
     {
       r.status = 0; 
@@ -39,9 +38,23 @@ exports.insertTag = function (req,res,next){
       return;
     }
 
-    db.model('sessions').findOne({sessionId:data.sessionId}
-    ,function( err, doc )
-    //).lean().exec(function(err,doc)
+  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db)
+  {
+    console.log("insertTag:Trying to connect to the db");
+    // if connection failed
+    if (err) 
+    {
+      console.log("MongoLab connection error: ", err);
+      r.uid = 0;
+      r.status = 0;
+      r.desc = "failed to connect to MongoLab.";
+      res.json(r);
+      return;
+    }
+
+    var collection = db.collection('sessions');
+    collection.findOne({sessionId:data.sessionId},{ _id: false }, {upsert:false ,safe:true , fsync: true}, 
+    function(err, doc) 
     { 
       if (err) 
       {
@@ -53,7 +66,7 @@ exports.insertTag = function (req,res,next){
       }
       else if (doc)
       {
-     
+      console.log("insertTag:tag: " + data.tagId + " was successfully updated.");
 
       var newTag =  {
           "id": new Date().getTime().toString(),
@@ -82,25 +95,26 @@ exports.insertTag = function (req,res,next){
       }
       doc.elements[data.time].tags.push(newTag);
 
-      doc.markModified('elements');
-
-      doc.save(function(err, result){
+      collection.update({sessionId:data.sessionId},{ $set : {elements : doc.elements} }, {upsert:false ,safe:true , fsync: true}, 
+      function(err, result) { 
         if (err)
         {
-          console.log("tag not inserted "+err);
+          console.log("tag not added "+err);
           r.status=0;
-          r.desc="tag not inserted";
+          r.desc="tag not added";
+          db.close(); 
           res.json(r)
           return;
         } 
         else 
         {
-          console.log("insertTag:tag: " + newTag.id + " was successfully inserted.");
           newTag.rating.positive.users = false;
           newTag.rating.negative.users = false;
+          console.log("tag added");
           r.status=1;
           r.tag = newTag;
-          r.desc="tag inserted";
+          r.desc="tag added";
+          db.close(); 
           res.json(r);
           return;
         }
@@ -111,11 +125,12 @@ exports.insertTag = function (req,res,next){
         console.log("session "+data.sessionId+" not found");
         r.status=0;
         r.desc="session "+data.sessionId+" not found";
+        db.close(); 
         res.json(r);
         return;
       }
     });
-
+  });
 }
 
 /**
@@ -135,11 +150,11 @@ exports.insertTag = function (req,res,next){
 
 exports.updateTag = function (req,res,next){
    var r = { };
-   var data='';
+  
     try
     {
         //try to parse json data
-       data = req.body;
+      var data = req.body;
     }
      catch( err )
     {
@@ -151,56 +166,72 @@ exports.updateTag = function (req,res,next){
     }
     if ( !data || !data.sessionId || !data.userId ) 
     {
-        r.status = 0; 
+      r.status = 0; 
         r.desc = "request must contain a property sessionId and userId";
         res.json(r); 
         return;
     }
-       db.model('sessions').findOne({sessionId:data.sessionId} 
-      ,function(err, doc) { 
+
+    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db)
+    {
+
+      if (err) 
+      {
+        console.log("updateTag:failure during session search, the error: ", err);
+        r.status = 0;
+        r.desc = "failure during session search";
+        res.json(r);  
+        return;
+      }
+      var collection = db.collection('sessions');
+
+      collection.findOne({sessionId:data.sessionId},{_id:false}, 
+      function(err, doc) { 
         if (err)
         {
           console.log("tag not updated "+err);
           r.status=0;
           r.desc="tag not updated";
+          db.close(); 
           res.json(r)
           return;
         } 
       else if (doc)
       {
 
-        var newTag;
+        console.log("updateTag:tag: " + data.tagId + " was successfully updated.");
+        
         if (doc.elements[data.time] && doc.elements[data.time].tags)
-          doc.elements[data.time].tags.filter(function(tag){
-            if (tag.id==data.tagId && tag.email==data.userId)
-              newTag = tag;
-            return;
-          });
-        
-
-        if (newTag){
-          console.log('tag to update', newTag);
-          newTag.text = data.tagText;
-          doc.markModified('elements');
-        }
+        var newTag;
+        doc.elements[data.time].tags.filter(function(tag){
+          if (data.tagId == tag.id && data.email == data.userId)
+            newTag = tag;
+          return;
+        });
+       
+        console.log('tag to update', newTag);
 
         
+        newTag.text = data.tagText;
+
         if (newTag)
-         doc.save(function(err, result){
+          collection.update({sessionId:data.sessionId},{ $set : {elements : doc.elements} }, {upsert:false ,safe:true , fsync: true}, 
+          function(err, result) { 
             if (err)
             {
               console.log("tag not updated "+err);
               r.status=0;
-              r.desc="tag not updated"; 
+              r.desc="tag not updated";
+              db.close(); 
               res.json(r)
               return;
             } 
             else 
             {
-              console.log("updateTag:tag: " + data.tagId + " was successfully updated.");
               console.log("tag updated");
               r.status=1;
-              r.desc="tag updated"; 
+              r.desc="tag updated";
+              db.close(); 
               res.json(r);
               return;
             }
@@ -209,7 +240,8 @@ exports.updateTag = function (req,res,next){
         {
           console.log("tag "+data.tagId+" not found");
           r.status=0;
-          r.desc="tag "+data.tagId+" not found"; 
+          r.desc="tag "+data.tagId+" not found";
+          db.close(); 
           res.json(r);
           return;
         }
@@ -219,9 +251,11 @@ exports.updateTag = function (req,res,next){
         console.log("session "+data.sessionId+" not found");
         r.status=0;
         r.desc="session "+data.sessionId+" not found";
+        db.close(); 
         res.json(r);
         return;
       }
+    });
     });
 }
 
@@ -241,11 +275,11 @@ exports.updateTag = function (req,res,next){
 
 exports.deleteTag = function (req,res,next){
   var r = { };
-  var data='';
+  
   try
   {
       //try to parse json data
-    data = req.body;
+    var data = req.body;
   }
    catch( err )
   {
@@ -263,14 +297,30 @@ exports.deleteTag = function (req,res,next){
       return;
   }
 
-     db.model('sessions').findOne({sessionId:data.sessionId}
-    ,function(err, doc) 
+  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
+  {
+    console.log("deleteTag:Trying to connect to the db");
+    // if connection failed
+    if (err) 
+    {
+      console.log("MongoLab connection error: ", err);
+      r.uid = 0;
+      r.status = 0;
+      r.desc = "failed to connect to MongoLab.";
+      res.json(r);
+      return;
+    }
+
+    var collection = db.collection('sessions');
+    collection.findOne({sessionId:data.sessionId},{_id:false}, 
+    function(err, doc) 
     { 
       if (err)
       {
         console.log("tag not deleted "+err);
         r.status=0;
-        r.desc="tag not deleted"; 
+        r.desc="tag not deleted";
+        db.close(); 
         res.json(r)
         return;
       } 
@@ -287,30 +337,28 @@ exports.deleteTag = function (req,res,next){
 
           if (index != -1)
           {
-            if (doc.elements[data.time].tags[index].email == data.userId)
-            {
+            if (doc.elements[data.time].tags[index].email == data.userId){
               console.log('tag '+data.tagId+" was found");
               doc.elements[data.time].tags.splice(index,1);
               if (!doc.elements[data.time].tags.length)
                 delete doc.elements[data.time].tags;
-              if (!doc.elements[data.time].tags && !doc.elements[data.time].photo)
+              if (!doc.elements[data.time].photo)
                 delete doc.elements[data.time];
               deleteTag=true;
-              doc.markModified('elements');
             }
           }
         }
 
-
-        
         if (deleteTag)
-          doc.save(function(err, result) 
+          collection.update({sessionId:data.sessionId},{ $set : {elements : doc.elements} }, {upsert:false ,safe:true , fsync: true}, 
+          function(err, result) 
           { 
             if (err)
             {
               console.log("tag not deleted "+err);
               r.status=0;
               r.desc="tag not deleted";
+              db.close(); 
               res.json(r)
               return;
             } 
@@ -318,7 +366,8 @@ exports.deleteTag = function (req,res,next){
             {
               console.log("tag deleted");
               r.status=1;
-              r.desc="tag deleted"; 
+              r.desc="tag deleted";
+              db.close(); 
               res.json(r);
               return;
             }
@@ -328,7 +377,8 @@ exports.deleteTag = function (req,res,next){
           {
             console.log("tag "+data.tagId+" not found");
             r.status=0;
-            r.desc="tag "+data.tagId+" not found"; 
+            r.desc="tag "+data.tagId+" not found";
+            db.close(); 
             res.json(r);
             return;
           }
@@ -339,10 +389,12 @@ exports.deleteTag = function (req,res,next){
         console.log("session "+data.sessionId+" not found");
         r.status=0;
         r.desc="session "+data.sessionId+" not found";
+        db.close(); 
         res.json(r);
         return;
       }
     });
+  });
 }
 
 
@@ -363,11 +415,11 @@ exports.deleteTag = function (req,res,next){
 
 exports.updateTagRating = function (req,res,next){
   var r = { };
-  var data;
+  
     try
     {
-      //try to parse json data
-      data = req.body;
+        //try to parse json data
+      var data = req.body;
     }
      catch( err )
     {
@@ -385,8 +437,27 @@ exports.updateTagRating = function (req,res,next){
       return;
     }
 
-      db.model('sessions').findOne({sessionId:data.sessionId}
-      ,function(err, doc) 
+  // db.model('sessions').findOne( { sessionId : data.sessionId } , { _id : false })
+  // .lean()
+  // .exec(function (err, doc){
+    MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
+      {
+        console.log("updateTagRating:Trying to connect to the db");
+        var r ={};              
+        // if connection failed
+        if (err) 
+        {
+          console.log("MongoLab connection error: ", err);
+          r.uid = 0;
+          r.status = 0;
+          r.desc = "failed to connect to MongoLab.";
+          res.json(r);
+          return;
+        }
+      var collection = db.collection('sessions');
+
+      collection.findOne({sessionId:data.sessionId},{_id:false}, 
+      function(err, doc) 
       {
       if (err) 
       {
@@ -467,15 +538,17 @@ exports.updateTagRating = function (req,res,next){
           return; 
         }
       }
-      doc.markModified('elements');
+
       if (check)
-        doc.save(function(err, result) 
+        collection.update({sessionId:data.sessionId},{ $set : {elements : doc.elements} }, {upsert:false ,safe:true , fsync: true}, 
+        function(err, result) 
         { 
           if (err)
           {
             console.log("tag rate not updated "+err);
             r.status=0;
-            r.desc="tag not updated"; 
+            r.desc="tag not updated";
+            db.close(); 
             res.json(r)
             return;
           } 
@@ -487,6 +560,7 @@ exports.updateTagRating = function (req,res,next){
             r.status=1;
             r.rating = selectedTag.rating;
             r.desc="tag rate updated";
+            db.close(); 
             res.json(r);
             return;
           }
@@ -497,6 +571,7 @@ exports.updateTagRating = function (req,res,next){
         console.log("tag "+data.tagId+" not found");
         r.status=0;
         r.desc="tag "+data.tagId+" not found";
+        db.close(); 
         res.json(r);
         return;
       }
@@ -505,10 +580,12 @@ exports.updateTagRating = function (req,res,next){
     {
       console.log("session "+data.sessionId+" not found");
       r.status=0;
-      r.desc="session "+data.sessionId+" not found";     
+      r.desc="session "+data.sessionId+" not found";
+      db.close(); 
       res.json(r);
       return;
     }
     });
+  });
 }
 
