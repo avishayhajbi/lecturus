@@ -58,6 +58,7 @@ app.post("/session/getMembers", controllers.s_sessions_get.getMembers);
 
 app.post("/session/updateSessionStatus", controllers.s_sessions_get_set.updateSessionStatus);
 app.post("/session/seekSessionStandby", controllers.s_sessions_get_set.seekSessionStandby);
+app.post("/session/pauseSession", controllers.s_sessions_get_set.pauseSession);
 
 app.post("/session/updateSession", controllers.s_sessions_set.updateSession);
 app.post("/session/updateSessionRating", controllers.s_sessions_set.updateSessionRating);

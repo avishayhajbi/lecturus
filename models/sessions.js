@@ -15,6 +15,7 @@ var sessionsSchema = new Schema(
 	owner : { type : String , default : '' },
 	startTime: { type : Number , default : 0 },
 	stopTime:  { type : Number , default : 0 },
+	pauseTime:  { type : Number , default : 0 },
 	totalSecondLength : { type : Number , default : 0 },
 	rating : {
     	positive : {

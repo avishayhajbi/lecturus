@@ -302,23 +302,26 @@ exports.getSessionsByCourse= function(req, res, next){
  * @returns {json} status: 1/0, length, res (for the results)
  */
 
-exports.searchSessions= function(req, res, next){
-    var r ={};
-    var data={};
+exports.searchSessions = function(req, res, next)
+{
+    var r = { };
+    var data = { };
+    
     try
     {
         data = req.body;
         data.from = parseInt(req.body.from) || 0;
         data.to = parseInt(req.body.to) || 24;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
+    }
+    catch(err)
+    {
+		r.status = 0;
+        r.desc = "data error";
+	    res.json(r);
         return;
     }
-      if ( !data || data.name == '' )  // if data.name property exists in the request is not empty
+ 	
+ 	if ( !data || data.name == '' )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -329,6 +332,7 @@ exports.searchSessions= function(req, res, next){
     var query = db.model('sessions').find({$and:[{org:data.org}, {stopTime:{ $gt: 0  }} ,
     {$or:[{ title:{$regex : ".*"+data.name+".*"}},{ description:{$regex : ".*"+data.name+".*"}},
     { degree:{$regex : ".*"+data.name+".*"}},{ course:{$regex : ".*"+data.name+".*"}}, ]} ]  },sessionPreview);
+    
     query.count(function(err, count) {
         query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
         {    
@@ -369,7 +373,7 @@ exports.searchSessions= function(req, res, next){
             }
         });         
     });
-}
+};
 
 /**
  * @inner
