@@ -237,10 +237,10 @@ function arrangeSessionElements(sessionId)
     		else                // if the session exists, update
         	{ 
         		//rearange the tags in order to fit the structure    	 	   	
-			   	(sessionObj.tags).forEach(function (tag) 
+			   	(sessionObj.tags).forEach(function (tag,key) 
 			   	{
 			   		//create unique id for current tag
-			      	tag.id = new Date().getTime();
+			      	tag.id = new Date().getTime()+key;
 			      	
 			      	//check that the spot is available in the structure (using timestamp)
 			     	if (elemStructure[tag.timestamp])
@@ -258,10 +258,10 @@ function arrangeSessionElements(sessionId)
 				});
 		
 				//rearange the images in order to fit the structure 
-			   	(sessionObj.images).forEach(function (image) 
+			   	(sessionObj.images).forEach(function (image,key) 
 			   	{
 			   		//create unique id for current image
-			      	image.id = new Date().getTime();
+			      	image.id = new Date().getTime()+key;
 			      	
 			      	//check that the spot is available in the structure (using timestamp)
 			    	if (elemStructure[image.timestamp])
