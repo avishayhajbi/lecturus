@@ -34,7 +34,7 @@ var formidable = require('formidable');
 var cloudinary = require('cloudinary');
 var ffmpeg = require('fluent-ffmpeg');
 var ffmpegCommand = ffmpeg();
-var gcm = require('node-gcm');
+//var gcm = require('node-gcm');
 
 /** @namespace session */
 
@@ -50,12 +50,14 @@ var gcm = require('node-gcm');
  * @param {array} data.tags - [{timestamp: number , text: text}]
  * @returns {json} status: 1/0
  */
+exports.uploadTags = function(req, res, next)
+{
+  	var sessionId, email, tags;
+  	var currentTime = new Date().getTime();
+  	var r = { };
+  	var tagsToAdd = [ ];
 
-exports.uploadTags=function(req,res,next){
-  var sessionId, email, tags;
-  var r = { };
-
-  //try to parse json data
+  	//try to parse json data
     try
     {
       sessionId = req.body.sessionId;
@@ -77,120 +79,129 @@ exports.uploadTags=function(req,res,next){
     //console.log("session tags: " + tags);
     
     if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-      typeof tags === 'undefined' || tags == null || tags == "" ||    //TODO. add validation for array correctness
-      typeof email === 'undefined' || email == null || email == ""  )   // if one of the properties do not exists in the request and it is empty
-  {
-      console.log("UPLOADTAGS:request must contain sessionId, email and tags: [] properties.");
-      r.status = 0; 
+      		typeof tags === 'undefined' || tags == null || tags == "" ||    //TODO. add validation for array correctness
+      		typeof email === 'undefined' || email == null || email == ""  )   // if one of the properties do not exists in the request and it is empty
+  	{
+      	console.log("UPLOADTAGS:request must contain sessionId, email and tags: [] properties.");
+      	r.status = 0; 
         r.desc = "request must contain sessionId, email and tags: [] properties.";
         res.json(r); 
         return;
-    }
+	}
  
     MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, nativeDB)
-  {
-    console.log("UPLOADTAGS:Trying to connect to the db");
+  	{
+    	console.log("UPLOADTAGS:Trying to connect to the db");
     
-      //check if connection failed
-      if (err) 
-      {
-        console.log("MongoLab connection error: ", err);
-        r.uid = 0;
-        r.status = 0;
-        r.desc = "failed to connect to MongoLab.";
-        res.json(r);
-        return;
-      }
+      	//check if connection failed
+      	if (err) 
+      	{
+        	console.log("MongoLab connection error: ", err);
+        	r.status = 0;
+        	r.desc = "failed to connect to MongoLab.";
+        	res.json(r);
+        	return;
+      	}
     
       //specify the collection
         var collection = nativeDB.collection('sessions');
         
         //find needed session document
         collection.findOne(
-      { sessionId : sessionId },
-      { _id: false }, 
-      {upsert:false ,safe:true , fsync: true},    
-    function(err, sessionObj)
-    {
-      //check if error occured during session search
-      if (err) 
-        {
-          console.log("UPLOADTAGS:failure during session search, the error: ", err);
-          r.status = 0;
-          r.desc = "failure during session search";
-          res.json(r);
-          nativeDB.close(); 
-          return;
-        }
+      	{ sessionId : sessionId },
+      	{ _id: false }, 
+      	{upsert:false ,safe:true , fsync: true},    
+    	function(err, sessionObj)
+    	{
+      		//check if error occured during session search
+      		if (err) 
+        	{
+          		console.log("UPLOADTAGS:failure during session search, the error: ", err);
+          		r.status = 0;
+          		r.desc = "failure during session search";
+          		res.json(r);
+          		nativeDB.close(); 
+          		return;
+        	}
         
-          if ( !sessionObj )
-          {
-            console.log("UPLOADTAGS:session: " + sessionId + " was not found.");
-            r.status = 0;
-            r.desc = "session: " + sessionId + " was not found";
-            res.json(r);
-            nativeDB.close();
-            return;
-        }
-        else
-        {
-            if (sessionObj.startTime == 0 || sessionObj.stopTime != 0)
-            {
-              console.log("UPLOADTAGS:session: " + sessionId + " is not in progress.");
-              r.status = 0;
-              r.desc = "session: " + sessionId + " is not in progress";
-              res.json(r);
-              nativeDB.close(); 
-              return;           
-            }
+        	//check that the session was found
+          	if ( !sessionObj )
+          	{
+            	console.log("UPLOADTAGS:session: " + sessionId + " was not found.");
+            	r.status = 0;
+            	r.desc = "session: " + sessionId + " was not found";
+            	res.json(r);
+            	nativeDB.close();
+            	return;
+        	}
+        	else
+        	{
+        		console.log("UPLOADTAGS:delay: " + arrangeElementsDelayMS);
+        		console.log("UPLOADTAGS:current time: " + currentTime);
+        		console.log("UPLOADTAGS:session stop time: " + sessionObj.stopTime);
+        		console.log("UPLOADTAGS:period of time from session stop: " + (currentTime - sessionObj.stopTime));
+	
+				//check that 
+	            if (sessionObj.startTime == 0 || ( sessionObj.stopTime != 0 &amp;&amp; (currentTime - sessionObj.stopTime > arrangeElementsDelayMS) ) )
+	            {
+	              	console.log("UPLOADTAGS:session: " + sessionId + " is not in progress.");
+	              	r.status = 0;
+	              	r.desc = "session: " + sessionId + " is not in progress";
+	              	res.json(r);
+	              	nativeDB.close(); 
+	              	return;           
+	            }
 
-            if (sessionObj.participants.indexOf(email) != -1 || sessionObj.owner == email )
-            {
-              (tags).forEach (function (tag) 
-              {
-                console.log("UPLOADTAGS:tag1: " + tag); 
-                tag.email = email;
-                  tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
-                  console.log("UPLOADTAGS:tag2: " + tag);
-                  sessionObj.elements.tags.push(tag);
-                });
+				//check that the uploader belong to the session
+				if (sessionObj.participants.indexOf(email) != -1 || sessionObj.owner == email )
+            	{
+              		(tags).forEach (function (tag) 
+              		{
+	                	tag.email = email;
+	                  	tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
+	                  	console.log("UPLOADTAGS:tag: " + tag);
+	                  	tagsToAdd.push(tag);
+                	});
 
-              //result.markModified('participants');
-              collection.update( { sessionId : sessionId }, { $set : { elements : sessionObj.elements } }, { upsert : false, safe : true, fsync : true }, 
-              function(err, obj) 
-              {  
-                //console.log("UPLOADTAGS: save");
-                if (err)
-                {
-                      console.log("UPLOADTAGS:failure session save, the error: ", err);
-                      r.status = 0;
-                      r.desc = "failure session save";
-                      res.json(r);
-                      nativeDB.close();   
-                      return;           
-                  }
-
-                    console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
-                    r.status = 1;
-                    r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
-                    res.json(r);
-                    nativeDB.close(); 
-                    return; 
-                });
-            }
-            else
-            {
-                console.log("UPLOADTAGS:user: " + email + " does not participate in the session: " + sessionId);
-                r.status = 0;
-                r.desc = "user: " + email + " does not participate in the session: " + sessionId;
-                res.json(r);
-                nativeDB.close(); 
-                return;
-              }
-          }    
-    });
-  }); 
-}
+              
+              		collection.update( 
+          			{ sessionId : sessionId }, 
+          			{ $push: { tags: { $each : tagsToAdd } } }, 
+          			//{ upsert : false, safe : true, fsync : true }, 
+              		function(err, obj) 
+              		{  
+                		//console.log("UPLOADTAGS: save");
+                		if (err)
+                		{
+                      		console.log("UPLOADTAGS:failure session save, the error: ", err);
+                      		r.status = 0;
+                      		r.desc = "failure session save";
+                      		res.json(r);
+                      		nativeDB.close();   
+                      		return;           
+                  		}
+                  		
+	                    console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
+                    	r.status = 1;
+	                    r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
+	                    res.json(r);
+	                    nativeDB.close(); 
+	                    return; 
+                	});
+            	}
+            	else
+            	{
+	                console.log("UPLOADTAGS:user: " + email + " does not participate in the session: " + sessionId);
+	                r.status = 0;
+	                r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+	                res.json(r);
+	                nativeDB.close(); 
+	                return;
+              	}
+          	}    
+    	});
+  	}); 
+};
 
 /**
  * @inner
@@ -203,139 +214,177 @@ exports.uploadTags=function(req,res,next){
  * @param {number} data.timastamp - {0-9}*
  * @returns {json} status: 1/0
  */
-
-
-exports.uploadImage=function(req,res,next){
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
+exports.uploadImage = function(req, res, next)
+{
+  	var userip = req.connection.remoteAddress.replace(/\./g , '');
     var uniqueid = new Date().getTime()+userip;
     var sessionId, timestamp, email; 
     var file; //store file information
     var form = new formidable.IncomingForm();
+    var r = { };
 
-  //parse the request using formidable module
+	//parse the request using formidable module
     form.parse(req, function(error, fields, files) 
     {
-      console.log('UPLOADIMAGE:parse.');
-      
-        //print file information 
-        console.log("UPLOADIMAGE:files", JSON.stringify(files));
-        console.log("UPLOADIMAGE:fields", JSON.stringify(fields));
+      	console.log('UPLOADIMAGE:parse.');
+      	
+  		//
+		if (error) 
+      	{
+        	console.log("UPLOADIMAGE:error occured wrile receiving an image, error: ", error);
+        	r.status = 0;
+        	r.desc = "error occured wrile receiving an image";
+        	res.json(r);
+        	return;
+      	}
+      	
+        //TODO. REMOVE - print file information 
+        console.log("UPLOADIMAGE:files:", JSON.stringify(files));
+        console.log("UPLOADIMAGE:fields:", JSON.stringify(fields));
         
         sessionId = fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
-        file = files.file; // file.size
-  });
+		file = files.file; 
+  	});
   
+  	/* TODO. REMOVE - writen only for debug
     form.on('progress', function(bytesReceived, bytesExpected) 
     {
       var percent_complete = (bytesReceived / bytesExpected) * 100;
       console.log(percent_complete.toFixed(2));
     });
-
-    form.on('error', function(err) 
+	*/
+	
+	form.on('error', function(err) 
     {
-      console.log("UPLOADIMAGE:error.");
-      console.error(err);
+      	console.log("UPLOADIMAGE:error." + err);
+      	console.error(err);
+      	
+  		//
+		if (err) 
+      	{
+        	console.log("UPLOADIMAGE:error occured wrile receiving an image, error: ", err);
+        	r.status = 0;
+        	r.desc = "error occured wrile receiving an image";
+        	res.json(r);
+        	return;
+      	}
     });
   
-  form.on('end', function(error, fields, files) 
+  	form.on('end', function(error, fields, files) 
     {
-    var r = { };
-    
-      console.log('UPLOADIMAGE:end.');
+    	//var r = { };
+    	var imageToAdd = { };
+      	console.log('UPLOADIMAGE:end.');
       
-      /* Temporary location of our uploaded file */
-      var temp_path = this.openedFiles[0].path;
-      console.log("UPLOADIMAGE:temp_path is: " + temp_path);
+      	//temporary location of the uploaded file 
+      	var temp_path = this.openedFiles[0].path;
+      	console.log("UPLOADIMAGE:uploaded file temp path: " + temp_path);
 
-      /* The file name of the uploaded file */
-      var file_name = this.openedFiles[0].name;
-      console.log("UPLOADIMAGE:file_name is: " + file_name);
+      	//file name of the uploaded file
+      	var file_name = this.openedFiles[0].name;
+      	console.log("UPLOADIMAGE: uploaded file name: " + file_name);
 
-      var stream = cloudinary.uploader.upload_stream(function(result) 
-    { 
-          //connect to the database
-      MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, nativeDB) 
-          {
-              //check if mongodb connection failed return error message and exit
-        if (err) 
-              {
-                console.log("UPLOADIMAGE:connection error ",err);
-                r.status = 0;
-                r.desc = "err db";
-                res.json(r);
-                return;
-              }
+      	var stream = cloudinary.uploader.upload_stream(function(result) 
+		{ 
+          	//connect to the database
+      		MongoClient.connect(config.mongoUrl, {native_parser : true}, function(err, nativeDB) 
+          	{
+              	//check if mongodb connection failed return error message and exit
+        		if (err) 
+              	{
+                	console.log("UPLOADIMAGE:connection error ",err);
+                	r.status = 0;
+                	r.desc = "err db";
+                	res.json(r);
+                	return;
+              	}	
               
-              //select users collection
-              var collection = nativeDB.collection('sessions');
+              	//select users collection
+              	var collection = nativeDB.collection('sessions');
           
-              // find user id from users collection
-              collection.findOne({ sessionId : sessionId }, 
-              function (err, sessionObj) 
-              {
-          //check if error occured during session search
-          if (err) 
-            {
-              console.log("UPLOADIMAGE:failure during session search, the error: ", err);
-              r.status = 0;
-              r.desc = "failure during session search.";
-              res.json(r);
-              nativeDB.close(); 
-              return;
-            }
-            
-                //TODO. check if email belongs to the participant or to the owner
-                
-              if ( !sessionObj )
-              {
-                console.log("UPLOADIMAGE:session: " + sessionId + " was not found.");
-                r.status = 0;
-                r.desc = "session: " + sessionId + " was not found.";
-                res.json(r);
-                nativeDB.close();
-                return;
-            }
-            else                // if the session exists, update
-                {
-                    sessionObj.elements.images.push( { email : email, url : result.url, timestamp : timestamp } );
+              	// find session from sessions collection
+              	collection.findOne({ sessionId : sessionId }, 
+              	function (err, sessionObj) 
+              	{
+          			//check if error occured during session search
+         			if (err) 
+            		{
+              			console.log("UPLOADIMAGE:failure during session search, the error: ", err);
+              			r.status = 0;
+              			r.desc = "failure during session search.";
+              			res.json(r);
+              			nativeDB.close(); 
+              			return;
+        			}
+
+					//check that the session was found
+              		if ( !sessionObj )
+              		{
+                		console.log("UPLOADIMAGE:session: " + sessionId + " was not found.");
+                		r.status = 0;
+                		r.desc = "session: " + sessionId + " was not found.";
+                		res.json(r);
+                		nativeDB.close();
+                		return;
+            		}
+            		else                // if the session exists, update
+                	{              		
+						//check that the uploader belong to the session
+						if (sessionObj.participants.indexOf(email) == -1 &amp;&amp; sessionObj.owner != email )
+            			{
+	                		console.log("UPLOADIMAGE:user: " + email + " does not belong to the session: "+ sessionId);
+	                		r.status = 0;
+	                		r.desc = "user: " + email + " does not belong to the session: "+ sessionId;
+	                		res.json(r);
+	                		nativeDB.close();
+	                		return;
+            			}
+            			
+	                	imageToAdd.email = email;
+	                	imageToAdd.timestamp = timestamp;
+	                	imageToAdd.url = result.url;
+	                  	console.log("UPLOADIMAGE:image: " + imageToAdd);
               
-                    //insert new user to users collection 
-                    collection.update( { sessionId : sessionId }, 
-                    { $set : { elements : sessionObj.elements } }, { upsert : true, safe : true, fsync : true}, function( err, result ) 
-                    { 
-                  if (err)
-                  {
-                        console.log("UPLOADIMAGE:failure occured while saving the session, the error: ", err);
-                        r.status = 0;
-                        r.desc = "failure occured while saving the session.";
-                        res.json(r);
-                        nativeDB.close();   
-                        return;           
-                    }
+                    	//insert new image to sessions collection 
+                   		collection.update( 
+                   		{ sessionId : sessionId }, 
+                    	{ $push: { images: imageToAdd } },
+                    	//{ upsert : true, safe : true, fsync : true}, 
+                    	function( err, result ) 
+                    	{ 
+                  			if (err)
+                  			{
+                        		console.log("UPLOADIMAGE:failure occured while saving the session, the error: ", err);
+		                        r.status = 0;
+		                        r.desc = "failure occured while saving the session.";
+		                        res.json(r);
+		                        nativeDB.close();   
+		                        return;           
+                    		}
                     
-                        console.log("UPLOADIMAGE:list of images was updated.");
-                        r.status = 1 ;
-                        r.desc = "list of images was updated.";
-                        nativeDB.close();
-                        res.json(r);
-                    });
-                  }
-              });
-      });
-    },
-    {
-        public_id: uniqueid, 
-        crop: 'limit',
-        width: 640,
-        height: 360, 
-        tags: [sessionId, 'lecturus']
-        });
+	                        console.log("UPLOADIMAGE:list of images was updated.");
+	                        r.status = 1 ;
+	                        r.desc = "list of images was updated.";
+	                        nativeDB.close();
+	                        res.json(r);
+                    	});
+                  	}
+              	});
+      		});
+    	},
+    	{
+			public_id : uniqueid, 
+	        crop : 'limit',
+	        width : 640,
+	        height : 360, 
+	        tags : [sessionId, 'lecturus']
+		});
         
-    var file_reader = fs.createReadStream(temp_path).pipe(stream);
-  });
-}
+    	var file_reader = fs.createReadStream(temp_path).pipe(stream);
+  	});
+};
 
 
 /**
@@ -349,38 +398,41 @@ exports.uploadImage=function(req,res,next){
  * @param {number} data.timastamp - {0-9}*
  * @returns {json} status: 1/0
  */
-exports.uploadAudio=function(req,res,next){
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = new Date().getTime()+userip;
-  var sessionId; // save session id
-  var timestamp, email, file, audioLength;
-  console.log('-->UPLOAD AUDIO&lt;--');
-  var form = new formidable.IncomingForm();
+exports.uploadAudio = function(req, res, next)
+{
+  	var userip = req.connection.remoteAddress.replace(/\./g , '');
+  	var uniqueid = new Date().getTime()+userip;
+  	var sessionId;
+  	var timestamp, email, file, audioLength;
+  	console.log('-->UPLOAD AUDIO&lt;--');
+  	var form = new formidable.IncomingForm();
 
-  form.parse(req, function(error, fields, files) 
-  {
-    console.log('-->PARSE&lt;--');
-      //logs the file information 
-      //console.log("request", JSON.stringify(request));
-      console.log("files", JSON.stringify(files));
-      console.log("fields", JSON.stringify(fields));
-      sessionId= fields.sessionId;
-      timestamp = fields.timestamp;
-      email = fields.email;
-      audioLength = parseInt(fields.audioLength, 10);
-  });
+  	form.parse(req, function(error, fields, files) 
+  	{
+    	console.log('-->PARSE&lt;--');
+      
+      	//logs the file information 
+      	console.log("files", JSON.stringify(files));
+      	console.log("fields", JSON.stringify(fields));
+      	sessionId= fields.sessionId;
+      	timestamp = fields.timestamp;
+      	email = fields.email;
+      	audioLength = parseInt(fields.audioLength, 10);
+  	});
 
-  form.on('progress', function(bytesReceived, bytesExpected) 
+  	/*TODO. REMOVE - only for debug purpose
+  	form.on('progress', function(bytesReceived, bytesExpected) 
     {
-      var percent_complete = (bytesReceived / bytesExpected) * 100;
-      console.log(percent_complete.toFixed(2));
+      	var percent_complete = (bytesReceived / bytesExpected) * 100;
+      	console.log(percent_complete.toFixed(2));
     });
-
+	*/
+	
     form.on('error', function(err) 
     {
-      console.log("-->ERROR&lt;--");
-      console.error(err);
-  });
+      	console.log("-->ERROR&lt;--");
+      	console.error(err);
+  	});
 
     form.on('end', function(error, fields, files) 
     {
@@ -487,7 +539,7 @@ exports.uploadAudio=function(req,res,next){
   //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
   //var file_reader = fs.createReadStream(temp_path).pipe(stream);
     });
-}
+};
 </code></pre>
         </article>
     </section>
@@ -504,7 +556,7 @@ exports.uploadAudio=function(req,res,next){
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Mon Jun 08 2015 18:28:10 GMT+0300 (Jerusalem Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Fri Jun 12 2015 12:23:54 GMT+0300 (Jerusalem Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

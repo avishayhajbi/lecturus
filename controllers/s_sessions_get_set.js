@@ -767,11 +767,13 @@ exports.pauseSession = function (req,res,next)
    	console.log("pauseSession:Session status is: " + reqStatus);
    	console.log("pauseSession:Session timestamp is: " + reqTimestamp);  
  
- 	//search for the session in the session collection
-  	db.model('sessions').findOne( { sessionId : reqSession },
+ 	//search for the session document in the sessions collection
+  	db.model('sessions').findOne( 
+	{ sessionId : reqSession },
     //{ participants : true, owner : true, _id : false }, - does not wotk with this
     function (err, sessionObj)
     {
+    	//check if the error occured during the search 
         if (err) 
         {
           	console.log("pauseSession:failure during session search, the error: ", err);
@@ -784,9 +786,9 @@ exports.pauseSession = function (req,res,next)
         //check if the session exists in the database
       	if ( !sessionObj )  //session was not found case
         {
-          	console.log("pauseSession:session: " + reqSession + " was not found");
+          	console.log("pauseSession:session: " + reqSession + " was not found.");
           	r.status = 0;
-          	r.desc = "session: " + reqSession + " was not found";
+          	r.desc = "session: " + reqSession + " was not found.";
           	res.json(r);
           	return;
       	}

@@ -374,7 +374,7 @@ exports.addMembers = function(req,res,next){
         });
       });                    
   }
-}
+};
 
 
 

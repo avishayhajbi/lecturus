@@ -4,4 +4,4 @@
  * @license shenkar collage.
  */
 require('./core/database');
-require('./core/index');
+require('./core/server');

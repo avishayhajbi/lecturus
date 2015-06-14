@@ -286,3 +286,76 @@ else
        });	
 });
 }
+
+
+
+/**
+ * @inner
+ * @memberof auxiliary
+ * @function getCourses
+ * @desc find the related courses to user by email
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @returns {json} status: 1/0 , degrees
+ */
+
+//app.post("/auxiliary/getCourses", controllers.s_auxiliary.getCourses);
+exports.getCourses= function(req, res, next){
+    try{
+        // try to get data
+        var email = req.body.email;    
+
+        // check if email field exist and no empty
+        if (email && email!="")
+        // try to connect to mongodb
+    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
+        var r={};
+            // if the connection failed return message and exit
+            if (err) {
+                console.log("query error ",err);
+                r.uid=0;
+                r.status=0;
+                r.desc="err db";
+                res.send((JSON.stringify(r)))
+                return;
+            }
+            // ask for users collection
+            var collection = db.collection('users');
+            // try to find user id 
+            collection.find({email:email}).toArray(function (err, docs) {
+                // if the user not exist
+                if (!docs.length) {
+                    r.uid=0;
+                    r.status=0;
+                    r.desc="uid not exist";
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                }
+                // if the user exist return organization courses
+                else {
+                    delete docs[0]._id
+                    var org = docs[0].org;
+                    r ={
+                        status:1,
+                        degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
+                    }
+                    db.close();
+                    res.send((JSON.stringify(r)))
+                }
+            });
+        });
+        // if data.email not exist or empty
+        else{
+            r.status=0;
+            r.desc="uid error";
+            res.send((JSON.stringify(r)));     
+        }
+    // if the parsing failed
+    }catch(err){
+        var r={};
+        r.status=0;
+        r.desc="data error "+err;
+        res.send((JSON.stringify(r)));
+    }   
+}
+

@@ -29,13 +29,15 @@ var sessionsSchema = new Schema(
     },
 	participants :  { type : Array , default : [] },
 	audios : [ { lenght : Number, email : String, url : String, startAt : Number ,  default : [] } ],
-	elements : { any: Schema.Types.Mixed },
+	elements : {  type: mongoose.Schema.Types.Mixed, default:{} },
 	tags : { type : Array , default : [] },
 	images : { type : Array , default : [] },
 	views : { type : Number , default : 0 },
 	active : { type : Boolean , default : true },
 	public : { type : Boolean , default : true },
 	timestamp : Number
+},{
+    strict: false,
 });
 	
 Session = mongoose.model('sessions', sessionsSchema);

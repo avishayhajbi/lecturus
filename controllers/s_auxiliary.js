@@ -1,77 +1,7 @@
 var fs = require("fs-extra");
 var gcm = require('node-gcm');
-//var gcm = require('gcm').GCM;
 
 /** @namespace auxiliary */
-
-/**
- * @inner
- * @memberof auxiliary
- * @function getCourses
- * @desc find the related courses to user by email
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @returns {json} status: 1/0 , degrees
- */
-exports.getCourses= function(req, res, next){
-    try{
-        // try to get data
-        var email = req.body.email;    
-
-        // check if email field exist and no empty
-        if (email && email!="")
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // ask for users collection
-            var collection = db.collection('users');
-            // try to find user id 
-            collection.find({email:email}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.uid=0;
-                    r.status=0;
-                    r.desc="uid not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    delete docs[0]._id
-                    var org = docs[0].org;
-                    r ={
-                        status:1,
-                        degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
-                    }
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-            });
-        });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="uid error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
-    }catch(err){
-        var r={};
-        r.status=0;
-        r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
-    }   
-}
-
 
 /**
  * @inner
@@ -82,62 +12,72 @@ exports.getCourses= function(req, res, next){
  * @param {string} data.org - shenkar
  * @returns {json} status: 1/0 , degrees
  */
-exports.getCoursesByOrg= function(req, res, next){
-    try{
-        // try to get data
-        var org = req.body.org;    
-
-        // check if email field exist and no empty
-        if (org && org!="")
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
+exports.getCoursesByOrg = function(req, res, next)
+{
+    var org, r = { };
+    
+    //try to parse the received data
+    try
+    {
+        logger.debug("getCoursesByOrg:search courses for the organization: " + req.body.org);
+        org = req.body.org;    
+    }
+    catch(err)
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    } 
+    
+    // check if org field exist and not empty
+    if (typeof org === 'undefined' || org == null || org == "")
+    {
+    	logger.debug("getCoursesByOrg:request must contain org propertie.");
+      	r.status = 0;
+      	r.desc = "request must contain org propertie.";
+      	res.json(r);  
+      	return;    	
+    }
+    else
+    {
+        db.model('academic_degrees').findOne(
+    	{ org : org }, 
+    	{ _id : false, academicId : false, org : false },
+        function(err, academicDegree) 
+        {
+        	//check if the error occured during the search 
+            if(err) 
+            {
+            	logger.debug("getCoursesByOrg:failure during academin degree search, the error: ", err);
+                r.status = 0;
+                r.desc = "failure during academin degree search";
+                res.json(r);
+                return;
+            }          
+            //check if the database contains organization's academic degrees
+            else if(academicDegree)
+            {
+                logger.debug("getCoursesByOrg:organization " + org + " academic degrees were found.");
+                r.status = 1;
+                r.check = academicDegree.check;
+                r.degrees = academicDegree.degrees;
+                r.desc = "organization: " + org + " academic degrees were found.";
+                res.json(r);
                 return;
             }
-            // ask for users collection
-            var collection = db.collection('academic_degrees');
-            // try to find user id 
-            collection.find({org:org}, {_id:false, academicId:false, org: false}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.status=0;
-                    r.desc="org not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    r ={
-                        status:1,
-                        check: docs[0].check,
-                        degrees: docs[0][org]
-                    }
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-            });
+            else 
+            {
+                logger.debug("getCoursesByOrg:organization: " + org + " academic degrees were not found.");
+                r.status = 0;
+                r.desc = "organization: " + org + " academic degrees were not found.";
+                res.json(r);
+                return;
+            }
         });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="org error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
-    }catch(err){
-        var r={};
-        r.status=0;
-        r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
-    }    
-}
+    }
+};
 
 /**
  * @inner
@@ -149,71 +89,78 @@ exports.getCoursesByOrg= function(req, res, next){
  * @param {number} data.check - {0-9}*
  * @returns {json} status: 1/0 , degrees
  */
-exports.checkCoursesChanges= function(req, res, next){
-   try{
-        // try to get data
-        var data = req.body;    
-        
-        // check if email field exist and no empty
-        if (data && data!="" )
-        // try to connect to mongodb
-    MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, db) {
-        var r={};
-            // if the connection failed return message and exit
-            if (err) {
-                console.log("query error ",err);
-                r.uid=0;
-                r.status=0;
-                r.desc="err db";
-                res.send((JSON.stringify(r)))
-                return;
-            }
-            // ask for users collection
-            var collection = db.collection('academic_degrees');
-            // try to find user id 
-            collection.find({org:data.org}, {_id:false, academicId:false, org: false}).toArray(function (err, docs) {
-                // if the user not exist
-                if (!docs.length) {
-                    r.status=0;
-                    r.desc="org not exist";
-                    db.close();
-                    res.send((JSON.stringify(r)))
-                }
-                // if the user exist return organization courses
-                else {
-                    data.check = data.check || 0;
-                    if (docs[0].check == data.check)
-                        r ={
-                            status:2,
-                            desc:'no courses changes'
-                        //info: docs[0]
-                        //degrees: (fs.existsSync('./courses/'+org+'.json'))?JSON.parse(fs.readFileSync('./courses/'+org+'.json', 'utf8')):[]
-                    }
-                    else 
-                        r ={
-                            status:1,
-                            check: docs[0].check,
-                            degrees: docs[0][data.org]  
-                        }
-                        db.close();
-                        res.send((JSON.stringify(r)))
-                    }
-                });
+exports.checkCoursesChanges = function(req, res, next)
+{
+    var r = { };
+    var org;
+   
+	//try to parse the received data
+	try
+	{
+        org = req.body.org;    
+    }
+    catch(err)
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    } 
+      
+    // check if org field exist and not empty
+    if (typeof org === 'undefined' || org == null || org == "")
+    {
+    	logger.debug("getCoursesByOrg:request must contain org propertie.");
+      	r.status = 0;
+      	r.desc = "request must contain org propertie.";
+      	res.json(r);  
+      	return;    	
+    }
+    else
+	{
+ 		db.model('academic_degrees').findOne(
+     	{ org : org }, 
+     	{ _id : false, academicId : false, org : false },
+     	function (err, doc) 
+     	{
+	        //check if the error occured during the search 
+	        if (err) 
+	        {
+	            r.status=0;
+	            r.desc="err occured";
+	            res.json(r);
+	            return;
+	        }
+	        
+	        if (!doc) 
+	        {
+	            r.status=0;
+	            r.desc="org not exist";
+	            res.json(r);
+	            return;
+	        }
+	        // if the user exist return organization courses
+	        else 
+	        {
+	            data.check = data.check || 0;
+	            if (doc.check == data.check)
+	            {
+	                r.status = 2;
+	                r.desc = 'no courses changes';
+	            }
+	            else 
+	            {
+	                r.status = 1;
+	                r.check = doc.check;
+	                r.degrees = doc.degrees;
+	            }
+	            res.json(r);
+	            return;
+	        }
         });
-        // if data.email not exist or empty
-        else{
-            r.status=0;
-            r.desc="org error";
-            res.send((JSON.stringify(r)));     
-        }
-    // if the parsing failed
-    }catch(err){
-        var r={};
-        r.status=0;
-        r.desc="data error "+err;
-        res.send((JSON.stringify(r)));
-    }   
-}
+	}
+};
 
 /**
  * @inner
@@ -228,9 +175,13 @@ exports.checkCoursesChanges= function(req, res, next){
  * @param {number} data.to - {0-9}*
  * @returns {json} status: 1/0 , all related videos
  */
-exports.getSessionsByCourse= function(req, res, next){
-    var r ={};
-    var data={};
+exports.getSessionsByCourse = function(req, res, next)
+{
+	//create new empty variables
+    var r = { };
+    var data= {};
+    
+    //try to parse the received data
     try
     {
         data.email = req.query.email;
@@ -238,13 +189,14 @@ exports.getSessionsByCourse= function(req, res, next){
         data.courseId = parseInt(req.query.course)||0;
         data.from = parseInt(req.query.from) || 0;
         data.to = parseInt(req.query.to) || 24;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
+    }
+    catch(err)
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
     }
       if ( !data || !data.email || data.email == '' )  // if data.name property exists in the request is not empty
     {
@@ -254,14 +206,15 @@ exports.getSessionsByCourse= function(req, res, next){
         return;
     }
 
-
-    var query = db.model('sessions').find({$and:[{ degreeId : data.degreeId|| {$exists:true}},
-    {courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
+	//search for the session document in the sessions collection
+    var query = db.model('sessions').find(
+    { $and:[{ degreeId : data.degreeId || {$exists:true}},
+    { courseId : data.courseId || {$exists:true} }, {stopTime:{ $gt: 0  }} ] },
     sessionPreview);
     query.count(function(err, count) {
         query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
         {    
-            // failure while connecting to sessions collection
+            //check if an error occured during the search 
             if (err) 
             {
                 console.log("failure while trying get videos, the error: ", err);
@@ -287,7 +240,7 @@ exports.getSessionsByCourse= function(req, res, next){
             }
         });         
     });
-}
+};
 
 /**
  * @inner
@@ -304,9 +257,11 @@ exports.getSessionsByCourse= function(req, res, next){
 
 exports.searchSessions = function(req, res, next)
 {
+	//create new empty variables
     var r = { };
     var data = { };
     
+    //try to parse the received data
     try
     {
         data = req.body;
@@ -315,10 +270,11 @@ exports.searchSessions = function(req, res, next)
     }
     catch(err)
     {
-		r.status = 0;
-        r.desc = "data error";
-	    res.json(r);
-        return;
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
     }
  	
  	if ( !data || data.name == '' )  // if data.name property exists in the request is not empty
@@ -336,7 +292,7 @@ exports.searchSessions = function(req, res, next)
     query.count(function(err, count) {
         query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
         {    
-            // failure while connecting to sessions collection
+            //check if the error occured during the search 
             if (err) 
             {
                 console.log("failure while trying get videos, the error: ", err);
@@ -386,23 +342,29 @@ exports.searchSessions = function(req, res, next)
  * @param {number} data.to - {0-9}*
  * @returns {json} status: 1/0, length, res (for the results)
  */
-exports.getTopRated= function(req, res, next){
-  var r ={};
-    var data={};
+exports.getTopRated = function(req, res, next)
+{
+	//create new empty variables
+  	var r = { };
+    var data = { };
+    
+    //try to parse the received data
     try
     {
         data = req.body;
         data.from = parseInt(req.body.from) || 0;
         data.to = parseInt(req.body.to) || 24;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
     }
-      if ( !data || data.org == '' )  // if data.org property exists in the request is not empty
+    catch(err)
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    }
+	
+	if ( !data || data.org == '' )  // if data.org property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property name or its empty";
@@ -414,7 +376,7 @@ exports.getTopRated= function(req, res, next){
     db.model('sessions').find({$and:[{org:data.org},{stopTime:{$gt:0}}]}, sessionPreview).sort({views: -1}).skip(data.from).limit(data.to-data.from)
     .exec(function(err, docs)
     { 
-        // failure while connecting to sessions collection
+        //check if the error occured during the search 
         if (err) 
         {
             console.log("failure while trying get videos, the error: ", err);
@@ -439,7 +401,7 @@ exports.getTopRated= function(req, res, next){
                                        
         }
     });   
-}
+};
 
 /**
  * @inner
@@ -453,23 +415,29 @@ exports.getTopRated= function(req, res, next){
  * @returns {json} status: 1/0, length, res (for the results)
  */
 
-exports.followedUsers= function(req, res, next){
-    var r ={};
-    var data={};
+exports.followedUsers = function(req, res, next)
+{
+	//create new empty variables
+    var r = { };
+    var data = { };
+    
+    //try to parse the received data
     try
     {
         data = req.body;
         data.from = parseInt(req.body.from) || 0;
         data.to = parseInt(req.body.to) || 4;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
     }
-      if ( !data || !data.email )  // if data.name property exists in the request is not empty
+    catch(err) 
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    }
+    
+    if ( !data || !data.email )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property email or its empty";
@@ -481,7 +449,7 @@ exports.followedUsers= function(req, res, next){
     db.model('users').findOne({email:data.email}, {follow:true,org:true,_id:false})
     .lean().exec(function( err, docs )
     { 
-        // failure while connecting to sessions collection
+        //check if the error occured during the search 
         if (err) 
         {
             console.log("failure while trying get videos, the error: ", err);
@@ -494,10 +462,13 @@ exports.followedUsers= function(req, res, next){
         else if (docs)
         {
             var arr = docs.follow.splice(data.from,(data.to-data.from));
-            console.log("followed user to find",arr)
+            console.log("followed user to find", arr);
+            
             var query = db.model('sessions').find({$and:[{ owner : {$in:arr}},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({owner:1,stopTime: -1})//.skip(data.from).limit(data.to)
-            .exec(function(err, docs){
+            .exec(function(err, docs)
+            {
+            	//check if the error occured during the search 
                 if (err) 
                 {
                     console.log("failure while trying get videos, the error: ", err);
@@ -532,7 +503,7 @@ exports.followedUsers= function(req, res, next){
             });
         }
     }); 
-}
+};
 
 /**
  * @inner
@@ -546,23 +517,29 @@ exports.followedUsers= function(req, res, next){
  * @returns {json} status: 1/0, length, res (for the results)
  */
 
-exports.getUserSessions= function(req, res, next){
-    var r ={};
-    var data={};
+exports.getUserSessions = function(req, res, next)
+{
+	//create new empty variables
+    var r = { };
+    var data = { };
+    
+    //try to parse the received data
     try
     {
         data = req.body;
         data.from = req.body.from || 0;
         data.to = req.body.to || 4;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
     }
-      if ( !data || !data.userId )  // if data.name property exists in the request is not empty
+    catch(err)
+    {
+      	console.log("pauseSession:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    }
+    
+    if ( !data || !data.userId )  // if data.name property exists in the request is not empty
     {
         r.status = 0;   
         r.desc = "request must contain a property userId or its empty";
@@ -571,10 +548,12 @@ exports.getUserSessions= function(req, res, next){
     }
 
 
-    db.model('users').findOne({email:data.userId}, {org:true,_id:false},
+    db.model('users').findOne(
+	{ email : data.userId }, 
+	{ org : true, _id : false},
     function(err, docs)
     { 
-        // failure while connecting to sessions collection
+        //check if failure occured during user search
         if (err) 
         {
             console.log("failure while trying get videos, the error: ", err);
@@ -589,7 +568,9 @@ exports.getUserSessions= function(req, res, next){
 
             var query = db.model('sessions').find({$and:[{$or:[{owner:data.userId},{participants: data.userId }]},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview);
             query.sort({views: -1}).skip(data.from).limit(data.to-data.from)
-            .exec(function(err, docs){
+            .exec(function(err, docs)
+            {
+            	//check if the error occured during the search 
                 if (err) 
                 {
                     console.log("failure while trying get videos, the error: ", err);
@@ -621,7 +602,7 @@ exports.getUserSessions= function(req, res, next){
             });
         }
     }); 
-}
+};
 
 /**
  * @inner
@@ -635,57 +616,83 @@ exports.getUserSessions= function(req, res, next){
  * @returns {json} status: 1/0, length, res (for the results)
  */
 
-exports.getUserFavorites= function(req, res, next){
-    var r ={};
-    var data={};
+exports.getUserFavorites = function(req, res, next)
+{
+	//create new empty variables
+    var r = { };
+    var favorites = { };
+    var to, from;
+    
+    //try to parse the received data
     try
     {
-        data = req.body;
-        data.from = parseInt(req.body.from) || 0;
-        data.to = parseInt(req.body.to) || 4;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
+        userId = req.body.userId;
+        from = parseInt(req.body.from) || 0;
+        to = parseInt(req.body.to) || 4;
     }
-      if ( !data || !data.userId || data.userId == '' )  // if data.name property exists in the request is not empty
+    catch(err)
     {
-        r.status = 0;   
-        r.desc = "request must contain a userId name or its empty";
-        res.json(r); 
-        return;
+      	console.log("getUserFavorites:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    }
+    
+    //check that all needed properties were received in the request
+    if ( typeof userId === 'undefined' || userId == null || userId == "" )
+    {
+    	console.log("pauseSession:request must contain userId property.");
+      	r.status = 0;
+      	r.desc = "request must contain userId property.";
+      	res.json(r);  
+      	return; 
     }
 
-    db.model('users').findOne({email:data.userId}, {favorites:true, org:true,_id:false},
-    function(err, docs)
+	//search for the user document in the users collection
+    db.model('users').findOne(
+	{ email : userId }, 
+	{ favorites : true, org : true, _id : false},
+    function(err, userObj)
     { 
         // failure while connecting to sessions collection
         if (err) 
         {
-            console.log("failure while trying get videos, the error: ", err);
+            console.log("pauseSession:failure while trying get videos, the error: ", err);
             r.status = 0;
             r.desc = "failure while trying get videos.";
             res.json(r);
             return;
         }
         
-        else if (docs)
+        //check if the user exists in the database
+      	if ( !userObj )
         {
-            if (docs.favorites.length)
-            var arr = docs.favorites.splice(data.from,(data.to-data.from))
-            db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
-            .skip(data.from).limit(data.to-data.from)
+          	console.log("pauseSession:user: " + userId + " was not found.");
+          	r.status = 0;
+          	r.desc = "user: " + userId + " was not found.";
+          	res.json(r);
+          	return;
+      	}
+        else
+        {
+            if (userObj.favorites.length)
+            {
+            	favorites = docs.favorites.splice(from, (to - from));
+            }
+            
+            db.model('sessions').find(
+        	{ $and : 
+        		[{ sessionId : { $in : favorites } }, { org : userObj.org }, { stopTime : { $gt : 0 } } ]}, sessionPreview)//.sort({owner:1,views: -1})
+            .skip(from).limit(to - from)
             .exec(function(err, docs)
             { 
-                // failure while connecting to sessions collection
+                //check if failure occured while connecting to sessions collection
                 if (err) 
                 {
-                    console.log("failure while trying get videos, the error: ", err);
+                    console.log("pauseSession:failure occured while trying get videos, the error: ", err);
                     r.status = 0;
-                    r.desc = "failure while trying get videos.";
+                    r.desc = "failure occured while trying get videos.";
                     res.json(r);
                     return;
                 }
@@ -716,7 +723,7 @@ exports.getUserFavorites= function(req, res, next){
             });                        
         }
     }); 
-}
+};
 
 /**
  * @inner
@@ -728,94 +735,95 @@ exports.getUserFavorites= function(req, res, next){
  * @param {string} data.sessionId - text
  * @returns {json} status: 1/0
  */
-
-exports.addRemoveFavorites= function(req, res, next){
+exports.addRemoveFavorites = function(req, res, next)
+{
+	//create new empty variables
     var r = { };
+	var sessionId, userId;
+	
+	//try to parse the received data
+   	try
+   	{
+    	sessionId = req.body.sessionId;
+    	userId = req.body.userId;
+  	}
+  	catch(err)
+  	{
+      	console.log("addRemoveFavorites:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+  	}
 
-   try
-   {
-    var sessionId = req.body.sessionId;
-    var userId = req.body.userId;
-  }
-  catch( err )
-  {
-    console.log("UPDATEFAVIRTES: failure while parsing the request, the error:" + err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.json(r);
-    return;
-  }
-
-  if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-       typeof userId === 'undefined' || userId == null || userId == "" )        // if one the propertiey do not exists in the request and it is empty
-  {
-   console.log("UPDATEFAVIRTES:request must contain sessionId property.");
-   r.status = 0;    
-   r.desc = "request must contain sessionId and userId property.";
-   res.json(r); 
-   return;
- }
-    db.model('users').findOne({email: userId} ,
-    function (err, userResult)
+  	if ( 	typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+       		typeof userId === 'undefined' || userId == null || userId == "" )
+  	{
+	   	console.log("addRemoveFavorites:request must contain sessionId and userId properties.");
+	   	r.status = 0;    
+	  	r.desc = "request must contain sessionId and userId properties.";
+	   	res.json(r); 
+	   	return;
+ 	}
+ 	
+ 	//search for the user document in the users collection
+    db.model('users').findOne(
+	{ email : userId } ,
+    function (err, userObj)
     {
-      // failure during user search
-      if (err) 
-      {
-        console.log("failure during user search, the error: ", err);
-        r.uid = 0;
-        r.status = 0;
-        r.desc = "failure during user search";
-        res.json(r);    
-        return;
-      }
-      else if (userResult.favorites.indexOf(sessionId) == -1)
-      {
-        userResult.favorites.unshift(sessionId);
-        userResult.save(function(err, obj) 
-        { 
-          if (err)
-          {
-           console.log("UPDATEFAVIRTES:failure user save, the error: ", err);
-           r.status = 0;
-           r.desc = "failure UPDATEFAVIRTES save";
-           res.json(r); 
-           return;          
-         }
+      	//check if failure occured during user search
+      	if (err) 
+      	{
+	        console.log("addRemoveFavorites:failure occured during user search, the error: ", err);
+	        r.status = 0;
+	        r.desc = "failure occured during user search";
+	        res.json(r);    
+	        return;
+      	}
+      	
+       	//check if the user exists in the database
+      	if ( !userObj )  //session was not found case
+        {
+          	console.log("addRemoveFavorites:user: " + userId + " was not found.");
+          	r.status = 0;
+          	r.desc = "user: " + userId + " was not found.";
+          	res.json(r);
+          	return;
+      	}
+      	
+      	//check if the session already viewed by the user
+      	if (userObj.favorites.indexOf(sessionId) == -1)	//not viewed case - add
+      	{
+      		//add the session to the beginning of user favorites array
+        	userObj.favorites.unshift(sessionId);
+        }	     	
+      	else 											//viewed case - remove
+      	{
+       		//remove the session from user favorites array
+       		userObj.favorites.splice(userObj.favorites.indexOf(sessionId), 1);
+       	}	
+       	
+   		//save updated user data
+		userObj.save(function(err, obj) 
+    	{ 
+			//check if error occured during user save          	
+          	if (err)
+          	{
+           		console.log("addRemoveFavorites:failure occured during user save, the error is: ", err);
+           		r.status = 0;
+           		r.desc = "failure occured during user save.";
+           		res.json(r); 
+           		return;          
+         	}
 
-         console.log("UPDATEFAVIRTES:session: " + userId + " favorites was updated.");
-         r.status = 1;
-         r.desc = "session: " + sessionId + " favirtes was updated";
-         res.json(r);
-         return;
-      
-       });
-        
-      }
-      else
-      {
-       var index =  userResult.favorites.indexOf(sessionId);
-       userResult.favorites.splice(index, 1);
-       userResult.save(function(err, obj) 
-         { 
-          console.log("UPDATEFAVIRTES: save");
-          if (err)
-          {
-           console.log("UPDATEFAVIRTES:failure user favorites save, the error: ", err);
-           r.status = 0;
-           r.desc = "failure user favorites save";
-           res.json(r); 
-           return;          
-         }
-
-         console.log("UPDATEFAVIRTES:user: " + userId + " update favorites was updated.");
-         r.status = 1;
-         r.desc = "user: " + userId + " update favorites was updated";
-         res.json(r);
-         return;
-       });
-     }
+     		console.log("addRemoveFavorites:user: " + userId + " favorites were updated successfully.");
+     		r.status = 1;
+     		r.desc = "user: " + userId + " favorites were updated successfully.";
+     		res.json(r);
+     		return;
+   		});		
     });
- }
+ };
 
 /**
  * @inner
@@ -829,53 +837,71 @@ exports.addRemoveFavorites= function(req, res, next){
  * @returns {json} status: 1/0, length, res (for the results)
  */
 
-exports.lastViews= function(req, res, next){
-    var r ={};
-    var data={};
+exports.lastViews = function(req, res, next)
+{
+	//create new empty variables
+    var r = { };
+    var lastViews = { };
+    var from, to, userId;
+    
+    //try to parse the received data
     try
     {
-        data = req.body;
-        data.from = parseInt(req.body.from) || 0;
-        data.to = parseInt(req.body.to) || 24;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
-        res.json(r);
-        return;
+    	userId = req.body.userId;
+        from = parseInt(req.body.from) || 0;
+        to = parseInt(req.body.to) || 24;
     }
-      if ( !data || !data.userId || data.userId == '' )  // if data.name property exists in the request is not empty
+    catch(err)
     {
-        console.log('lastViews data',data)
+      	console.log("lastViews:failure occured while parsing the request, the error is:", err);
+      	r.status = 0;
+      	r.desc = "failure occured while parsing the request.";
+      	res.json(r);
+      	return;
+    }
+  	
+  	//check that all needed properties were received in the request
+  	if ( typeof userId === 'undefined' || userId == null || userId == "" )  // if data.name property exists in the request is not empty
+    {
+        console.log("lastViews:request must contain email userId property.");
         r.status = 0;   
-        r.desc = "request must contain a property userId or its empty";
+        r.desc = "request must contain email userId property.";
         res.json(r); 
         return;
     }
 
-    db.model('users').findOne({email:data.userId}, {lastViews:true,org:true,_id:false},
-    function(err, docs)
+	//search for the user document in the users collection
+    db.model('users').findOne(
+	{ email : userId }, 
+	{ lastViews : true, org : true, _id : false },
+    function(err, userObj)
     { 
-        // failure while connecting to sessions collection
+        //check if failure occured while searching for the user document
         if (err) 
         {
-            console.log("failure while trying get lastViews, the error: ", err);
+            console.log("lastViews:failure occured while searching for the user, the error: ", err);
             r.status = 0;
-            r.desc = "failure while trying get lastViews.";
+            r.desc = "failure occured while searching for the user.";
             res.json(r);
             return;
         }
         
-        else if (docs)
+        //check if the user exists in the database
+        if (userObj)
         {
-            var arr = docs.lastViews.splice(data.from,(data.to-data.from))
-            console.log(arr.length)
-            db.model('sessions').find({$and:[{sessionId:{$in:arr}},{org:docs.org},{stopTime:{$gt:0}}]}, sessionPreview)//.sort({owner:1,views: -1})
+        	//get only several last viewed session
+            lastViews = userObj.lastViews.splice(from, (to - from));
+            console.log("number of last viewed sessions: " + lastViews.length);
+            
+            //search for the details of the last viewed sessions
+            db.model('sessions').find(
+        	{ $and: 
+        			[{ sessionId : { $in : lastViews } }, { org : lastViews.org }, { stopTime : { $gt : 0 }}]
+			}, sessionPreview)//.sort({owner:1,views: -1})
             //.skip(data.from).limit(data.to-data.from)
             .exec(function(err, docs)
             { 
-                // failure while connecting to sessions collection
+                //check if failure while 
                 if (err) 
                 {
                     console.log("failure while trying get lastViews, the error: ", err);
@@ -887,13 +913,13 @@ exports.lastViews= function(req, res, next){
                 
                 else if (docs)
                 {
-                    var temp = orderByArray(docs,arr);
+                    var temp = orderByArray(docs, lastViews);
                     //console.log("videos found "+ result);
                     createUsersJson(docs, function(result)
                     {           
                         r.users = result;
                         r.status = 1;
-                        r.length=docs.length;
+                        r.length = docs.length;
                         r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
@@ -911,13 +937,17 @@ exports.lastViews= function(req, res, next){
             });                        
         }
     }); 
-}
+};
 
 
-orderByArray = function (docs,arr){
-    for (var i = 0 ; i < arr.length ; i++){
-       for (var j = i ; j < arr.length ; j++){
-            if (docs[j].sessionId == arr[i]){
+orderByArray = function(docs, arr)
+{
+    for (var i = 0 ; i < arr.length ; i++)
+    {
+       for (var j = i ; j < arr.length ; j++)
+       {
+            if (docs[j].sessionId == arr[i])
+            {
                 var doc = docs[i];
                 docs[i] = docs[j];
                 docs[j]=doc;
@@ -926,11 +956,14 @@ orderByArray = function (docs,arr){
         } 
     }
     return docs;
-}
+};
 
-createKeyValJSON=function  (arr , key){
-    var temp = {}, uid = '' ,count=0;
-    for ( k in arr ){
+createKeyValJSON = function(arr, key)
+{
+    var temp = { }, uid = '' , count=0;
+    
+    for ( k in arr )
+    {
         if (count==4 && uid == arr[k][key]) continue;
         if (uid != arr[k][key])
         {
@@ -942,4 +975,4 @@ createKeyValJSON=function  (arr , key){
         temp[uid].push(arr[k]);
     }
     return temp;
-}
+};
