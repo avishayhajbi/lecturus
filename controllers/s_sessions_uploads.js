@@ -129,7 +129,7 @@ exports.uploadTags = function(req, res, next)
             	{
               		(tags).forEach (function (tag) 
               		{
-	                	tag.email = email;
+	                	  tag.email = email;
 	                  	tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
 	                  	console.log("UPLOADTAGS:tag: " + tag);
 	                  	tagsToAdd.push(tag);
