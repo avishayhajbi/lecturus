@@ -41,3 +41,4 @@
 {"data":"uncaughtException","error":{},"level":"error","message":"","timestamp":"2015-06-12T07:57:13.945Z"}
 {"data":"uncaughtException","error":{},"level":"error","message":"","timestamp":"2015-06-12T07:57:53.210Z"}
 {"data":"uncaughtException","error":{},"level":"error","message":"","timestamp":"2015-06-12T08:01:47.892Z"}
+{"data":"uncaughtException","error":{"code":"EADDRINUSE","errno":"EADDRINUSE","syscall":"listen"},"level":"error","message":"","timestamp":"2015-06-14T20:06:30.194Z"}
