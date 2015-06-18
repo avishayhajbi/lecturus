@@ -785,11 +785,11 @@ exports.getUserFavorites = function(req, res, next)
                     return;
                 }
                 
-                else if (docs)
+                else if (docs.length)
                 {
-                    var temp = orderByArray(docs,favorites);
                     createUsersJson(docs, function(result)
                     {           
+                        var temp = orderByArray(docs,favorites);
                         r.users = result;
                         r.status = 1;
                         r.length=docs.length;
@@ -1009,11 +1009,10 @@ exports.lastViews = function(req, res, next)
                 }
                 else
                 {
-                    orderedLastViews = orderByArray(sessionDocs, lastViews);
-
                     createUsersJson(sessionDocs, function(result)
                     {
                         logger.error("lastViews:user: " + userId + " last views were successfully returned.");
+                        orderedLastViews = orderByArray(sessionDocs, lastViews);
                         r.users = result;
                         r.status = 1;
                         r.length = sessionDocs.length;
