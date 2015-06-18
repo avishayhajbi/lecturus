@@ -24,3 +24,4 @@
 {"level":"debug","message":"doc exist","timestamp":"2015-06-11T23:35:17.252Z"}
 {"5":{"tags":[{"id":"1434066465815","timestamp":"5","text":"avishay","email":"cohen_rami@hotmail.com","rating":{"positive":{"users":[],"value":0},"negative":{"users":[],"value":0}}}]},"timestamp":"2015-06-11T23:47:45.817Z","level":"debug","message":""}
 {"5":{"tags":[{"id":"1434066501992","timestamp":"5","text":"avishay","email":"cohen_rami@hotmail.com","rating":{"positive":{"users":[],"value":0},"negative":{"users":[],"value":0}}}]},"timestamp":"2015-06-11T23:48:21.993Z","level":"debug","message":""}
+{"data":"page not found","url":"/auxiliary/getUserFavorites","level":"debug","message":"","timestamp":"2015-06-18T09:42:49.432Z"}

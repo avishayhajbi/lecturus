@@ -465,7 +465,8 @@ exports.followedUsers = function(req, res, next)
 {
 	//create new empty variables
     var r = { };
-    var email, followed;
+    var email;
+    var followed=[];
     
     //try to parse the received data
     try
@@ -701,7 +702,7 @@ exports.getUserFavorites = function(req, res, next)
 {
 	//create new empty variables
     var r = { };
-    var favorites = { };
+    var favorites = [];
     var to, from, userId;
     
     //try to parse the received data
@@ -739,7 +740,7 @@ exports.getUserFavorites = function(req, res, next)
         //check if failure occurred during the search
         if (err)
         {
-            logger.error("getUserSessions:failure occurred while searching for the user, the error: ", err);
+            logger.error("getUserFavorites:failure occurred while searching for the user, the error: ", err);
             r.status = 0;
             r.desc = "failure occurred while searching for the user.";
             res.json(r);
@@ -777,7 +778,7 @@ exports.getUserFavorites = function(req, res, next)
                 //check if failure occurred during the search
                 if (err)
                 {
-                    logger.error("getUserSessions:failure occurred while searching for the sessions, the error: ", err);
+                    logger.error("getUserFavorites:failure occurred while searching for the sessions, the error: ", err);
                     r.status = 0;
                     r.desc = "failure occurred while searching for the sessions.";
                     res.json(r);
@@ -927,7 +928,7 @@ exports.lastViews = function(req, res, next)
 {
 	//create new empty variables
     var r = { };
-    var lastViews = { };
+    var lastViews = [];
     var from, to, userId, orderedLastViews;
     
     //try to parse the received data
