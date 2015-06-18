@@ -88,7 +88,7 @@ app.post("/users/registerUser", controllers.s_users_set.registerUser);
 
 process.on("uncaughtException", function(err) 
 {
-  	logger.error({data:'uncaughtException', error: err || 'unknown'}); 
+  	logger.error({data:'uncaughtException', error: err.stack}); 
 });
 
 app.listen(app.get('port'), function() 

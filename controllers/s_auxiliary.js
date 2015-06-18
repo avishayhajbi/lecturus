@@ -539,7 +539,7 @@ exports.followedUsers = function(req, res, next)
                 //check if failure occurred during the search
                 if (err)
                 {
-                    logger.error("getTopRated:failure occurred while searching for the sessions, the error: ", err);
+                    logger.error("followedUsers:failure occurred while searching for the sessions, the error: ", err);
                     r.status = 0;
                     r.desc = "failure occurred while searching for the sessions.";
                     res.json(r);
@@ -787,7 +787,7 @@ exports.getUserFavorites = function(req, res, next)
                 
                 else if (docs)
                 {
-                    var temp = orderByArray(docs,arr);
+                    var temp = orderByArray(docs,favorites);
                     createUsersJson(docs, function(result)
                     {           
                         r.users = result;

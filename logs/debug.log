@@ -25,3 +25,4 @@
 {"5":{"tags":[{"id":"1434066465815","timestamp":"5","text":"avishay","email":"cohen_rami@hotmail.com","rating":{"positive":{"users":[],"value":0},"negative":{"users":[],"value":0}}}]},"timestamp":"2015-06-11T23:47:45.817Z","level":"debug","message":""}
 {"5":{"tags":[{"id":"1434066501992","timestamp":"5","text":"avishay","email":"cohen_rami@hotmail.com","rating":{"positive":{"users":[],"value":0},"negative":{"users":[],"value":0}}}]},"timestamp":"2015-06-11T23:48:21.993Z","level":"debug","message":""}
 {"data":"page not found","url":"/auxiliary/getUserFavorites","level":"debug","message":"","timestamp":"2015-06-18T09:42:49.432Z"}
+{"0":"iofirag@gmail.com","1":"cohen_rami@hotmail.com","2":"vandervidi@gmail.com","3":"amnoid@gmail.com","level":"debug","message":"followedUsers:followed user to find","timestamp":"2015-06-18T09:53:15.064Z"}
