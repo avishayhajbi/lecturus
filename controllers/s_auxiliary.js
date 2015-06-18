@@ -249,6 +249,17 @@ exports.getSessionsByCourse = function(req, res, next)
                     return;
                 });
             }
+            else
+            {
+                r.users = [];
+                r.status = 0;
+                r.length=0;
+                r.count = 0;
+                r.res = [];
+                r.desc = "get videos.";
+                res.json(r); 
+                return;
+            }
         });         
     });
 };
@@ -339,7 +350,7 @@ exports.searchSessions = function(req, res, next)
             }
             else
             {
-                r.status = 1;
+                r.status = 0;
                 r.count = 0;
                 r.length=0;
                 r.res = docs;
@@ -426,7 +437,16 @@ exports.getTopRated = function(req, res, next)
                     res.json(r);
                     return;
                 });
-
+            }
+            else
+            {
+                r.users = [];
+                r.status = 0;
+                r.length=0;
+                r.res = [];
+                r.desc = "get videos.";
+                res.json(r);
+                return; 
             }
     });   
 };
@@ -649,14 +669,17 @@ exports.getUserSessions = function(req, res, next)
                         r.desc = "get videos.";
                         res.json(r); 
                         return;
-                    });
-                    /*console.log("all videos found for "+data.userId);
+                    });                     
+                }
+                else
+               {
+                    r.users = [];
                     r.status = 1;
-                    r.length=result.length;
-                    r.res = result;
-                    r.desc = "get user videos.";
+                    r.length=0;
+                    r.res = [];
+                    r.desc = "get videos.";
                     res.json(r); 
-                    return;   */                      
+                    return; 
                 }
             });
         }
@@ -774,16 +797,17 @@ exports.getUserFavorites = function(req, res, next)
                         res.json(r); 
                         return;
                     });
-                    /*
-                    console.log("favorites videos found for "+ data.userId);
-                    r.status = 1;
-                    r.length=docs.length;
-                    r.res = docs;
+                }
+                else
+                {
+                    r.users = [];
+                    r.status = 0;
+                    r.length=0;
+                    r.res = [];
                     r.desc = "get videos.";
                     res.json(r); 
-                    return;  */                       
+                    return;
                 }
-                
             });                        
         }
     }); 
