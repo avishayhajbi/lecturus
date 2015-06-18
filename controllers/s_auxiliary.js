@@ -1016,7 +1016,7 @@ exports.lastViews = function(req, res, next)
                         logger.error("lastViews:user: " + userId + " last views were successfully returned.");
                         r.users = result;
                         r.status = 1;
-                        r.length = docs.length;
+                        r.length = sessionDocs.length;
                         r.res = orderedLastViews;
                         r.desc = "user: " + userId + " last views were successfully returned.";
                         res.json(r); 
