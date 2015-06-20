@@ -1059,7 +1059,7 @@ orderByArray = function(unsortedSessions, sessionsViewedByUser)
             }
         }
     }
-    return sortedSessions;
+    return unsortedSessions;
 };
 /*
 orderByArray = function(docs, arr)
