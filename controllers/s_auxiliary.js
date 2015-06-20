@@ -1048,9 +1048,12 @@ orderByArray = function(unsortedSessions, sessionsViewedByUser)
             if (unsortedSessions[j].sessionId == sessionsViewedByUser[i])
             {
                 //add current session to the answer array
-                sortedSessions.push(unsortedSessions[i]);
+                var doc = unsortedSessions[i];
+                unsortedSessions[i] = unsortedSessions[j];
+                //sortedSessions.push(unsortedSessions[i]);
                 //remove current session from the unsorted array
                 //unsortedSessions.splice(j, 1);
+                unsortedSessions[j]=doc;
                 //continue to the next session in viewed by user array
                 continue;
             }
