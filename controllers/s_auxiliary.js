@@ -1042,7 +1042,7 @@ orderByArray = function(unsortedSessions, sessionsViewedByUser)
     for (var i = 0 ; i < sessionsViewedByUser.length ; i++)
     {
         //iterate through the array of unsorted sessions
-        for (var j = i ; j < unsortedSessions.length ; j++)
+        for (var j = 0 ; j < unsortedSessions.length ; j++)
         {
             //seek for match between session id in unsorted array and the session in array viewed by user
             if (unsortedSessions[j].sessionId == sessionsViewedByUser[i])
