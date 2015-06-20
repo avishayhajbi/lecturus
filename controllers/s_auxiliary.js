@@ -321,7 +321,7 @@ exports.searchSessions = function(req, res, next)
         sessionPreview);
     
     query.count(function(err, count) {
-        query.sort({timestamp:-1}).skip(data.from).limit(data.to-data.from).exec('find', function(err, docs)
+        query.sort({timestamp:-1}).skip(from).limit(to - from).exec('find', function(err, docs)
         {
             //check if failure occurred during the search
             if (err)
@@ -770,8 +770,8 @@ exports.getUserFavorites = function(req, res, next)
         	{ $and : [
                 { sessionId : { $in : favorites } },
                 { org : userObj.org },
-                { stopTime : { $gt : 0 } } ]
-            }, sessionPreview)
+                { stopTime : { $gt : 0 } } ] },
+            sessionPreview)
             .skip(from).limit(to - from)
             .exec(function(err, docs)
             {
@@ -789,10 +789,10 @@ exports.getUserFavorites = function(req, res, next)
                 {
                     createUsersJson(docs, function(result)
                     {           
-                        var temp = orderByArray(docs,favorites);
+                        var temp = orderByArray(docs, favorites);
                         r.users = result;
                         r.status = 1;
-                        r.length=docs.length;
+                        r.length = docs.length;
                         r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
@@ -803,7 +803,7 @@ exports.getUserFavorites = function(req, res, next)
                 {
                     r.users = [];
                     r.status = 0;
-                    r.length=0;
+                    r.length = 0;
                     r.res = [];
                     r.desc = "get videos.";
                     res.json(r); 

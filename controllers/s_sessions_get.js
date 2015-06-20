@@ -68,7 +68,9 @@ exports.createSession = function(req, res, next)
         return;
     }
 
-  db.model('users').find( { email : data.email },
+    //search for the user document in the users collection
+    db.model('users').find(
+    { email : data.email },
     { _id:false },
     function (err, result)
     {
@@ -86,14 +88,15 @@ exports.createSession = function(req, res, next)
     // if the user do not exist
     if (!result.length)
     {
-      console.log("the user does not exist: "+data.email);
-      r.uid = 0;
-      r.status = 0;
-      r.desc = "the user does not exist: "+data.email;
-      res.json(r);
-      return;
+        console.log("the user does not exist: "+data.email);
+        r.uid = 0;
+        r.status = 0;
+        r.desc = "the user does not exist: "+data.email;
+        res.json(r);
+        return;
     }
-    else{
+    else
+    {
       data.sessionId = uniqueid;
       data.owner = data.email;
       data.timestamp = date;
@@ -253,16 +256,7 @@ exports.addMembers = function(req,res,next)
         res.json(r);
         return;   
     }
-    /*
-    else  
-    {
-      (newParticipants).forEach (function (currParticipant) 
-      {
-          console.log("ADDMEMBERS:new participant: " + currParticipant);
-      });
-  }
-  */
-  
+
     if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )  // if data.sessionId property exists in the request is not empty
     {
     console.log("ADDMEMBERS:sessionId propery does not exist in the query or it is empty");
