@@ -23,6 +23,7 @@ exports.updateSession = function (req, res, next)
 {
     //create new empty variables
     var data, sessionId, userId;
+    var r = {};
 
     //try to parse the received data
     try
