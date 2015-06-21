@@ -108,7 +108,7 @@
 
     
 
-    <h4 class="name" id="~addRemoveFavorites"><span class="type-signature">(inner) </span>addRemoveFavorites<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~addRemoveFavorites"><span class="type-signature">(inner) </span>addRemoveFavorites<span class="signature">(userId, sessionId)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -128,48 +128,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -239,13 +197,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -280,7 +231,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line635">line 635</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line817">line 817</a>
     </li></ul></dd>
     
 
@@ -333,14 +284,14 @@
 
     
 
-    <h4 class="name" id="~checkCoursesChanges"><span class="type-signature">(inner) </span>checkCoursesChanges<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~checkCoursesChanges"><span class="type-signature">(inner) </span>checkCoursesChanges<span class="signature">(org, check)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
 
 
 <div class="description">
-    check if the version is changed
+    check if the version has changed
 </div>
 
 
@@ -353,48 +304,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -464,13 +373,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -505,7 +407,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line68">line 68</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line83">line 83</a>
     </li></ul></dd>
     
 
@@ -558,7 +460,7 @@
 
     
 
-    <h4 class="name" id="~followedUsers"><span class="type-signature">(inner) </span>followedUsers<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~followedUsers"><span class="type-signature">(inner) </span>followedUsers<span class="signature">(email, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -578,48 +480,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -712,13 +572,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -753,7 +606,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line358">line 358</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line454">line 454</a>
     </li></ul></dd>
     
 
@@ -806,7 +659,7 @@
 
     
 
-    <h4 class="name" id="~getCoursesByOrg"><span class="type-signature">(inner) </span>getCoursesByOrg<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~getCoursesByOrg"><span class="type-signature">(inner) </span>getCoursesByOrg<span class="signature">(org)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -849,48 +702,6 @@
 
         <tr>
             
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
                 <td class="name"><code>org</code></td>
             
 
@@ -908,13 +719,6 @@
             
 
             <td class="description last">shenkar</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-            </td>
         </tr>
 
     
@@ -1008,7 +812,7 @@
 
     
 
-    <h4 class="name" id="~getSessionsByCourse"><span class="type-signature">(inner) </span>getSessionsByCourse<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~getSessionsByCourse"><span class="type-signature">(inner) </span>getSessionsByCourse<span class="signature">(email, degree, course, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -1028,48 +832,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -1208,13 +970,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -1249,7 +1004,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line136">line 136</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line172">line 172</a>
     </li></ul></dd>
     
 
@@ -1302,7 +1057,7 @@
 
     
 
-    <h4 class="name" id="~getTopRated"><span class="type-signature">(inner) </span>getTopRated<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~getTopRated"><span class="type-signature">(inner) </span>getTopRated<span class="signature">(org, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -1322,48 +1077,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -1456,13 +1169,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -1497,7 +1203,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line292">line 292</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line365">line 365</a>
     </li></ul></dd>
     
 
@@ -1550,7 +1256,7 @@
 
     
 
-    <h4 class="name" id="~getUserFavorites"><span class="type-signature">(inner) </span>getUserFavorites<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~getUserFavorites"><span class="type-signature">(inner) </span>getUserFavorites<span class="signature">(userId, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -1593,48 +1299,6 @@
 
         <tr>
             
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
                 <td class="name"><code>userId</code></td>
             
 
@@ -1704,13 +1368,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -1745,7 +1402,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line540">line 540</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line690">line 690</a>
     </li></ul></dd>
     
 
@@ -1798,7 +1455,7 @@
 
     
 
-    <h4 class="name" id="~getUserSessions"><span class="type-signature">(inner) </span>getUserSessions<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~getUserSessions"><span class="type-signature">(inner) </span>getUserSessions<span class="signature">(userId, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -1841,48 +1498,6 @@
 
         <tr>
             
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
                 <td class="name"><code>userId</code></td>
             
 
@@ -1952,13 +1567,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -1993,7 +1601,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line451">line 451</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line577">line 577</a>
     </li></ul></dd>
     
 
@@ -2046,7 +1654,7 @@
 
     
 
-    <h4 class="name" id="~lastViews"><span class="type-signature">(inner) </span>lastViews<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~lastViews"><span class="type-signature">(inner) </span>lastViews<span class="signature">(userId, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -2089,48 +1697,6 @@
 
         <tr>
             
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
                 <td class="name"><code>userId</code></td>
             
 
@@ -2200,13 +1766,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -2241,7 +1800,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line734">line 734</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line916">line 916</a>
     </li></ul></dd>
     
 
@@ -2294,7 +1853,7 @@
 
     
 
-    <h4 class="name" id="~searchSessions"><span class="type-signature">(inner) </span>searchSessions<span class="signature">(data)</span><span class="type-signature"> &rarr; {json}</span></h4>
+    <h4 class="name" id="~searchSessions"><span class="type-signature">(inner) </span>searchSessions<span class="signature">(name, org, from, to)</span><span class="type-signature"> &rarr; {json}</span></h4>
 
     
 
@@ -2314,48 +1873,6 @@
 
     <h5>Parameters:</h5>
     
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>data</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">json</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The object with the data
-                <h6>Properties</h6>
-                
 
 <table class="params">
     <thead>
@@ -2471,13 +1988,6 @@
     </tbody>
 </table>
 
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
 
 
 
@@ -2512,7 +2022,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line210">line 210</a>
+        <a href="s_auxiliary.js.html">s_auxiliary.js</a>, <a href="s_auxiliary.js.html#line267">line 267</a>
     </li></ul></dd>
     
 
@@ -2582,7 +2092,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Fri Jun 12 2015 12:23:54 GMT+0300 (Jerusalem Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Sun Jun 21 2015 12:40:20 GMT+0300 (Jerusalem Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

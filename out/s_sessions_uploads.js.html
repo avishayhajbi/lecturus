@@ -44,163 +44,144 @@ var ffmpegCommand = ffmpeg();
  * @function uploadTags
  * @desc This function will find the suitable 'session' document in 'sessions' collection. 
  *  Tags could be uploaded only after the session was stated and until it was ended.
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {array} data.tags - [{timestamp: number , text: text}]
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {array} tags - [{timestamp: number , text: text}]
  * @returns {json} status: 1/0
  */
 exports.uploadTags = function(req, res, next)
 {
+	//create new empty variables
   	var sessionId, email, tags;
-  	var currentTime = new Date().getTime();
-  	var r = { };
+  	var r = { };				//response variable
   	var tagsToAdd = [ ];
 
-  	//try to parse json data
+	//save the current time
+	var currentTime = new Date().getTime();
+
+  	//try to parse the received data
     try
     {
-      sessionId = req.body.sessionId;
-      tags = req.body.tags;
-      email = req.body.email;
+		sessionId = req.body.sessionId;
+		tags = req.body.tags;
+		email = req.body.email;
     }  
-    catch( err )
-    {
-      console.log("UPLOADTAGS: failure while parsing the request, the error:" + err);
-      r.status = 0;
-      r.desc = "failure while parsing the request";
-      res.json(r);
-      return;
-  }
+	catch( err )
+	{
+		logger.error("uploadTags:failure occurred while parsing the request, the error:" + err);
+		r.status = 0;
+		r.desc = "failure occurred while parsing the request.";
+		res.json(r);
+		return;
+  	}
 
-    //TODO. Remove
-    //console.log("session id: " + sessionId);
-    //console.log("user email: " + email);
-    //console.log("session tags: " + tags);
-    
+	logger.debug("session id: " + sessionId);
+	logger.debug("user email: " + email);
+	logger.debug("session tags: " + tags);
+
+	//check that all needed properties were received in the request
     if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-      		typeof tags === 'undefined' || tags == null || tags == "" ||    //TODO. add validation for array correctness
-      		typeof email === 'undefined' || email == null || email == ""  )   // if one of the properties do not exists in the request and it is empty
+      		typeof tags === 'undefined' || tags == null || tags == "" ||    //TODO. check that array is not empty
+      		typeof email === 'undefined' || email == null || email == ""  )
   	{
-      	console.log("UPLOADTAGS:request must contain sessionId, email and tags: [] properties.");
+		logger.error("uploadTags:request must contain sessionId, email and tags: [] properties.");
       	r.status = 0; 
         r.desc = "request must contain sessionId, email and tags: [] properties.";
         res.json(r); 
         return;
 	}
- 
-    MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, nativeDB)
-  	{
-    	console.log("UPLOADTAGS:Trying to connect to the db");
-    
-      	//check if connection failed
-      	if (err) 
-      	{
-        	console.log("MongoLab connection error: ", err);
-        	r.status = 0;
-        	r.desc = "failed to connect to MongoLab.";
-        	res.json(r);
-        	return;
-      	}
-    
-      //specify the collection
-        var collection = nativeDB.collection('sessions');
+
+	//TODO do all the insert in a one query
+
+	//search for the session document in the sessions collection
+	db.model('sessions').findOne(
+	{ sessionId : sessionId },
+	function(err, sessionObj)
+	{
+		//check if error occurred during the search
+		if (err)
+		{
+			logger.error("uploadTags:failure occurred during the search, the error: ", err);
+			r.status = 0;
+			r.desc = "failure occurred during the search.";
+			res.json(r);
+			return;
+		}
         
-        //find needed session document
-        collection.findOne(
-      	{ sessionId : sessionId },
-      	{ _id: false }, 
-      	{upsert:false ,safe:true , fsync: true},    
-    	function(err, sessionObj)
-    	{
-      		//check if error occured during session search
-      		if (err) 
-        	{
-          		console.log("UPLOADTAGS:failure during session search, the error: ", err);
-          		r.status = 0;
-          		r.desc = "failure during session search";
-          		res.json(r);
-          		nativeDB.close(); 
-          		return;
-        	}
-        
-        	//check that the session was found
-          	if ( !sessionObj )
-          	{
-            	console.log("UPLOADTAGS:session: " + sessionId + " was not found.");
-            	r.status = 0;
-            	r.desc = "session: " + sessionId + " was not found";
-            	res.json(r);
-            	nativeDB.close();
-            	return;
-        	}
-        	else
-        	{
-        		console.log("UPLOADTAGS:delay: " + arrangeElementsDelayMS);
-        		console.log("UPLOADTAGS:current time: " + currentTime);
-        		console.log("UPLOADTAGS:session stop time: " + sessionObj.stopTime);
-        		console.log("UPLOADTAGS:period of time from session stop: " + (currentTime - sessionObj.stopTime));
+		//check that the session was found
+		if ( !sessionObj )
+		{
+			logger.error("uploadTags:session: " + sessionId + " was not found.");
+			r.status = 0;
+			r.desc = "session: " + sessionId + " was not found";
+			res.json(r);
+			return;
+		}
+		else
+		{
+			logger.debug("uploadTags:delay: " + arrangeElementsDelayMS);
+			logger.debug("uploadTags:current time: " + currentTime);
+			logger.debug("uploadTags:session stop time: " + sessionObj.stopTime);
+			logger.debug("uploadTags:period of time from session stop: " + (currentTime - sessionObj.stopTime));
 	
-				//check that 
-	            if (sessionObj.startTime == 0 || ( sessionObj.stopTime != 0 &amp;&amp; (currentTime - sessionObj.stopTime > arrangeElementsDelayMS) ) )
-	            {
-	              	console.log("UPLOADTAGS:session: " + sessionId + " is not in progress.");
-	              	r.status = 0;
-	              	r.desc = "session: " + sessionId + " is not in progress";
-	              	res.json(r);
-	              	nativeDB.close(); 
-	              	return;           
-	            }
+			//check that the session is still in progress
+			if (sessionObj.startTime == 0 || ( sessionObj.stopTime != 0 &amp;&amp; (currentTime - sessionObj.stopTime > arrangeElementsDelayMS) ) )
+			{
+				logger.error("uploadTags:session: " + sessionId + " is not in progress.");
+				r.status = 0;
+				r.desc = "session: " + sessionId + " is not in progress";
+				res.json(r);
+				return;
+			}
 
-				//check that the uploader belong to the session
-				if (sessionObj.participants.indexOf(email) != -1 || sessionObj.owner == email )
-            	{
-              		(tags).forEach (function (tag) 
-              		{
-	                	tag.email = email;
-	                  	tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
-	                  	console.log("UPLOADTAGS:tag: " + tag);
-	                  	tagsToAdd.push(tag);
-                	});
+			//check that the uploader belongs to the session
+			if (sessionObj.participants.indexOf(email) != -1 || sessionObj.owner == email )
+			{
+				//create an object that suits the structure for each tag received in the request
+				(tags).forEach (function (tag)
+				{
+					//associate the tag with the uploader
+					tag.email = email;
+					//set rating properties
+					tag.rating = { positive : { users : [], value : 0 }, negative : { users : [], value : 0 } };
+					//add new created tag to the temporary list
+					tagsToAdd.push(tag);
+				});
 
-              
-              		collection.update( 
-          			{ sessionId : sessionId }, 
-          			{ $push: { tags: { $each : tagsToAdd } } }, 
-          			//{ upsert : false, safe : true, fsync : true }, 
-              		function(err, obj) 
-              		{  
-                		//console.log("UPLOADTAGS: save");
-                		if (err)
-                		{
-                      		console.log("UPLOADTAGS:failure session save, the error: ", err);
-                      		r.status = 0;
-                      		r.desc = "failure session save";
-                      		res.json(r);
-                      		nativeDB.close();   
-                      		return;           
-                  		}
+              	//update the session document
+                db.model('sessions').update(
+				{ sessionId : sessionId },
+          		{ $push: { tags: { $each : tagsToAdd } } },
+              	function(err, obj) 
+				{
+					logger.debug("uploadTags:entered save part.");
+					//check if failure occurred during the save
+					if (err)
+					{
+						logger.error("uploadTags:failure occurred during the save, the error: ", err);
+						r.status = 0;
+						r.desc = "failure occurred during the save.";
+						res.json(r);
+						return;
+					}
                   		
-	                    console.log("UPLOADTAGS:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
-                    	r.status = 1;
-	                    r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
-	                    res.json(r);
-	                    nativeDB.close(); 
-	                    return; 
-                	});
-            	}
-            	else
-            	{
-	                console.log("UPLOADTAGS:user: " + email + " does not participate in the session: " + sessionId);
-	                r.status = 0;
-	                r.desc = "user: " + email + " does not participate in the session: " + sessionId;
-	                res.json(r);
-	                nativeDB.close(); 
-	                return;
-              	}
-          	}    
-    	});
-  	}); 
+					logger.info("uploadTags:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
+					r.status = 1;
+					r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
+					res.json(r);
+					return;
+				});
+			}
+			else
+			{
+				logger.error("uploadTags:user: " + email + " does not participate in the session: " + sessionId);
+				r.status = 0;
+				r.desc = "user: " + email + " does not participate in the session: " + sessionId;
+				res.json(r);
+				return;
+			}
+		}
+	});
 };
 
 /**
@@ -208,170 +189,171 @@ exports.uploadTags = function(req, res, next)
  * @memberof session
  * @function uploadImage
  * @desc insert image into session id if recordStarts true
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {number} data.timastamp - {0-9}*
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {number} timastamp - {0-9}*
  * @returns {json} status: 1/0
  */
 exports.uploadImage = function(req, res, next)
 {
-  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-    var uniqueid = new Date().getTime()+userip;
+	//create new empty variables
     var sessionId, timestamp, email; 
-    var file; //store file information
-    var form = new formidable.IncomingForm();
+    var file; 									//store file information
     var r = { };
+
+	//save user ip
+	var userip = req.connection.remoteAddress.replace(/\./g , '');
+
+	//create unique id for the image
+	var uniqueid = new Date().getTime() + userip;
+
+	//create new incoming form object
+	var form = new formidable.IncomingForm();
 
 	//parse the request using formidable module
     form.parse(req, function(error, fields, files) 
     {
-      	console.log('UPLOADIMAGE:parse.');
+      	logger.info("uploadImage:enter parse function.");
       	
-  		//
+  		//check if error occurred during the parse
 		if (error) 
       	{
-        	console.log("UPLOADIMAGE:error occured wrile receiving an image, error: ", error);
+        	logger.error("uploadImage:error occurred while receiving an image, the error is: " + error);
         	r.status = 0;
-        	r.desc = "error occured wrile receiving an image";
+        	r.desc = "error occurred while receiving an image.";
         	res.json(r);
         	return;
       	}
-      	
-        //TODO. REMOVE - print file information 
-        console.log("UPLOADIMAGE:files:", JSON.stringify(files));
-        console.log("UPLOADIMAGE:fields:", JSON.stringify(fields));
-        
+
+        logger.debug("uploadImage:files:", JSON.stringify(files));
+		logger.debug("uploadImage:fields:", JSON.stringify(fields));
+
+		//save the data received in the request
         sessionId = fields.sessionId;
         timestamp = fields.timestamp;
         email = fields.email;
 		file = files.file; 
   	});
   
-  	/* TODO. REMOVE - writen only for debug
+  	/* TODO. REMOVE - written only for debug purpose
     form.on('progress', function(bytesReceived, bytesExpected) 
     {
       var percent_complete = (bytesReceived / bytesExpected) * 100;
       console.log(percent_complete.toFixed(2));
     });
 	*/
-	
+
+	//check for errors during the transmission
 	form.on('error', function(err) 
     {
-      	console.log("UPLOADIMAGE:error." + err);
-      	console.error(err);
-      	
-  		//
-		if (err) 
-      	{
-        	console.log("UPLOADIMAGE:error occured wrile receiving an image, error: ", err);
-        	r.status = 0;
-        	r.desc = "error occured wrile receiving an image";
-        	res.json(r);
-        	return;
-      	}
+      	logger.error("uploadImage:error occurred during the transmission of an image, the error is: " + err);
+		r.status = 0;
+		r.desc = "error occurred during the transmission of an image.";
+		res.json(r);
+		return;
     });
-  
+
+	//check for the end of the transmission
   	form.on('end', function(error, fields, files) 
     {
-    	//var r = { };
-    	var imageToAdd = { };
-      	console.log('UPLOADIMAGE:end.');
-      
-      	//temporary location of the uploaded file 
-      	var temp_path = this.openedFiles[0].path;
-      	console.log("UPLOADIMAGE:uploaded file temp path: " + temp_path);
+		logger.info("uploadImage:enter end function.");
 
-      	//file name of the uploaded file
+		//create new empty variable
+    	var imageToAdd = { };
+      
+      	//save the temporary location of the uploaded image file
+      	var temp_path = this.openedFiles[0].path;
+		logger.debug("uploadImage:uploaded file temp path: " + temp_path);
+
+      	//save the file name of the uploaded image file
       	var file_name = this.openedFiles[0].name;
-      	console.log("UPLOADIMAGE: uploaded file name: " + file_name);
+		logger.debug("uploadImage: uploaded file name: " + file_name);
 
       	var stream = cloudinary.uploader.upload_stream(function(result) 
-		{ 
+		{
+			/*
           	//connect to the database
       		MongoClient.connect(config.mongoUrl, {native_parser : true}, function(err, nativeDB) 
           	{
               	//check if mongodb connection failed return error message and exit
         		if (err) 
               	{
-                	console.log("UPLOADIMAGE:connection error ",err);
+                	logger.error("UPLOADIMAGE:connection error ",err);
                 	r.status = 0;
                 	r.desc = "err db";
                 	res.json(r);
                 	return;
               	}	
-              
+
               	//select users collection
               	var collection = nativeDB.collection('sessions');
-          
-              	// find session from sessions collection
-              	collection.findOne({ sessionId : sessionId }, 
-              	function (err, sessionObj) 
-              	{
-          			//check if error occured during session search
-         			if (err) 
-            		{
-              			console.log("UPLOADIMAGE:failure during session search, the error: ", err);
-              			r.status = 0;
-              			r.desc = "failure during session search.";
-              			res.json(r);
-              			nativeDB.close(); 
-              			return;
-        			}
+			*/
 
-					//check that the session was found
-              		if ( !sessionObj )
-              		{
-                		console.log("UPLOADIMAGE:session: " + sessionId + " was not found.");
-                		r.status = 0;
-                		r.desc = "session: " + sessionId + " was not found.";
-                		res.json(r);
-                		nativeDB.close();
-                		return;
-            		}
-            		else                // if the session exists, update
-                	{              		
-						//check that the uploader belong to the session
-						if (sessionObj.participants.indexOf(email) == -1 &amp;&amp; sessionObj.owner != email )
-            			{
-	                		console.log("UPLOADIMAGE:user: " + email + " does not belong to the session: "+ sessionId);
-	                		r.status = 0;
-	                		r.desc = "user: " + email + " does not belong to the session: "+ sessionId;
-	                		res.json(r);
-	                		nativeDB.close();
-	                		return;
-            			}
-            			
-	                	imageToAdd.email = email;
-	                	imageToAdd.timestamp = timestamp;
-	                	imageToAdd.url = result.url;
-	                  	console.log("UPLOADIMAGE:image: " + imageToAdd);
+			//search for the session document in the sessions collection
+			db.model('sessions').findOne(
+			{ sessionId : sessionId },
+			function (err, sessionObj)
+			{
+				//check if an error occurred during the search
+				if (err)
+				{
+					logger.error("uploadImage:failure occurred during the search, the error: ", err);
+					r.status = 0;
+					r.desc = "failure occurred during the search.";
+					res.json(r);
+					return;
+				}
+
+				//check that the session was found
+				if ( !sessionObj )
+				{
+					logger.error("uploadImage:session: " + sessionId + " was not found.");
+					r.status = 0;
+					r.desc = "session: " + sessionId + " was not found.";
+					res.json(r);
+					return;
+				}
+				else                // if the session exists, update
+				{
+					//check that the uploader belongs to the session
+					if (sessionObj.participants.indexOf(email) == -1 &amp;&amp; sessionObj.owner != email )
+					{
+						logger.error("uploadImage:user: " + email + " does not belong to the session: " + sessionId);
+						r.status = 0;
+						r.desc = "user: " + email + " does not belong to the session: " + sessionId;
+						res.json(r);
+						return;
+					}
+
+					//update the image object so it would fit to the scheme
+					imageToAdd.email = email;
+					imageToAdd.timestamp = timestamp;
+					imageToAdd.url = result.url;
+					logger.debug("uploadImage:new image object is: " + imageToAdd);
               
-                    	//insert new image to sessions collection 
-                   		collection.update( 
-                   		{ sessionId : sessionId }, 
-                    	{ $push: { images: imageToAdd } },
-                    	//{ upsert : true, safe : true, fsync : true}, 
-                    	function( err, result ) 
-                    	{ 
-                  			if (err)
-                  			{
-                        		console.log("UPLOADIMAGE:failure occured while saving the session, the error: ", err);
-		                        r.status = 0;
-		                        r.desc = "failure occured while saving the session.";
-		                        res.json(r);
-		                        nativeDB.close();   
-		                        return;           
-                    		}
-                    
-	                        console.log("UPLOADIMAGE:list of images was updated.");
-	                        r.status = 1 ;
-	                        r.desc = "list of images was updated.";
-	                        nativeDB.close();
-	                        res.json(r);
-                    	});
-                  	}
-              	});
+                    //update the session document - insert new image object to sessions collection
+					db.model('sessions').update(
+					{ sessionId : sessionId },
+					{ $push : { images : imageToAdd } },
+					function( err, result )
+					{
+						//check if an error occurred during the save
+						if (err)
+						{
+							logger.error("uploadImage:failure occurred while saving the session, the error: ", err);
+							r.status = 0;
+							r.desc = "failure occurred while saving the session.";
+							res.json(r);
+							return;
+						}
+
+						logger.info("uploadImage:list of images was updated.");
+						r.status = 1 ;
+						r.desc = "list of images was updated.";
+						res.json(r);
+						return;		//TODO. should i remove this???
+					});
+				}
       		});
     	},
     	{
@@ -386,35 +368,43 @@ exports.uploadImage = function(req, res, next)
   	});
 };
 
-
 /**
  * @inner
  * @memberof session
  * @function uploadAudio
  * @desc insert audio into session id if recordStarts true
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {number} data.timastamp - {0-9}*
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {number} timastamp - {0-9}*
  * @returns {json} status: 1/0
  */
 exports.uploadAudio = function(req, res, next)
 {
-  	var userip = req.connection.remoteAddress.replace(/\./g , '');
-  	var uniqueid = new Date().getTime()+userip;
+	logger.info("uploadAudio:enter the main function.");
+
+	//create new empty variables
   	var sessionId;
   	var timestamp, email, file, audioLength;
-  	console.log('-->UPLOAD AUDIO&lt;--');
+	var r = { };
+
+	//create new incoming form object
   	var form = new formidable.IncomingForm();
+
+	//save user ip
+	var userip = req.connection.remoteAddress.replace(/\./g , '');
+
+	//create unique id for the audio
+	var uniqueid = new Date().getTime() + userip;
 
   	form.parse(req, function(error, fields, files) 
   	{
-    	console.log('-->PARSE&lt;--');
+		logger.info("uploadAudio:enter parse function.");
       
-      	//logs the file information 
-      	console.log("files", JSON.stringify(files));
-      	console.log("fields", JSON.stringify(fields));
-      	sessionId= fields.sessionId;
+      	logger.debug("files", JSON.stringify(files));
+		logger.debug("fields", JSON.stringify(fields));
+
+		//save the data received in the request
+      	sessionId = fields.sessionId;
       	timestamp = fields.timestamp;
       	email = fields.email;
       	audioLength = parseInt(fields.audioLength, 10);
@@ -430,117 +420,138 @@ exports.uploadAudio = function(req, res, next)
 	
     form.on('error', function(err) 
     {
-      	console.log("-->ERROR&lt;--");
-      	console.error(err);
+		logger.error("uploadAudio:error occurred during the transmission of an audio, the error is: " + err);
+		r.status = 0;
+		r.desc = "error occurred during the transmission of an audio.";
+		res.json(r);
+		return;
   	});
 
     form.on('end', function(error, fields, files) 
     {
-      console.log('-->END&lt;--');
-      file = this.openedFiles[0];
-      /* Temporary location of our uploaded file */
-      var temp_path = this.openedFiles[0].path;
-      console.log("temp_path: " + temp_path);
+		logger.info("uploadAudio:enter end function.");
 
-      /* The file name of the uploaded file */
-      var file_name = this.openedFiles[0].name;
-      console.log("file_name: " + file_name);
+		//create new empty variable
+		var audioToAdd = { };
 
-      var stream = cloudinary.uploader.upload_stream(function(result) 
-      { 
-          console.log(result);  //TODO. Remove
-          var r={};
-      
-          MongoClient.connect(config.mongoUrl, {native_parser:true}, function(err, dataBase) 
-          {
+      	//save the temporary location of the uploaded audio file
+      	var temp_path = this.openedFiles[0].path;
+     	logger.debug("uploadAudio:uploaded file temp path: " + temp_path);
 
-            // if mongodb connection failed return error message and exit
-            if (err) 
+      	//save the file name of the uploaded audio file
+     	var file_name = this.openedFiles[0].name;
+		logger.debug("uploadAudio:uploaded file name: " + file_name);
+
+      	var stream = cloudinary.uploader.upload_stream(function(result)
+      	{
+			//search for the session document in the sessions collection
+			db.model('sessions').findOne(
+			{ sessionId : sessionId },
+			function (err, sessionObj)
             {
-                console.log("connection error ",err);
-                r.status=0;
-                r.desc="err db";
-                res.json(r);
-                return;
-            }
-            
-            // if mongodb connection success asking for users collection
-            var collection = dataBase.collection('sessions');
-            // find user id from users collection
-            collection.find( { sessionId : sessionId }, { _id : false }).toArray(function (err, docs) 
-            {
-                // if the session exist update
-                if (docs.length)
-                {
-                    //email url startAt length
-                    docs[0].audios.push({
-                      length: audioLength,
-                      timestamp: timestamp,
-                      email: email,
-                      url: result.url,
-                      startAt: (docs[0].audios.length)?docs[0].audios[docs[0].audios.length-1].startAt + docs[0].audios[docs[0].audios.length-1].length : 0 
-                    });
-                    
-                    docs[0].totalSecondLength+=audioLength;
-                    // insert new user to users collection 
-                    collection.update( { sessionId : sessionId }, { $set : { audios : docs[0].audios , totalSecondLength : docs[0].totalSecondLength } }, {upsert : true, safe : true, fsync : true}, function(err, result) 
-                    { 
-                        console.log("audio list updated");
+				//check if failure occurred during the search
+				if (err)
+				{
+					logger.error("uploadAudio:failure occurred while searching for the session, the error: ", err);
+					r.status = 0;
+					r.desc = "failure occurred while searching for the session.";
+					res.json(r);
+					return;
+				}
+
+                //check that the session exists
+                if ( !sessionObj )
+				{
+					logger.error("uploadAudio:session: " + sessionId + " was not found.");
+					r.status = 0;
+					r.desc = "session: " + sessionId + " was not found.";
+					res.json(r);
+					return;
+				}
+				else
+				{
+					//check that the uploader belongs to the session
+					if (sessionObj.participants.indexOf(email) == -1 &amp;&amp; sessionObj.owner != email )
+					{
+						logger.error("uploadAudio:user: " + email + " does not belong to the session: " + sessionId);
+						r.status = 0;
+						r.desc = "user: " + email + " does not belong to the session: " + sessionId;
+						res.json(r);
+						return;
+					}
+
+					//update the audio object so it would fit to the scheme
+					audioToAdd.length = audioLength;
+					audioToAdd.timestamp = timestamp;
+					audioToAdd.email = email;
+					audioToAdd.url = result.url;
+					//set the position of the current audio file (0 = beginning of the session)
+					audioToAdd.startAt = (sessionObj.audios.length)?sessionObj.audios[sessionObj.audios.length-1].startAt + sessionObj.audios[sessionObj.audios.length-1].length : 0;
+
+					//count session total length (time of the whole record)
+					sessionObj.totalSecondLength += audioLength;
+
+					//add new audio to the list of session audios
+					sessionObj.audios.push(audioToAdd);
+
+					//update the session document
+					db.model('sessions').update(
+					{ sessionId : sessionId },
+					{ $set : { audios : sessionObj.audios, totalSecondLength : sessionObj.totalSecondLength } },
+					{ upsert : true, safe : true, fsync : true},
+					function(err, result)
+                    {
+						//check if an error occurred during the save
+						if (err)
+						{
+							logger.error("uploadAudio:failure occurred while saving the session, the error: ", err);
+							r.status = 0;
+							r.desc = "failure occurred while saving the session.";
+							res.json(r);
+							return;
+						}
+
+                        logger.info("uploadAudio:list of audios was updated.");
                         r.status = 1;
-                        r.desc = "audio uploaded";
-                        dataBase.close();
+                        r.desc = "list of audios was updated.";
                         res.json(r);
+						//TODO. return?
                     });
-                  }
-                else 
-                { // if the session does not exist return status 0
-                    console.log("session not exist",sessionId);
-                    r.status = 0;
-                    r.desc="session not exist";
-                    dataBase.close();
-                    res.json(r);
-                }
-              });
+			  	}
+			//});
+        	});
+      	},
+      	{
+			public_id: uniqueid,
+			resource_type: 'raw',
+			format: 'mp3',
+			//format: 'amr',
+			tags: [sessionId, 'lecturus']
         });
-      },
-      {
-          public_id: uniqueid, 
-          resource_type: 'raw',
-          format: 'mp3',
-          //format: 'amr',
-          tags: [sessionId, 'lecturus']
-        });
-        
-      //var command = ffmpeg(temp_path)
-        //.audioCodec('libmp3lame') //libmp3lame libfaac
-        //.format('mp3');
- 
-      //var t = command.clone().save("./tmp/" + uniqueid + ".mp3");
-      //console.log('converted file', t);
- 
-      new ffmpeg( { source: temp_path } )
-          .toFormat('mp3')
-          .audioBitrate('128k')
-          //.audioFrequency(22050)
-          .audioChannels(2)
-          .audioCodec('libmp3lame')
-          .audioQuality(0)
-          .writeToStream(stream, function(data, err) 
-          {
-            if (err) 
-            {
-               console.log("converting failed ", sessionId);
-                r.status = 0;
-                r.desc = "converting failed";
-                res.json(r);
-                return;
-            }
-        });
-  //var file_reader = fs.createReadStream(t._currentOutput.target).pipe(stream);
-  //var file_reader = fs.createReadStream(temp_path).pipe(stream);
+
+		//convert the audio from AMR to MP3 format using FFMPEG library
+      	new ffmpeg( { source: temp_path } )
+			//calibrate the audio file using FFMPEG library
+          	.toFormat('mp3')
+          	.audioBitrate('128k')
+          	//.audioFrequency(22050)
+          	.audioChannels(2)
+          	.audioCodec('libmp3lame')
+          	.audioQuality(0)
+          	.writeToStream(stream, function(data, err)
+          	{
+				if (err)
+            	{
+               		logger.error("uploadAudio:converting AMR audio to MP3 has failed, the error is: " +  err);
+                	r.status = 0;
+                	r.desc = "converting AMR audio to MP3 has failed.";
+                	res.json(r);
+                	return;
+           		}
+        	});
+
     });
-};
-</code></pre>
+};</code></pre>
         </article>
     </section>
 
@@ -556,7 +567,7 @@ exports.uploadAudio = function(req, res, next)
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Fri Jun 12 2015 12:23:54 GMT+0300 (Jerusalem Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Sun Jun 21 2015 12:40:20 GMT+0300 (Jerusalem Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

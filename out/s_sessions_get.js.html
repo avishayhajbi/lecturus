@@ -54,50 +54,51 @@ cloudinary.config({
  * @memberof session
  * @function createSession
  * @desc create a new session
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.org - shenkar
- * @param {string} data.name - text
- * @param {string} data.description - text
- * @param {string} data.lecturer - text
- * @param {number} data.degree - {0-9}*
- * @param {number} data.course - {0-9}*
+ * @param {string} email - name@gmail.com
+ * @param {string} org - shenkar
+ * @param {string} name - text
+ * @param {string} description - text
+ * @param {string} lecturer - text
+ * @param {number} degree - {0-9}*
+ * @param {number} course - {0-9}*
  * @returns {json} status: 1/0, 
  * sessionId: new created session id,
  * timestamp: session creation time at the server
  */
-
-
 exports.createSession = function(req, res, next)
 {
-  // create timestamp and uniqeid
-  var date = new Date().getTime();
-  var userip = req.connection.remoteAddress.replace(/\./g , '');
-  var uniqueid = date + userip;
-  var r = { };
-  
-  try
-  {
-    //try to parse json data
-    var data = req.body;
-  }
-  catch( err )
-  {
-    console.log("failure while parsing the request, the error:" + err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.json(r);
-    return;
-  }
-  if ( !data.email || data.email == "" || !data.org || data.org == "" ) // if data.email and data.org property exists in the request is not empty
-  {
-    r.status = 0; 
-    r.desc = "request must contain a property email";
-    res.json(r); 
-    return;
-  }
+    // create timestamp and uniqeid
+    var date = new Date().getTime();
+    var userip = req.connection.remoteAddress.replace(/\./g , '');
+    var uniqueid = date + userip;
+    var r = { };
 
-  db.model('users').find( { email : data.email },
+    //try to parse the received data
+    try
+    {
+        var data = req.body;
+    }
+    catch( err )
+    {
+        logger.error("getUserFavorites:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if ( !data.email || data.email == "" || !data.org || data.org == "" )
+    {
+        r.status = 0;
+        r.desc = "request must contain a property email";
+        res.json(r);
+        return;
+    }
+
+    //search for the user document in the users collection
+    db.model('users').find(
+    { email : data.email },
     { _id:false },
     function (err, result)
     {
@@ -115,14 +116,15 @@ exports.createSession = function(req, res, next)
     // if the user do not exist
     if (!result.length)
     {
-      console.log("the user does not exist: "+data.email);
-      r.uid = 0;
-      r.status = 0;
-      r.desc = "the user does not exist: "+data.email;
-      res.json(r);
-      return;
+        console.log("the user does not exist: "+data.email);
+        r.uid = 0;
+        r.status = 0;
+        r.desc = "the user does not exist: "+data.email;
+        res.json(r);
+        return;
     }
-    else{
+    else
+    {
       data.sessionId = uniqueid;
       data.owner = data.email;
       data.timestamp = date;
@@ -154,24 +156,22 @@ exports.createSession = function(req, res, next)
   });
  };
 
-
 /**
  * @inner
  * @memberof session
  * @function getUserSessions
  * @desc This function will find all the 'session' documents in the 'sessions' collection by user id (email).
  * This function searches for user id both in 'session' document's 'owner' and 'participants' properties.
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {number} data.from - {0-9}*
- * @param {number} data.to - {0-9}*
+ * @param {string} email - name@gmail.com
+ * @param {number} from - {0-9}*
+ * @param {number} to - {0-9}*
  * @returns {json} status: 1/0, 
  * userRecordings: the result, 
  * length: userRecordings length
  */
-
-exports.getUserSessions = function(req,res,next){
-  var userId, r= { };
+exports.getUserSessions = function(req,res,next)
+{
+    var userId, r= { };
 
    try
    {
@@ -241,26 +241,24 @@ exports.getUserSessions = function(req,res,next){
  }
 }
 
-
 /**
  * @inner
  * @memberof session
  * @function addMembers
- * @desc This function will send GCM sessages to each user that the function received in the request. 
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {array} data.participants - [emails]
+ * @desc This function will send GCM sessages to each user that the function received in the request.
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {array} participants - [emails]
  * @returns {json} status: 1/0
  */
-
-exports.addMembers = function(req,res,next){
-  //create new empty variables
-  var timestamp = new Date().getTime(); //create timestamp 
-  var newParticipants, sessionOnwer, sessionId;
-  var r = { };  //response object 
-  var message = new gcm.Message();  //create new gcm message
-  var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
+exports.addMembers = function(req,res,next)
+{
+    //create new empty variables
+    var timestamp = new Date().getTime(); //create timestamp
+    var newParticipants, sessionOnwer, sessionId;
+    var r = { };  //response object
+    var message = new gcm.Message();  //create new gcm message
+    var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
   
   try
   {
@@ -286,16 +284,7 @@ exports.addMembers = function(req,res,next){
         res.json(r);
         return;   
     }
-    /*
-    else  
-    {
-      (newParticipants).forEach (function (currParticipant) 
-      {
-          console.log("ADDMEMBERS:new participant: " + currParticipant);
-      });
-  }
-  */
-  
+
     if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )  // if data.sessionId property exists in the request is not empty
     {
     console.log("ADDMEMBERS:sessionId propery does not exist in the query or it is empty");
@@ -384,7 +373,7 @@ exports.addMembers = function(req,res,next){
             {
                 if(err) 
                 {
-                  console.error("ADDMEMBERS:error is: " + err);
+                  logger.error("ADDMEMBERS:error is: " + err);
                 }
                 else 
                 {
@@ -402,9 +391,7 @@ exports.addMembers = function(req,res,next){
         });
       });                    
   }
-}
-
-
+};
 
 /*
  * This function will receive an array and delete all duplicate entries.
@@ -425,11 +412,6 @@ function arrayUnique( array )
  return a;
 };
 
-
-
-
-
-
 /**
  * @inner
  * @memberof session
@@ -440,243 +422,289 @@ function arrayUnique( array )
  * @param {string} data.sessionId - text
  * @returns {json} status: 1/0
  */
+exports.updateViews = function(req,res,next)
+{
+    var r = { };
+    var sessionId, userId;
 
-exports.updateViews = function(req,res,next){
-   var r = { };
+    //try to parse the received data
+    try
+    {
+        sessionId = req.body.sessionId;
+        userId = req.body.userId;
+    }
+    catch( err )
+    {
+        logger.error("updateViews: failure while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.json(r);
+        return;
+    }
 
-   try
-   {
-    var sessionId = req.body.sessionId;
-    var userId = req.body.userId;
-          }
-          catch( err )
-          {
-            console.log("UPDATEVIEWS: failure while parsing the request, the error:" + err);
-            r.status = 0;
-            r.desc = "failure while parsing the request";
-            res.json(r);
-            return;
-          }
+    //check that all needed properties were received in the request
+    if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+       typeof userId === 'undefined' || userId == null || userId == "" )
+    {
+        logger.error("updateViews:request must contain sessionId and userId properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and userId properties.";
+        res.json(r);
+        return;
+    }
 
-          if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-               typeof userId === 'undefined' || userId == null || userId == "" )    // if one the propertiey do not exists in the request and it is empty
-          {
-           console.log("UPDATEVIEWS:request must contain sessionId property.");
-           r.status = 0;  
-           r.desc = "request must contain sessionId and userId property.";
-           res.json(r); 
-           return;
-         }
-
-         db.model('sessions').findOne( {$and:[{ sessionId : sessionId },{stopTime:{$gt:0}} ]},
-            //{ participants : true, owner : true, _id : false }, - does not wotk with this
-            function (err, result)
+    //search for the session document in the sessions collection and update it's views
+     db.model('sessions').findOne(
+         { $and : [
+             { sessionId : sessionId },
+             { stopTime : { $gt : 0 } } ]
+         },
+        //{ participants : true, owner : true, _id : false }, - does not work with this
+        function (err, result)
+        {
+            //check if failure occurred during the search
+            if (err)
             {
-              if (err) 
-              {
-                console.log("UPDATEVIEWS:failure during session search, the error: ", err);
+                logger.error("updateViews:failure during session search, the error: ", err);
                 r.status = 0;
                 r.desc = "failure during session search";
-                res.json(r);  
+                res.json(r);
                 return;
-              }
-              if ( !result )
-              {
-               console.log("UPDATEVIEWS:session: " + sessionId + " was not found.");
-               r.status = 0;
-               r.desc = "session: " + sessionId + " was not found";
-               res.json(r);
-               return;
-             }
-             else
-             {
+            }
 
-              ++result.views;
-               result.save(function(err, obj) 
-               { 
-                console.log("UPDATEVIEWS: save");
-                if (err)
-                {
-                 console.log("UPDATEVIEWS:failure session save, the error: ", err);
-                 r.status = 0;
-                 r.desc = "failure session save";
-                 res.json(r); 
-                 return;          
-               }
+            //check if the session exists in the database
+            if ( !result )
+            {
+                logger.error("updateViews:session: " + sessionId + " was not found.");
+                r.status = 0;
+                r.desc = "session: " + sessionId + " was not found";
+                res.json(r);
+                return;
+            }
+            else
+            {
+                //increase sessions views
+                ++result.views;
 
-               // console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
-               // r.status = 1;
-               // r.desc = "session: " + sessionId + " views counter was updated";
-               // res.json(r);
-               // return;
-             });
-                     
-              db.model('users').findOne({email: userId} ,
-                function (err, userResult)
+                //save the update
+                result.save(function(err, obj)
                 {
-                  // failure during user search
-                  if (err) 
-                  {
-                    console.log("failure during user search, the error: ", err);
-                    r.uid = 0;
-                    r.status = 0;
-                    r.desc = "failure during user search";
-                    res.json(r);    
-                    return;
-                  }
-                  else 
-                  {
-                    var index = userResult.lastViews.indexOf(sessionId);
-                    if (index != -1)
-                      userResult.lastViews.splice(index,1)
-                    userResult.lastViews.unshift(sessionId);
-                    userResult.save(function(err, obj) 
-                    { 
-                      if (err)
-                      {
-                       console.log("UPDATEUSER:failure user save, the error: ", err);
-                       r.status = 0;
-                       r.desc = "failure UPDATEUSER save";
-                       res.json(r); 
-                       return;          
-                     }
-                     console.log("UPDATEVIEWS:session: " + sessionId + " views counter was updated.");
-                     r.status = 1;
-                     r.desc = "session: " + sessionId + " views counter was updated";
-                     res.json(r);
-                     return;
+                    console.log("updateViews: save");
+                    if (err)
+                    {
+                        logger.error("updateViews:failure occurred during session save, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure occurred during session save.";
+                        res.json(r);
+                        return;
+                    }
+
+                    logger.error("updateViews:session: " + sessionId + " views counter was updated.");
+                    r.desc = "session: " + sessionId + " views counter was updated.";
+                });
                      
-                   });
-                    
-                  }
+                db.model('users').findOne( { email : userId },
+                    function (err, userResult)
+                    {
+                        //check if failure occurred during the search
+                        if (err)
+                        {
+                            logger.error("updateViews:failure during the search, the error: ", err);
+                            r.status = 0;
+                            r.desc = "failure during the search.";
+                            res.json(r);
+                            return;
+                        }
+
+                        //check if the session exists in the database
+                        if ( !userResult )
+                        {
+                            logger.error("updateViews:user: " + userId + " was not found.");
+                            r.status = 0;
+                            r.desc = "user: " + userId + " was not found";
+                            res.json(r);
+                            return;
+                        }
+                        else
+                        {
+                            //check if the session were already viewed by user
+                            alreadyViewed = userResult.lastViews.indexOf(sessionId);
+
+                            //if the session were already viewed by user, remove the session from user last views array
+                            if (alreadyViewed != -1)
+                            {
+                                userResult.lastViews.splice(index,1);
+                            }
+
+                            //add the session to user last views array
+                            userResult.lastViews.unshift(sessionId);
+
+                            //save the update in users collection
+                            userResult.save(function(err, obj)
+                            {
+                                if (err)
+                                {
+                                    logger.error("updateViews:failure occurred during user save, the error: ", err);
+                                    r.status = 0;
+                                    r.desc = "failure occurred during user save.";
+                                    res.json(r);
+                                    return;
+                                }
+
+                                logger.info("updateViews:session: " + sessionId + " views counter was updated.");
+                                r.status = 1;
+                                r.desc = r.desc + ". session: " + sessionId + " views counter was updated";
+                                res.json(r);
+                                return;
+
+                            });
+                        }
                });
-          }
-          }); 
+            }
+        });
 }
-
-
-
-
 
 /**
  * @inner
  * @memberof session
  * @function getSessionById
  * @desc This function will find 'session' document in the 'sessions' collection, accordint to the sessionId received in the request. 
- *  This function will increase session view counter only if edit property, received in the request, is true. 
- * @param {json} data - The object with the data
- * @param {string} data.userId - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {string} data.org - shenkar
- * @param {boolean} data.edit - true/false
+ *  This function will increase session view counter only if edit property, received in the request, is true.
+ * @param {string} userId - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {string} org - shenkar
+ * @param {boolean} edit - true/false
  * @returns {json} status: 1/0, 
  * info: the session data
  */
+exports.getSessionById = function(req,res,next)
+{
+    //create new empty variables
+    var r = { };
+    var sessionId, org, userId,edit;
 
-exports.getSessionById = function(req,res,next){
-  var r = { };
-
-  try
-  {
-    var sessionId = req.body.sessionId;
-        var org = req.body.org;
-      var userId = req.body.userId;     //TODO handel get video only if the user from the same org
-        var edit = req.body.edit || "false";      //TODO handel pluse minus views counter
+    //try to parse the received data
+    try
+    {
+        sessionId = req.body.sessionId;
+        org = req.body.org;
+        userId = req.body.userId;               //TODO handel get video only if the user from the same org
+        edit = req.body.edit || "false";      //TODO handel plus minus views counter
     }
-  catch(err)
-  {
-    console.log("failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.json(r);
-  } 
-  db.model('sessions').findOne( { $and : [ { sessionId : sessionId }, { stopTime : { $gt: 0  } }, { org : org } ] }, { _id : false },
-  { _id : false }).lean().exec(function( err, doc )
-  {
-    if (err) 
+    catch(err)
+    {
+        logger.error("getSessionById:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+        { $and : [
+            { sessionId : sessionId },
+            { stopTime : { $gt: 0  } },
+            { org : org } ] },
+        { _id : false },
+        { _id : false }).lean().exec(function( err, doc )
+    {
+
+        //check if failure occurred during the search
+        if (err)
         {
-              console.log("failure while searching for the session, the error: ", err);
-              r.status = 0;
-              r.desc = "failure while searching for the session.";
-              res.json(r);
-              return;
+            logger.error("getSessionById:failure occurred while searching for the sessions, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred while searching for the sessions.";
+            res.json(r);
+            return;
         }
         else if (doc)
         {
-            if (edit=="true")
+            if (edit == "true")
             {
-              console.log("the session: " + sessionId + " was found.");
-              r.status = 1;
-              r.info = doc;
-              r.desc = "the session: " + sessionId + " was found.";
-              res.json(r); 
-              return; 
+                logger.info("getSessionById:the session: " + sessionId + " was found.");
+                r.status = 1;
+                r.info = doc;
+                r.desc = "the session: " + sessionId + " was found.";
+                res.json(r);
+                return;
             }
-          getUsersData(doc, userId, function(result)
-          {            
-            doc.users = result;
-            console.log("the session: " + sessionId + " was found.");
-            r.status = 1;
-            r.info = doc;
-            r.desc = "the session: " + sessionId + " was found.";
-            res.json(r); 
-            return;
-          }); 
-      }
+
+            getUsersData(doc, userId, function(result)
+            {
+                doc.users = result;
+                logger.info("getSessionById:the session: " + sessionId + " was found.");
+                r.status = 1;
+                r.info = doc;
+                r.desc = "the session: " + sessionId + " was found.";
+                res.json(r);
+                return;
+            });
+        }
         else
         {
-            console.log("the session: " + sessionId + " was not found.");
+            logger.error("getSessionById:the session: " + sessionId + " was not found.");
             r.status = 0;
             r.info = [];
             r.desc = "the session: " + sessionId + " was not found.";
             res.json(r); 
             return;  
         }
-  });
+    });
 }
 
-createUsersJson = function(docs, callback){
-  var usersList = [];
-  docs.forEach(function(doc){
-    usersList.push(doc.owner);
-    usersList.push(doc.participants.filter(function(v){
-      return v;
-    }));
-  });
-  var merged = [ ];
-  var merged = merged.concat.apply(merged, usersList);
-  var uniqueArray = merged.filter(function(item, pos) 
-  {
-      return merged.indexOf(item) == pos;
-  });
+/*
+ *
+ */
+createUsersJson = function(docs, callback)
+{
+    var usersList = [];
 
-  //console.log(uniqueArray);
+    docs.forEach(function(doc)
+    {
+        usersList.push(doc.owner);
+        usersList.push(doc.participants.filter( function(v)
+        {
+            return v;
+        }));
+    });
 
-  db.model('users').find( { email : { $in : uniqueArray } },
-  { _id : false, name : true, lastName : true, image : true, email : true},
-  function (err, result)
-  {
-      // failure during user search
-      if (err) 
-      {
-          callback(0);    
-      }
-      else
-      {
-          var users = { };
-          for (var val in result)
-          {   
-              users[result[val].email] = {
-                  name : result[val].name,
-                  lastName : result[val].lastName,
-                  image : result[val].image,
-                  email : result[val].email
-              };
-          }
+    var merged = [ ];
+    var merged = merged.concat.apply(merged, usersList);
+    var uniqueArray = merged.filter(function(item, pos)
+    {
+        return merged.indexOf(item) == pos;
+    });
 
-          callback(users);
-      }   
-  });
+    //console.log(uniqueArray);
+
+    db.model('users').find(
+        { email : { $in : uniqueArray } },
+        { _id : false, name : true, lastName : true, image : true, email : true},
+        function (err, result)
+        {
+            // failure during user search
+            if (err)
+            {
+                callback(0);
+            }
+            else
+            {
+                var users = { };
+                for (var val in result)
+                {
+                    users[result[val].email] = {
+                    name : result[val].name,
+                          lastName : result[val].lastName,
+                          image : result[val].image,
+                          email : result[val].email
+                      };
+                }
+
+                callback(users);
+            }
+        });
 }
 
 getUsersData = function (doc, userid, callback) {
@@ -753,10 +781,11 @@ getUsersData = function (doc, userid, callback) {
  * res: the result, 
  * length: the result length
  */
+exports.getAllVideos = function(req,res,next)
+{
+    var r = {};
+    var data = {};
 
-exports.getAllVideos = function(req,res,next){
-  var r ={};
-    var data={};
     try
     {
         data = req.query;
@@ -966,7 +995,7 @@ exports.getMembers = function(req,res,next){
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Fri Jun 12 2015 12:23:54 GMT+0300 (Jerusalem Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.1</a> on Sun Jun 21 2015 12:40:20 GMT+0300 (Jerusalem Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
