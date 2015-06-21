@@ -471,7 +471,7 @@ exports.updateViews = function(req,res,next)
                         return;
                     }
 
-                    logger.error("updateViews:session: " + sessionId + " views counter was updated.");
+                    logger.info("updateViews:session: " + sessionId + " views counter was updated.");
                     r.desc = "session: " + sessionId + " views counter was updated.";
                 });
                      
@@ -505,7 +505,7 @@ exports.updateViews = function(req,res,next)
                             //if the session were already viewed by user, remove the session from user last views array
                             if (alreadyViewed != -1)
                             {
-                                userResult.lastViews.splice(index,1);
+                                userResult.lastViews.splice(alreadyViewed,1);
                             }
 
                             //add the session to user last views array

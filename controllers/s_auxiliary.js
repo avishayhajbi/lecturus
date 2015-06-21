@@ -792,7 +792,7 @@ exports.getUserFavorites = function(req, res, next)
                         var temp = orderByArray(docs, favorites);
                         r.users = result;
                         r.status = 1;
-                        r.length = docs.length;
+                        r.length = temp.length;
                         r.res = temp;
                         r.desc = "get videos.";
                         res.json(r); 
@@ -929,7 +929,7 @@ exports.lastViews = function(req, res, next)
 	//create new empty variables
     var r = { };
     var lastViews = [];
-    var from, to, userId, orderedLastViews;
+    var from, to, userId;
     
     //try to parse the received data
     try
@@ -1011,11 +1011,11 @@ exports.lastViews = function(req, res, next)
                 {
                     createUsersJson(sessionDocs, function(result)
                     {
-                        logger.error("lastViews:user: " + userId + " last views were successfully returned.");
-                        orderedLastViews = orderByArray(sessionDocs, lastViews);
+                        logger.info("lastViews:user: " + userId + " last views were successfully returned.");
+                        var orderedLastViews = orderByArray(sessionDocs, lastViews);
                         r.users = result;
                         r.status = 1;
-                        r.length = sessionDocs.length;
+                        r.length = orderedLastViews.length;
                         r.res = orderedLastViews;
                         r.desc = "user: " + userId + " last views were successfully returned.";
                         res.json(r); 
@@ -1042,24 +1042,24 @@ orderByArray = function(unsortedSessions, sessionsViewedByUser)
     for (var i = 0 ; i < sessionsViewedByUser.length ; i++)
     {
         //iterate through the array of unsorted sessions
-        for (var j = i ; j < unsortedSessions.length ; j++)
+        for (var j = 0 ; j < unsortedSessions.length ; j++)
         {
             //seek for match between session id in unsorted array and the session in array viewed by user
             if (unsortedSessions[j].sessionId == sessionsViewedByUser[i])
             {
                 //add current session to the answer array
-                var doc = unsortedSessions[i];
-                unsortedSessions[i] = unsortedSessions[j];
-                //sortedSessions.push(unsortedSessions[i]);
+                //var doc = unsortedSessions[i];
+                //unsortedSessions[i] = unsortedSessions[j];
+                sortedSessions.push(unsortedSessions[j]);
                 //remove current session from the unsorted array
-                //unsortedSessions.splice(j, 1);
-                unsortedSessions[j]=doc;
+                unsortedSessions.splice(j, 1);
+                //unsortedSessions[j]=doc;
                 //continue to the next session in viewed by user array
                 continue;
             }
         }
     }
-    return unsortedSessions;
+    return sortedSessions;
 };
 /*
 orderByArray = function(docs, arr)
