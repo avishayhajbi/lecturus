@@ -56,7 +56,7 @@ exports.updateSession = function (req, res, next)
 
     //search for the session document in the sessions collection
     db.model('sessions').findOne(
-    { sessionId : sessionId },
+    {$and:[{ sessionId : sessionId} , { stopTime : { $gt: 0  }}]},
     function(err, sessionObj)
     {
         //check if failure occurred during the search
@@ -91,10 +91,9 @@ exports.updateSession = function (req, res, next)
             }
 
             //update the session document
-            db.model('sessions').update(
+            db.model('sessions').findOneAndUpdate(
             { sessionId : sessionId },
             { $set : data },
-            { upsert : false, safe : true, fsync : true },
             function(err, result)
             {
                 if (err)
