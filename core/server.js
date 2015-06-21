@@ -8,8 +8,8 @@ require( process.cwd() + '/logs/init.js');
 app = express();
 app.use(express.static(process.cwd() + '/out'));
 app.use(express.static(process.cwd() + '/logs'));
-// app.set('views',process.cwd() + '/views');
-// app.set('view engine', 'ejs');
+app.set('views',process.cwd() + '/views');
+app.set('view engine', 'ejs');
 app.use(bodyParser()); 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -22,8 +22,6 @@ app.use(function(req, res, next) {
 
 var port = process.env.PORT || 8080;
 app.set('port', port);
-app.set('view engine', 'ejs');
-
 
 var controllers = { };
 controllers_path = process.cwd() + '/controllers';
