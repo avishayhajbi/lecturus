@@ -8,15 +8,17 @@ var ffmpeg = require('fluent-ffmpeg');
 var ffmpegCommand = ffmpeg();
 var gcm = require('node-gcm');
 
+//this global variable represents the properties we want tot receive from the database
 sessionPreview = {
-  title : true, description:true, participants:true, owner:true, course:true, degree : true, lecturer:true, 
-  sessionId:true, totalSecondLength:true, rating:true, views:true, timestamp:true , _id : false
+    title : true, description : true, participants : true, owner : true, course : true, degree : true, lecturer : true,
+    sessionId : true, totalSecondLength : true, rating : true, views : true, timestamp : true, _id : false
 };
 
+//configuration for cloudinary API
 cloudinary.config({ 
-  cloud_name: 'hakrhqyps', 
-  api_key: '437118412619984', 
-  api_secret: '2y8KTIp1PGzNUQgcwDQsjqMQiU4' 
+    cloud_name: 'hakrhqyps',
+    api_key: '437118412619984',
+    api_secret: '2y8KTIp1PGzNUQgcwDQsjqMQiU4'
 });
 
 /** @namespace session */
@@ -25,7 +27,7 @@ cloudinary.config({
  * @inner
  * @memberof session
  * @function createSession
- * @desc create a new session
+ * @desc create new session
  * @param {string} email - name@gmail.com
  * @param {string} org - shenkar
  * @param {string} name - text
@@ -39,7 +41,7 @@ cloudinary.config({
  */
 exports.createSession = function(req, res, next)
 {
-    // create timestamp and uniqeid
+    //create timestamp and unique id
     var date = new Date().getTime();
     var userip = req.connection.remoteAddress.replace(/\./g , '');
     var uniqueid = date + userip;
@@ -52,7 +54,7 @@ exports.createSession = function(req, res, next)
     }
     catch( err )
     {
-        logger.error("getUserFavorites:failure occurred while parsing the request, the error is:", err);
+        logger.error("createSession:failure occurred while parsing the request, the error is:", err);
         r.status = 0;
         r.desc = "failure occurred while parsing the request.";
         res.json(r);
@@ -60,10 +62,11 @@ exports.createSession = function(req, res, next)
     }
 
     //check that all needed properties were received in the request
-    if ( !data.email || data.email == "" || !data.org || data.org == "" )
+    if (typeof data.email === 'undefined' || data.email == null || data.email == "")
     {
+        logger.error("createSession:request must contain email property.");
         r.status = 0;
-        r.desc = "request must contain a property email";
+        r.desc = "request must contain email property.";
         res.json(r);
         return;
     }
@@ -72,60 +75,61 @@ exports.createSession = function(req, res, next)
     db.model('users').find(
     { email : data.email },
     { _id:false },
-    function (err, result)
+    function (err, userObj)
     {
-    // failure during user search
-    if (err) 
-    {
-      console.log("failure during user search, the error: ", err);
-      r.uid = 0;
-      r.status = 0;
-      r.desc = "failure during user search";
-      res.json(r);  
-      return;
-    }
-    
-    // if the user do not exist
-    if (!result.length)
-    {
-        console.log("the user does not exist: "+data.email);
-        r.uid = 0;
-        r.status = 0;
-        r.desc = "the user does not exist: "+data.email;
-        res.json(r);
-        return;
-    }
-    else
-    {
-      data.sessionId = uniqueid;
-      data.owner = data.email;
-      data.timestamp = date;
-      
-      var newSession =  new Session(data);
-      newSession.save(function (err,obj) {
-        if (err) 
+        // failure during user search
+        if (err)
         {
-          console.log("failure during insertion of new session, the error: ", err);
-          r.uid = 0;
-          r.status = 0;
-          r.desc = "failure during insertion of new session";
-          res.json(r);
-          return;
+            logger.error("createSession:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+    
+        //check if user exists in the database
+        if (!userObj.length)
+        {
+            logger.error("createSession:user: " + data.email + " was not found.");
+            r.status = 0;
+            r.desc = "use: " + data.email + " was not found.";
+            res.json(r);
+            return;
         }
         else
         {
-          console.log("session: " + obj.sessionId + " has completed successfully.");
-          r.sessionId = obj.sessionId;
-          r.timestamp = date;
-          r.owner = obj.owner;
-          r.status = 1;
-          r.desc = "session: " + obj.sessionId + " has completed successfully.";
-          res.json(r);
-          return;                           
+            //add additional properties
+            data.sessionId = uniqueid;
+            data.owner = data.email;
+            data.timestamp = date;
+
+            //create new session object from sessions schema
+            var newSession =  new Session(data);
+
+            //save new session object in sessions  collection
+            newSession.save(function (err, sessionObj)
+            {
+                //check if error occurred during the save
+                if (err)
+                {
+                    logger.error("createSession:failure occurred while saving the session, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred while saving the session.";
+                    res.json(r);
+                    return;
+                }
+
+                logger.info("createSession:session: " + sessionObj.sessionId + " was created successfully.");
+                r.sessionId = sessionObj.sessionId;
+                r.timestamp = date;
+                r.owner = sessionObj.owner;
+                r.status = 1;
+                r.desc = "session: " + sessionObj.sessionId + " was created successfully.";
+                res.json(r);
+                return;
+            });
         }
-      });
-    }
-  });
+    });
  };
 
 /**
@@ -145,72 +149,66 @@ exports.getUserSessions = function(req,res,next)
 {
     var userId, r= { };
 
-   try
-   {
-        // try to parse the json data
+    //try to parse the received data
+    try
+    {
         data = req.body;
         userId = req.body.email;
         data.from = parseInt(req.body.from) || 0;
         data.to = parseInt(req.body.to) || 8;
-      }
-      catch(err)
-      {
-        console.log("failure while parsing the request, the error:", err);
+    }
+    catch(err)
+    {
+        logger.error("getUserSessions:failure occurred while parsing the request, the error is:", err);
         r.status = 0;
-        r.desc = "failure while parsing the request";
+        r.desc = "failure occurred while parsing the request.";
         res.json(r);
         return;
-      }
+    }
 
-  if ( userId && userId != "" ) // if data.email property exists in the request is not empty
-  {
-    console.log("user id is: " + userId);
+    //check that all needed properties were received in the request
+    if (typeof userId === 'undefined' || userId == null || userId == "")
+    {
+        logger.error("getUserSessions:request must contain email property.");
+        r.status = 0;
+        r.desc = "request must contain email property.";
+        res.json(r);
+        return;
+    }
 
-    // get sessions collection 
-    //var collection = app.get('mongodb').collection('sessions');
-    //var collection = connectMongo().collection('sessions');
-
-    db.model('sessions').find( {$and:[{ $or: [ { owner : userId }, {participants : userId}   ] },{stopTime:{ $gt: 0  }} ]},
+    //search for the session document in the sessions collection
+    db.model('sessions').find(
+    { $and : [
+        { $or: [
+            { owner : userId },
+            {participants : userId}   ] },
+        {stopTime:{ $gt: 0  }} ]},
     sessionPreview).sort({stopTime: -1}).skip(data.from).limit(data.to)
     .exec(function(err, docs)
     {
-
-       console.log("Searching for the session collection");
-
-      // failure while connecting to sessions collection
-      if (err) 
-      {
-        console.log("failure while searching for a session, the error: ", err);
-        r.uid = 0;
-        r.status = 0;
-        r.desc = "failure while searching for a session.";
-        res.json(r);
-        return;
-      }
-      else
-      {
-        createUsersJson(docs, function(result)
-        {           
-            r.users = result;
-            console.log("sessions with user: " + userId + " participation: " + docs);
-            r.length = docs.length;
-            r.status = 1;
-            r.userRecordings = docs;
-            r.desc = "sessions with user: " + userId + " participation.";
-            res.json(r);  
-        });
-                            
-      }
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("getUserSessions:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            createUsersJson(docs, function(result)
+            {
+                r.users = result;
+                logger.info("getUserSessions:sessions with user: " + userId + " participation: " + docs);
+                r.length = docs.length;
+                r.status = 1;
+                r.userRecordings = docs;
+                r.desc = "sessions with user: " + userId + " participation.";
+                res.json(r);
+            });
+        }
     });
-  }
-  else
-  {
-   console.log("data.email propery does not exist in the query or it is empty");
-   r.status = 0;
-   r.desc = "data.email propery does not exist in the query or it is empty";
-   res.json(r);  
-   return;      
- }
 }
 
 /**
@@ -231,157 +229,169 @@ exports.addMembers = function(req,res,next)
     var r = { };  //response object
     var message = new gcm.Message();  //create new gcm message
     var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
-  
-  try
-  {
-        // try to parse the json data
+
+    //try to parse the received data
+    try
+    {
         newParticipants = req.body.participants; // participans = array
-    sessionId = req.body.sessionId;
-    sessionOnwer = req.body.email;
-  }
-  catch(err)
-  {
-    console.log("ADDMEMBERS:failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.json(r);
-    return;
-  }
-    
+        sessionId = req.body.sessionId;
+        sessionOnwer = req.body.email;
+    }
+    catch(err)
+    {
+        logger.error("updateSession:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check if no new participants were received in the request
     if ( newParticipants.length == 0 )
     {
-      console.log("ADDMEMBERS:no participants were sent.");
+        console.log("addMembers:no participants were sent.");
         r.status = 0;
         r.desc = "no participants were sent.";
         res.json(r);
         return;   
     }
 
-    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )  // if data.sessionId property exists in the request is not empty
+    //check that all needed properties were received in the request
+    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )
     {
-    console.log("ADDMEMBERS:sessionId propery does not exist in the query or it is empty");
-    r.status = 0;
-    r.desc = "sessionId propery does not exist in the query or it is empty";
-    res.json(r);  
-    return;           
+        logger.error("addMembers:request must contain sessionId property.");
+        r.status = 0;
+        r.desc = "request must contain sessionId property.";
+        res.json(r);
+        return;
     }
     else
     {
-      console.log("ADDMEMBERS:Session id is: " + sessionId);
-      
+        logger.debug("addMembers:Session id is: " + sessionId);
+
+        //search for the session document in the sessions collection
         db.model('sessions').findOne( 
-    { sessionId : sessionId }, 
-    function (err, sessionObj)
-    {     
-        if (err) 
+        { sessionId : sessionId },
+        function (err, sessionObj)
         {
-          console.log("ADDMEMBERS:failure during session search, the error: ", err);
-            r.status = 0;
-            r.desc = "failure during user search";
-          res.json(r);  
-            return;
-        }
-        
-      // if the session do not exist
-          if (sessionObj == null)
-          {
-            console.log("ADDMEMBERS:session was not found.");
-              r.status = 0;
-              r.desc = "session was not found.";
-            res.json(r);  
-              return;
-          }
-          
-          if (sessionObj.owner != sessionOnwer)
-          {
-            console.log("ADDMEMBERS:email, reseived in the request, does not belong to session owner.");
-              r.status = 0;
-              r.desc = "email, reseived in the request, does not belong to session owner.";
-            res.json(r);  
-              return;
-          }
-          
-          // seach for the participants google registration id
-          // validation that each user exists in the users collection before adding it to the session
-          db.model('users').find( 
-      { email : { $in : newParticipants } }, 
-        { regId : true, _id : false },
-      function (err, result)
-      {
-        console.log("ADDMEMBERS:Result id is: " + result);
-        // failure during user search
-          if (err) 
-          {
-            console.log("ADDMEMBERS:failure during user search, the error: ", err);
-              r.status = 0;
-              r.desc = "failure during user search";
-            res.json(r);  
-              return;
-          }
-          if ( result.length == 0 )
-          {
-            console.log("ADDMEMBERS:no registration ids were found.");
-              r.status = 0;
-              r.desc = "no registration ids were found.";
-            res.json(r);  
-              return;
-          }
-          else
-          {
-            message.addData('message', 'join session');
-            message.addData('status', '1');
-          message.addData('sessionId', sessionId);
-          message.addData('ownerId', sessionOnwer);
-          message.delay_while_idle = 1;
-          
-            (result).forEach (function (currRes) 
+            //check if failure occurred during the search
+            if (err)
             {
-                console.log("ADDMEMBERS:participant's registration id: " + currRes.regId);
-                var registrationIds = [];
-                registrationIds.push(currRes.regId);
-                
-                //send each participant a gcm message - async
-                sender.sendNoRetry(message, registrationIds, function(err, sentResult) 
+                logger.error("addMembers:failure occurred during the search, the error: ", err);
+                r.status = 0;
+                r.desc = "failure occurred during the search.";
+                res.json(r);
+                return;
+            }
+
+            //check that the session exists
+            if ( !sessionObj )
             {
-                if(err) 
+                logger.error("addMembers:session: " + sessionId + " was not found.");
+                r.status = 0;
+                r.desc = "session: " + sessionId + " was not found.";
+                res.json(r);
+                return;
+            }
+
+            //check that an email received in the request belongs to the session owner
+            if (sessionObj.owner != sessionOnwer)
+            {
+                logger.error("addMembers:email, received in the request, does not belong to session owner.");
+                r.status = 0;
+                r.desc = "email, received in the request, does not belong to session owner.";
+                res.json(r);
+                return;
+            }
+          
+            // seach for the participants google registration id
+            // validation that each user exists in the users collection before adding it to the session
+            db.model('users').find(
+            { email : { $in : newParticipants } },
+            { regId : true, _id : false },
+            function (err, result)
+            {
+                logger.debug("addMembers:Result id is: " + result);
+
+                //check if failure occurred during the search
+                if (err)
                 {
-                  logger.error("ADDMEMBERS:error is: " + err);
+                    logger.error("addMembers:failure occurred during the search, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred during the search.";
+                    res.json(r);
+                    return;
                 }
-                else 
+
+                //check that al least one registration id was found
+                if ( result.length == 0 )
                 {
-                   console.log("ADDMEMBERS:message sending to: " + currRes.regId + " resulted with:" + sentResult);
-                  }
-            });
-            });
+                    logger.error("addMembers:no registration ids were found.");
+                    r.status = 0;
+                    r.desc = "no registration ids were found.";
+                    res.json(r);
+                    return;
+                }
+                else
+                {
+                    //populate message details
+                    message.addData('message', 'join session');
+                    message.addData('status', '1');
+                    message.addData('sessionId', sessionId);
+                    message.addData('ownerId', sessionOnwer);
+                    message.delay_while_idle = 1;
+
+                    //send GCM message to all the participants
+                    (result).forEach (function (currRes)
+                    {
+                        logger.debug("addMembers:participant's registration id: " + currRes.regId);
+
+                         var registrationIds = [];
+                        registrationIds.push(currRes.regId);
+                
+                        //send the message
+                        sender.sendNoRetry(message, registrationIds, function(err, sentResult)
+                        {
+                            if(err)
+                            {
+                                logger.error("addMembers:error is: " + err);
+                            }
+                            else
+                            {
+                                logger.debug("addMembers:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+                            }
+                        });
+                    });
   
-            console.log("ADDMEMBERS:messages were sent.");
-              r.status = 1;
-              r.desc = "messages were sent.";
-            res.json(r);  
-              return;
-          }
+                    logger.info("addMembers:messages were sent.");
+                    r.status = 1;
+                    r.desc = "messages were sent.";
+                    res.json(r);
+                    return;
+                }
+            });
         });
-      });                    
-  }
+    }
 };
 
 /*
  * This function will receive an array and delete all duplicate entries.
  */
 function arrayUnique( array ) 
- {
-  var a = array.concat();
+{
+    var a = array.concat();
 
-  for(var i = 0; i < a.length; ++i) 
-  {
-    for(var j = i + 1; j < a.length; ++j) 
+    for(var i = 0; i < a.length; ++i)
     {
-      if(a[i] === a[j])
-       a.splice(j--, 1);
-   }
- }
+        for(var j = i + 1; j < a.length; ++j)
+        {
+            //if duplicate object found, erase it
+            if(a[i] === a[j])
+                a.splice(j--, 1);
+        }
+    }
 
- return a;
+    return a;
 };
 
 /**
@@ -396,6 +406,7 @@ function arrayUnique( array )
  */
 exports.updateViews = function(req,res,next)
 {
+    //create new empty variables
     var r = { };
     var sessionId, userId;
 
@@ -407,16 +418,16 @@ exports.updateViews = function(req,res,next)
     }
     catch( err )
     {
-        logger.error("updateViews: failure while parsing the request, the error:" + err);
+        logger.error("updateViews:failure occurred while parsing the request, the error:" + err);
         r.status = 0;
-        r.desc = "failure while parsing the request";
+        r.desc = "failure occurred while parsing the request";
         res.json(r);
         return;
     }
 
     //check that all needed properties were received in the request
-    if ( typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-       typeof userId === 'undefined' || userId == null || userId == "" )
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof userId === 'undefined' || userId == null || userId == "" )
     {
         logger.error("updateViews:request must contain sessionId and userId properties.");
         r.status = 0;
@@ -437,9 +448,9 @@ exports.updateViews = function(req,res,next)
             //check if failure occurred during the search
             if (err)
             {
-                logger.error("updateViews:failure during session search, the error: ", err);
+                logger.error("updateViews:failure occurred during session search, the error: ", err);
                 r.status = 0;
-                r.desc = "failure during session search";
+                r.desc = "failure occurred during session search";
                 res.json(r);
                 return;
             }
@@ -461,7 +472,7 @@ exports.updateViews = function(req,res,next)
                 //save the update
                 result.save(function(err, obj)
                 {
-                    console.log("updateViews: save");
+                    logger.debug("updateViews:save the updated session.");
                     if (err)
                     {
                         logger.error("updateViews:failure occurred during session save, the error: ", err);
@@ -474,63 +485,64 @@ exports.updateViews = function(req,res,next)
                     logger.info("updateViews:session: " + sessionId + " views counter was updated.");
                     r.desc = "session: " + sessionId + " views counter was updated.";
                 });
-                     
-                db.model('users').findOne( { email : userId },
-                    function (err, userResult)
+
+                //search for user document in the users collection and update it's last views array
+                db.model('users').findOne(
+                { email : userId },
+                function (err, userResult)
+                {
+                    //check if failure occurred during the search
+                    if (err)
                     {
-                        //check if failure occurred during the search
-                        if (err)
+                        logger.error("updateViews:failure during the search, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure during the search.";
+                        res.json(r);
+                        return;
+                    }
+
+                    //check if the session exists in the database
+                    if ( !userResult )
+                    {
+                        logger.error("updateViews:user: " + userId + " was not found.");
+                        r.status = 0;
+                        r.desc = "user: " + userId + " was not found";
+                        res.json(r);
+                        return;
+                    }
+                    else
+                    {
+                        //check if the session were already viewed by user
+                        alreadyViewed = userResult.lastViews.indexOf(sessionId);
+
+                        //if the session were already viewed by user, remove the session from user last views array
+                        if (alreadyViewed != -1)
                         {
-                            logger.error("updateViews:failure during the search, the error: ", err);
-                            r.status = 0;
-                            r.desc = "failure during the search.";
-                            res.json(r);
-                            return;
+                            userResult.lastViews.splice(alreadyViewed,1);
                         }
 
-                        //check if the session exists in the database
-                        if ( !userResult )
+                        //add the session to user last views array
+                        userResult.lastViews.unshift(sessionId);
+
+                        //save the update in users collection
+                        userResult.save(function(err, obj)
                         {
-                            logger.error("updateViews:user: " + userId + " was not found.");
-                            r.status = 0;
-                            r.desc = "user: " + userId + " was not found";
-                            res.json(r);
-                            return;
-                        }
-                        else
-                        {
-                            //check if the session were already viewed by user
-                            alreadyViewed = userResult.lastViews.indexOf(sessionId);
-
-                            //if the session were already viewed by user, remove the session from user last views array
-                            if (alreadyViewed != -1)
+                            if (err)
                             {
-                                userResult.lastViews.splice(alreadyViewed,1);
-                            }
-
-                            //add the session to user last views array
-                            userResult.lastViews.unshift(sessionId);
-
-                            //save the update in users collection
-                            userResult.save(function(err, obj)
-                            {
-                                if (err)
-                                {
-                                    logger.error("updateViews:failure occurred during user save, the error: ", err);
-                                    r.status = 0;
-                                    r.desc = "failure occurred during user save.";
-                                    res.json(r);
-                                    return;
-                                }
-
-                                logger.info("updateViews:session: " + sessionId + " views counter was updated.");
-                                r.status = 1;
-                                r.desc = r.desc + ". session: " + sessionId + " views counter was updated";
+                                logger.error("updateViews:failure occurred during user save, the error: ", err);
+                                r.status = 0;
+                                r.desc = "failure occurred during user save.";
                                 res.json(r);
                                 return;
+                            }
 
-                            });
-                        }
+                            logger.info("updateViews:session: " + sessionId + " views counter was updated.");
+                            r.status = 1;
+                            r.desc = r.desc + ". session: " + sessionId + " views counter was updated";
+                            res.json(r);
+                            return;
+                        });
+                    }
                });
             }
         });
@@ -574,14 +586,13 @@ exports.getSessionById = function(req,res,next)
 
     //search for the session document in the sessions collection
     db.model('sessions').findOne(
-        { $and : [
-            { sessionId : sessionId },
-            { stopTime : { $gt: 0  } },
-            { org : org } ] },
-        { _id : false },
-        { _id : false }).lean().exec(function( err, doc )
+    { $and : [
+        { sessionId : sessionId },
+        { stopTime : { $gt: 0  } },
+        { org : org } ] },
+    { _id : false },
+    { _id : false }).lean().exec(function( err, doc )
     {
-
         //check if failure occurred during the search
         if (err)
         {
@@ -652,31 +663,31 @@ createUsersJson = function(docs, callback)
     //console.log(uniqueArray);
 
     db.model('users').find(
-        { email : { $in : uniqueArray } },
-        { _id : false, name : true, lastName : true, image : true, email : true},
-        function (err, result)
+    { email : { $in : uniqueArray } },
+    { _id : false, name : true, lastName : true, image : true, email : true},
+    function (err, result)
+    {
+        // failure during user search
+        if (err)
         {
-            // failure during user search
-            if (err)
+            callback(0);
+        }
+        else
+        {
+            var users = { };
+            for (var val in result)
             {
-                callback(0);
+                users[result[val].email] = {
+                name : result[val].name,
+                      lastName : result[val].lastName,
+                      image : result[val].image,
+                      email : result[val].email
+                  };
             }
-            else
-            {
-                var users = { };
-                for (var val in result)
-                {
-                    users[result[val].email] = {
-                    name : result[val].name,
-                          lastName : result[val].lastName,
-                          image : result[val].image,
-                          email : result[val].email
-                      };
-                }
 
-                callback(users);
-            }
-        });
+            callback(users);
+        }
+    });
 }
 
 getUsersData = function (doc, userid, callback) {
@@ -755,62 +766,73 @@ getUsersData = function (doc, userid, callback) {
  */
 exports.getAllVideos = function(req,res,next)
 {
-    var r = {};
-    var data = {};
+    //create new empty variables
+    var r = { };
+    var email, to, from;
 
+    //try to parse the received data
     try
     {
-        data = req.query;
-        data.from = req.query.from || 0;
-        data.to = req.query.to || 10;
-    }catch(err){
-        var r ={
-            status:0,
-            desc:"data error"
-        }
+        email = req.query.email;
+        from = req.query.from || 0;
+        to = req.query.to || 10;
+    }
+    catch(err)
+    {
+        logger.error("getAllVideos:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
         res.json(r);
         return;
     }
-      if ( !data || data.email == '' )  // if data.name property exists in the request is not empty
+
+    //check that all needed properties were received in the request
+    if ( typeof email === 'undefined' || email == null || email == "" )
     {
-        r.status = 0;   
-        r.desc = "request must contain a property name or its empty";
-        res.json(r); 
+        logger.error("getAllVideos:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
         return;
     }
 
-    db.model('users').findOne({email:data.email}, {org:true,_id:false},
+    //search for the user document in the users collection
+    db.model('users').findOne(
+    { email : email },
+    { org : true, _id : false },
     function(err, docs)
-    { 
-        // failure while connecting to sessions collection
-        if (err) 
+    {
+        //check if failure occurred during the search
+        if (err)
         {
-            console.log("failure while trying get videos, the error: ", err);
+            logger.error("getAllVideos:failure occurred during the search, the error: ", err);
             r.status = 0;
-            r.desc = "failure while trying get videos.";
+            r.desc = "failure occurred during the search.";
             res.json(r);
             return;
         }
         
         else if (docs)
         {
-
-            db.model('sessions').find({org:docs.org}, sessionPreview).sort({'views': -1}).skip(data.from).limit(data.to)
+            //search for the session documents in the sessions collection
+            db.model('sessions').find(
+            { org : docs.org }, sessionPreview).sort({'views': -1}).skip(from).limit(to)
             .exec(function(err, result)
-            { 
-                // failure while connecting to sessions collection
-                if (err) 
+            {
+                //check if failure occurred during the search
+                if (err)
                 {
-                    console.log("failure while trying get videos, the error: ", err);
+                    logger.error("updateSession:failure occurred during the search, the error: ", err);
                     r.status = 0;
-                    r.desc = "failure while trying get videos.";
+                    r.desc = "failure occurred during the search.";
                     res.json(r);
                     return;
                 }
                 
                 else if (result)
                 {
-                    db.model('sessions').find({org:docs.org}).count().exec(function(err, result){ console.log(result)});
+                    db.model('sessions').find(
+                    {org : docs.org }).count().exec(function(err, result){ console.log(result)});
                     //console.log("videos found "+ result);
                     r.status = 1;  
                     r.length=result.length;
@@ -836,118 +858,90 @@ exports.getAllVideos = function(req,res,next)
  * @returns {json} status: 1/0, 
  * participants: [those users agreed to participate in the current session], 
  */
+exports.getMembers = function(req, res, next)
+{
+    //create new empty variables
+    var participants = Array();
+    var participantsEmails = Array();
+    var r = { };  //response object
+    var data;
 
-exports.getMembers = function(req,res,next){
-  //create new empty variables
-  var participants = Array();
-  var participantsEmails = Array();
-  var r = { };  //response object 
-
-  try
- {
-        // try to parse the json data
+    //try to parse the received data
+    try
+    {
         data = req.body;
+    }
+    catch(err)
+    {
+        logger.error("getMembers:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
 
-        if ( data.sessionId && data.sessionId != "" ) // if data.sessionId property exists in the request is not empty
+    //check that all needed properties were received in the request
+    if (typeof data.sessionId === 'undefined' || data.sessionId == null || data.sessionId == "")
+    {
+        logger.error("getMembers:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { sessionId : data.sessionId },
+    function (err, sessionObj)
+    {
+        //check if failure occurred during the search
+        if (err)
         {
-          console.log("Session id is: " + data.sessionId);
-          
-          // connect to mongodb
-          MongoClient.connect(config.mongoUrl, { native_parser : true }, function(err, db) /* TODO. REMOVE */
-         {
-          console.log("Trying to connect to the db.");
+            logger.error("getMembers:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
 
-              // if connection failed
-              if (err) 
-              {
-               console.log("MongoLab connection error: ", err);
-               r.uid = 0;
-               r.status = 0;
-               r.desc = "failed to connect to MongoLab.";
-               res.json(r);
-               return;
-             }
+        //check that the session exists
+        if ( !sessionObj )
+        {
+            logger.error("getMembers:session: " + data.sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + data.sessionId + " was not found.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            participants = sessionObj.participants;
 
-              // get sessions collection 
-              var collection = db.collection('sessions');
-              
-              collection.find( { sessionId : data.sessionId } ).toArray( function (err, docs) 
-              {
-                console.log("Searching for the session collection");
-                
-                  // failure while connecting to sessions collection
-                  if (err) 
-                  {
-                   console.log("failure while searching for a session, the error: ", err);
-                   r.status = 0;
-                   r.desc = "failure while searching for a session.";
-                   res.json(r);
-                   return;
-                 }
+            logger.debug("getMembers:participants: " + participants);
 
-                  // the session do not exist
-                  if ( !docs.length ) 
-                  {
-                   console.log("session: " + data.sessionId + " do not exist.");
-                   r.status = 0;
-                   r.desc = "session: " + data.sessionId + " was not found.";
-                   res.json(r);
-                   return; 
-                 }
-                 else
-                 {
-                    // there is only one session with this sessionId
-                    //TODO. add validation for existance or received email in the session document
-                    /*
-
-                    */
-                    participants = docs[0].participants;
-
-                    console.log("participants: " + participants);
-
-                    (participants).forEach (function (participant) 
-                    {
-                     console.log("session participants: " + participant.user);
+            (participants).forEach (function (participant)
+            {
+                logger.debug("getMembers:session participants: " + participant.user);
                 // we get an array of existing participants
                 participantsEmails.push( participant.user );
-              });
+            });
 
             //exclude email received in the request from the result
             var index = participantsEmails.indexOf(data.email);
             if (index > -1) 
             {
-              console.log("email belongs to one of the participants.");
+              console.log("getMembers:email belongs to one of the participants.");
               participantsEmails.splice(index, 1);
             }
 
             //newParticipants = arrayUnique(oldParticipants.concat(newParticipants));
 
-            console.log("session participants were found.");
+            logger.info("getMembers:session participants were found.");
             r.status = 1;
             r.participants = participantsEmails;
             r.desc = "session participants were found.";
-            db.close();   /* TODO REMOVE */
             res.json(r);                      
-          }
-
-        });
+        }
     });
-    }
-    else
-    {
-      console.log("data.sessionId propery does not exist in the query or it is empty");
-      r.status = 0;
-      r.desc = "data.sessionId propery does not exist in the query or it is empty";
-      res.json(r);  
-      return;     
-    }
-    }                         
-    catch(err)
-    {
-     console.log("failure while parsing the request, the error:", err);
-
-     r.desc = "failure while parsing the request";
-     res.json(r);
-
-    }
 }
