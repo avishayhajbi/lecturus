@@ -507,3 +507,5 @@
 {"level":"info","message":"updateViews:session: 14344645286301018154113 views counter was updated.","timestamp":"2015-06-21T11:49:26.185Z"}
 {"level":"info","message":"updateViews:session: 14344645286301018154113 views counter was updated.","timestamp":"2015-06-21T11:49:26.326Z"}
 {"level":"info","message":"lastViews:user: avishayhajbi@gmail.com last views were successfully returned.","timestamp":"2015-06-21T11:49:51.127Z"}
+{"level":"info","message":"LecturuS Server running...8080","timestamp":"2015-06-22T09:36:52.849Z"}
+{"level":"info","message":"LecturuS Server running...8080","timestamp":"2015-06-22T11:20:55.117Z"}

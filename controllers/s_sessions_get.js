@@ -10,7 +10,7 @@ var gcm = require('node-gcm');
 
 //this global variable represents the properties we want tot receive from the database
 sessionPreview = {
-    title : true, description : true, participants : true, owner : true, course : true, degree : true, lecturer : true,
+    title : true, description : true, participants : true, owner : true, course : true, degree : true, degreeId : true, lecturer : true,
     sessionId : true, totalSecondLength : true, rating : true, views : true, timestamp : true, _id : false
 };
 
