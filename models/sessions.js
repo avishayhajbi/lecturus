@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 var sessionsSchema = new Schema( 
 {
 	sessionId : { type : String,  index : true, unique : true, required : true},
-	org : String,
+	org : { type : String, default : '' },
 	title :  { type : String, default : '' },
 	description : { type : String, default : '' },
 	lecturer : { type : String, default : '' },
@@ -35,7 +35,7 @@ var sessionsSchema = new Schema(
 	views : { type : Number, default : 0 },
 	active : { type : Boolean, default : true },
 	public : { type : Boolean, default : true },
-	timestamp : Number
+	timestamp : { type : Number, default : 0 }
 },
 {
     strict: false,
