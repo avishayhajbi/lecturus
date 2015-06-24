@@ -395,7 +395,7 @@ function informSessionStop(sessionId)
 	var message = new gcm.Message();	//create new gcm message
 	var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I');	//create new gcm object
 	
-	logger.debug("informSessionStop:inform that session: " + sessionId + " has started.");
+	logger.debug("informSessionStop:inform that session: " + sessionId + " has stopped.");
 
 	//search for the session document in the sessions collection
     db.model('sessions').findOne( 
