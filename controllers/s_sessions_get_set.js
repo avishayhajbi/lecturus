@@ -326,6 +326,12 @@ function informSessionStart(sessionId)
 	        	        
         // search for the participants google registration id
         // validation that each user exists in the users collection before adding it to the session
+        if (sessionObj.participants.length == 0)
+        {
+        	logger.debug("informSessionStart:no session participants were found.");
+        	return;
+        }
+        else 
         db.model('users').find( 
 		{ email : { $in : sessionObj.participants } }, 
      	{ regId : true, _id : false },
@@ -412,6 +418,12 @@ function informSessionStop(sessionId)
 	        	        
         // seach for the participants google registration id
         // validation that each user exists in the users collection before adding it to the session
+        if (sessionObj.participants.length == 0)
+        {
+        	logger.debug("informSessionStop:no session participants were found.");
+        	return;
+        }
+        else 
         db.model('users').find( 
 		{ email : { $in : sessionObj.participants } }, 
      	{ regId : true, _id : false },
@@ -427,7 +439,7 @@ function informSessionStop(sessionId)
     		}
     		if ( arrUsers.length == 0 )
     		{
-     			logger.error("informSessionStop:no session participants were found.");
+     			logger.debug("informSessionStop:no session participants were found.");
       			return;
     		}
     		else
