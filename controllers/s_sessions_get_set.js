@@ -138,7 +138,7 @@ exports.updateSessionStatus = function (req,res,next)
         		if (reqStatus == 0)   //stop session case
           		{
 					//check if the session is in progress
-					if (result.startTime == 0 )   // need to start the session first
+					if (sessionObj.startTime == 0 )   // need to start the session first
               		{
 						logger.error("updateSessionStatus:can not stop session: " + reqSession + ", it was not started yet.");
               			r.status = 0;
@@ -148,7 +148,7 @@ exports.updateSessionStatus = function (req,res,next)
               		}
 
 					//check if the session was already stopped
-				  	if (result.stopTime != 0 )    // the session was stoped before
+				  	if (sessionObj.stopTime != 0 )    // the session was stoped before
 				  	{
 						logger.error("updateSessionStatus:can not stop session: " + reqSession + ", it was already stopped.");
 						r.status = 0;
@@ -158,10 +158,10 @@ exports.updateSessionStatus = function (req,res,next)
 				  	}
 
 					//update session stop time
-					result.stopTime = reqTimestamp;
+					sessionObj.stopTime = reqTimestamp;
 
 					//save the result - update the document in the database
-              		result.save(function(err, obj)
+              		sessionObj.save(function(err, obj)
               		{
 						//check if an error occurred during the save
 						if (err)
@@ -205,7 +205,7 @@ exports.updateSessionStatus = function (req,res,next)
 /*
  * This function will reagange session elents according to their timestamp and so will create the session format for web site use.
  */
-function arrangeSessionElements(sessionId)
+function arrangeSessionElements (sessionId)
 {
  	logger.debug("arrangeSessionElements:entered the function.");
 
@@ -343,7 +343,7 @@ function informSessionStart(sessionId)
 			//check if any
     		if ( arrUsers.length == 0 )
     		{
-				logger.error("informSessionStart:no session participants were found.");
+				logger.debug("informSessionStart:no session participants were found.");
       			return;
     		}
     		else
