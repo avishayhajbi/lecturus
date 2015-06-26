@@ -137,7 +137,7 @@ exports.uploadTags = function(req, res, next)
 						return;
 					}
                   	
-                  	if (obj.stopTime != 0 && (currentTime - obj.stopTime > arrangeElementsDelayMS) )
+                  	if (obj.stopTime != 0)
 					{
 						logger.error("uploadTags:session: " + sessionId + " is closed.");
 						r.status = 2;
@@ -312,7 +312,7 @@ exports.uploadImage = function(req, res, next)
 							return;
 						}
 
-						if (result.stopTime != 0 && (currentTime - result.stopTime > arrangeElementsDelayMS) )
+						if (result.stopTime != 0)
 						{
 							logger.error("uploadImage:session: " + sessionId + " is closed.");
 							r.status = 2;
@@ -325,7 +325,7 @@ exports.uploadImage = function(req, res, next)
 						r.status = 1 ;
 						r.desc = "list of images was updated.";
 						res.json(r);
-						return;		//TODO. should i remove this???
+						return;	
 					});
 				}
       		});
