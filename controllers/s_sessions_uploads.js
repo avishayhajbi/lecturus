@@ -136,7 +136,16 @@ exports.uploadTags = function(req, res, next)
 						res.json(r);
 						return;
 					}
-                  		
+                  	
+                  	if (obj.stopTime != 0 && (currentTime - obj.stopTime > arrangeElementsDelayMS) )
+					{
+						logger.error("uploadTags:session: " + sessionId + " is closed.");
+						r.status = 2;
+						r.desc = "session: " + sessionId + " is closed";
+						res.json(r);
+						return;
+					}
+
 					logger.info("uploadTags:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
 					r.status = 1;
 					r.desc = "tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.";
@@ -169,8 +178,9 @@ exports.uploadTags = function(req, res, next)
 exports.uploadImage = function(req, res, next)
 {
 	//create new empty variables
-    var sessionId, timestamp, email; 
-    var file; 									//store file information
+    var sessionId, timestamp, email; //store file information
+    var currentTime = new Date().getTime();
+    var file; 									
     var r = { };
 
 	//save user ip
@@ -243,23 +253,6 @@ exports.uploadImage = function(req, res, next)
 
       	var stream = cloudinary.uploader.upload_stream(function(result) 
 		{
-			/*
-          	//connect to the database
-      		MongoClient.connect(config.mongoUrl, {native_parser : true}, function(err, nativeDB) 
-          	{
-              	//check if mongodb connection failed return error message and exit
-        		if (err) 
-              	{
-                	logger.error("UPLOADIMAGE:connection error ",err);
-                	r.status = 0;
-                	r.desc = "err db";
-                	res.json(r);
-                	return;
-              	}	
-
-              	//select users collection
-              	var collection = nativeDB.collection('sessions');
-			*/
 
 			//search for the session document in the sessions collection
 			db.model('sessions').findOne(
@@ -315,6 +308,15 @@ exports.uploadImage = function(req, res, next)
 							logger.error("uploadImage:failure occurred while saving the session, the error: ", err);
 							r.status = 0;
 							r.desc = "failure occurred while saving the session.";
+							res.json(r);
+							return;
+						}
+
+						if (result.stopTime != 0 && (currentTime - result.stopTime > arrangeElementsDelayMS) )
+						{
+							logger.error("uploadImage:session: " + sessionId + " is closed.");
+							r.status = 2;
+							r.desc = "session: " + sessionId + " is not closed";
 							res.json(r);
 							return;
 						}

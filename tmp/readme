@@ -1,4 +1,9 @@
 temporary files will stored here
 
 create the api
-./node_modules/.bin/jsdoc .\controllers .\index.js --readme .\README.md
+	./node_modules/.bin/jsdoc .\controllers .\index.js --readme .\README.md
+
+Stopping all processes with SIGTERM
+	You need to pass server port to local.js:
+	node local.js -s lecturus.herokuapp.com -l 3500 -m rc4 -k foobar -r 80
+	Note the -r 80.
