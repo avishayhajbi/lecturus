@@ -137,9 +137,9 @@ exports.uploadTags = function(req, res, next)
 						return;
 					}
                   	
-                  	if (obj.stopTime != 0)
+     				if (obj.stopTime != 0)
 					{
-						logger.error("uploadTags:session: " + sessionId + " is closed.");
+						logger.info("uploadTags:session: " + sessionId + " is closed.");
 						r.status = 2;
 						r.desc = "session: " + sessionId + " is closed";
 						res.json(r);
@@ -314,7 +314,7 @@ exports.uploadImage = function(req, res, next)
 
 						if (result.stopTime != 0)
 						{
-							logger.error("uploadImage:session: " + sessionId + " is closed.");
+							logger.info("uploadImage:session: " + sessionId + " is closed.");
 							r.status = 2;
 							r.desc = "session: " + sessionId + " is not closed";
 							res.json(r);
@@ -489,7 +489,7 @@ exports.uploadAudio = function(req, res, next)
                         r.status = 1;
                         r.desc = "list of audios was updated.";
                         res.json(r);
-						//TODO. return?
+						return;
                     });
 			  	}
 			//});

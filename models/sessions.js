@@ -28,7 +28,7 @@ var sessionsSchema = new Schema(
     	}
     },
 	participants :  { type : Array, default : [] },
-	audios : [ { length : Number,timestamp : Number, email : String, url : String, startAt : Number, default : [] } ],
+	audios : [ { length : Number, timestamp : Number, email : String, url : String, startAt : Number, default : [] } ],
 	elements : {  type: mongoose.Schema.Types.Mixed, default : {} },
 	tags : { type : Array, default : [] },
 	images : { type : Array, default : [] },
