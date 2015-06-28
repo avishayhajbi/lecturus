@@ -469,11 +469,11 @@ exports.uploadAudio = function(req, res, next)
 					sessionObj.audios.push(audioToAdd);
 
 					//update the session document
-					db.model('sessions').update(
-					{ sessionId : sessionId },
-					{ $set : { audios : sessionObj.audios, totalSecondLength : sessionObj.totalSecondLength } },
-					{ upsert : true, safe : true, fsync : true},
-					function(err, result)
+					// db.model('sessions').update(
+					// { sessionId : sessionId },
+					// { $set : { audios : sessionObj.audios, totalSecondLength : sessionObj.totalSecondLength } },
+					// { upsert : true, safe : true, fsync : true},
+					sessionObj.save(function(err, result)
                     {
 						//check if an error occurred during the save
 						if (err)
