@@ -137,14 +137,14 @@ exports.uploadTags = function(req, res, next)
 						return;
 					}
                   	
-     				if (obj.stopTime != 0)
-					{
-						logger.info("uploadTags:session: " + sessionId + " is closed.");
-						r.status = 2;
-						r.desc = "session: " + sessionId + " is closed";
-						res.json(r);
-						return;
-					}
+     				// if (obj.stopTime != 0)
+					// {
+					// 	logger.info("uploadTags:session: " + sessionId + " is closed.");
+					// 	r.status = 2;
+					// 	r.desc = "session: " + sessionId + " is closed";
+					// 	res.json(r);
+					// 	return;
+					// }
 
 					logger.info("uploadTags:tags from user: " + email + " were uploaded to the session: " + sessionId + " successfully.");
 					r.status = 1;
@@ -312,14 +312,14 @@ exports.uploadImage = function(req, res, next)
 							return;
 						}
 
-						if (result.stopTime != 0)
-						{
-							logger.info("uploadImage:session: " + sessionId + " is closed.");
-							r.status = 2;
-							r.desc = "session: " + sessionId + " is not closed";
-							res.json(r);
-							return;
-						}
+						// if (result.stopTime != 0)
+						// {
+						// 	logger.info("uploadImage:session: " + sessionId + " is closed.");
+						// 	r.status = 2;
+						// 	r.desc = "session: " + sessionId + " is not closed";
+						// 	res.json(r);
+						// 	return;
+						// }
 
 						logger.info("uploadImage:list of images was updated.");
 						r.status = 1 ;
