@@ -5,7 +5,7 @@ var fs = require("fs-extra");
 require( process.cwd() + '/log/init.js');
 
 app = express();
-app.use(express.static(process.cwd() + '/out'));
+app.use(express.static(process.cwd() + '/docs'));
 app.use(express.static(process.cwd() + '/log'));
 app.use(bodyParser()); 
 app.use(bodyParser.urlencoded({extended: false}));

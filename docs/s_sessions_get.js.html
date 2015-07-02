@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>DocStrap Source: s_sessions_get.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.cosmo.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">DocStrap</a>
+	</div>
+	<div class="navbar-collapse">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="auxiliary.html">auxiliary</a></li><li><a href="session.html">session</a></li><li><a href="tags.html">tags</a></li><li><a href="users.html">users</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+	</div>
+</div>
+</div>
+
+
+<div class="container">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+    		<h1 class="page-title">Source: s_sessions_get.js</h1>
+			
+
+		<h1 class="page-title">Source: s_sessions_get.js</h1>
+    
+<section>
+	<article>
+		<pre
+			class="sunlight-highlight-javascript linenums">var fs = require("fs-extra");
+var multiparty = require('multiparty');
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
+var formidable = require('formidable');
+var cloudinary = require('cloudinary');
+var ffmpeg = require('fluent-ffmpeg');
+var ffmpegCommand = ffmpeg();
+var gcm = require('node-gcm');
+
+//this global variable represents the properties we want tot receive from the database
+sessionPreview = {
+    title : true, description : true, participants : true, owner : true, course : true, degree : true, degreeId : true, lecturer : true,
+    sessionId : true, totalSecondLength : true, rating : true, views : true, timestamp : true, _id : false
+};
+
+//configuration for cloudinary API
+cloudinary.config({ 
+    cloud_name: 'hakrhqyps',
+    api_key: '437118412619984',
+    api_secret: '2y8KTIp1PGzNUQgcwDQsjqMQiU4'
+});
+
+/** @namespace session */
+
+/**
+ * @inner
+ * @memberof session
+ * @function createSession
+ * @desc create new session
+ * @param {string} email - name@gmail.com
+ * @param {string} org - shenkar
+ * @param {string} name - text
+ * @param {string} description - text
+ * @param {string} lecturer - text
+ * @param {number} degree - {0-9}*
+ * @param {number} course - {0-9}*
+ * @returns {json} status: 1/0, 
+ * sessionId: new created session id,
+ * timestamp: session creation time at the server
+ */
+exports.createSession = function(req, res, next)
+{
+    //create timestamp and unique id
+    var date = new Date().getTime();
+    var userip = req.connection.remoteAddress.replace(/\./g , '');
+    var uniqueid = date + userip;
+    var r = { };
+
+    //try to parse the received data
+    try
+    {
+        var data = req.body;
+    }
+    catch( err )
+    {
+        logger.error("createSession:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if (typeof data.email === 'undefined' || data.email == null || data.email == "")
+    {
+        logger.error("createSession:request must contain email property.");
+        r.status = 0;
+        r.desc = "request must contain email property.";
+        res.json(r);
+        return;
+    }
+
+    //search for the user document in the users collection
+    db.model('users').find(
+    { email : data.email },
+    { _id:false },
+    function (err, userObj)
+    {
+        // failure during user search
+        if (err)
+        {
+            logger.error("createSession:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+    
+        //check if user exists in the database
+        if (!userObj.length)
+        {
+            logger.error("createSession:user: " + data.email + " was not found.");
+            r.status = 0;
+            r.desc = "use: " + data.email + " was not found.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            //add additional properties
+            data.sessionId = uniqueid;
+            data.owner = data.email;
+            data.timestamp = date;
+
+            //create new session object from sessions schema
+            var newSession =  new Session(data);
+
+            //save new session object in sessions  collection
+            newSession.save(function (err, sessionObj)
+            {
+                //check if error occurred during the save
+                if (err)
+                {
+                    logger.error("createSession:failure occurred while saving the session, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred while saving the session.";
+                    res.json(r);
+                    return;
+                }
+
+                logger.info("createSession:session: " + sessionObj.sessionId + " was created successfully.");
+                r.sessionId = sessionObj.sessionId;
+                r.timestamp = date;
+                r.owner = sessionObj.owner;
+                r.status = 1;
+                r.desc = "session: " + sessionObj.sessionId + " was created successfully.";
+                res.json(r);
+                return;
+            });
+        }
+    });
+ };
+
+/**
+ * @inner
+ * @memberof session
+ * @function getUserSessions
+ * @desc This function will find all the 'session' documents in the 'sessions' collection by user id (email).
+ * This function searches for user id both in 'session' document's 'owner' and 'participants' properties.
+ * @param {string} email - name@gmail.com
+ * @param {number} from - {0-9}*
+ * @param {number} to - {0-9}*
+ * @returns {json} status: 1/0, 
+ * userRecordings: the result, 
+ * length: userRecordings length
+ */
+exports.getUserSessions = function(req,res,next)
+{
+    var userId, r= { };
+
+    //try to parse the received data
+    try
+    {
+        data = req.body;
+        userId = req.body.email;
+        data.from = parseInt(req.body.from) || 0;
+        data.to = parseInt(req.body.to) || 8;
+    }
+    catch(err)
+    {
+        logger.error("getUserSessions:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if (typeof userId === 'undefined' || userId == null || userId == "")
+    {
+        logger.error("getUserSessions:request must contain email property.");
+        r.status = 0;
+        r.desc = "request must contain email property.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').find(
+    { $and : [
+        { $or: [
+            { owner : userId },
+            {participants : userId}   ] },
+        {stopTime:{ $gt: 0  }} ]},
+    sessionPreview).sort({stopTime: -1}).skip(data.from).limit(data.to)
+    .exec(function(err, docs)
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("getUserSessions:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            createUsersJson(docs, function(result)
+            {
+                r.users = result;
+                logger.info("getUserSessions:sessions with user: " + userId + " participation: " + docs);
+                r.length = docs.length;
+                r.status = 1;
+                r.userRecordings = docs;
+                r.desc = "sessions with user: " + userId + " participation.";
+                res.json(r);
+            });
+        }
+    });
+}
+
+/**
+ * @inner
+ * @memberof session
+ * @function addMembers
+ * @desc This function will send GCM sessages to each user that the function received in the request.
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {array} participants - [emails]
+ * @returns {json} status: 1/0
+ */
+exports.addMembers = function(req,res,next)
+{
+    //create new empty variables
+    var timestamp = new Date().getTime(); //create timestamp
+    var newParticipants, sessionOnwer, sessionId;
+    var r = { };  //response object
+    var message = new gcm.Message();  //create new gcm message
+    var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
+
+    //try to parse the received data
+    try
+    {
+        newParticipants = req.body.participants; // participans = array
+        sessionId = req.body.sessionId;
+        sessionOnwer = req.body.email;
+    }
+    catch(err)
+    {
+        logger.error("updateSession:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check if no new participants were received in the request
+    if ( newParticipants.length == 0 )
+    {
+        console.log("addMembers:no participants were sent.");
+        r.status = 0;
+        r.desc = "no participants were sent.";
+        res.json(r);
+        return;   
+    }
+
+    //check that all needed properties were received in the request
+    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )
+    {
+        logger.error("addMembers:request must contain sessionId property.");
+        r.status = 0;
+        r.desc = "request must contain sessionId property.";
+        res.json(r);
+        return;
+    }
+    else
+    {
+        logger.debug("addMembers:Session id is: " + sessionId);
+
+        //search for the session document in the sessions collection
+        db.model('sessions').findOne( 
+        { sessionId : sessionId },
+        function (err, sessionObj)
+        {
+            //check if failure occurred during the search
+            if (err)
+            {
+                logger.error("addMembers:failure occurred during the search, the error: ", err);
+                r.status = 0;
+                r.desc = "failure occurred during the search.";
+                res.json(r);
+                return;
+            }
+
+            //check that the session exists
+            if ( !sessionObj )
+            {
+                logger.error("addMembers:session: " + sessionId + " was not found.");
+                r.status = 0;
+                r.desc = "session: " + sessionId + " was not found.";
+                res.json(r);
+                return;
+            }
+
+            //check that an email received in the request belongs to the session owner
+            if (sessionObj.owner != sessionOnwer)
+            {
+                logger.error("addMembers:email, received in the request, does not belong to session owner.");
+                r.status = 0;
+                r.desc = "email, received in the request, does not belong to session owner.";
+                res.json(r);
+                return;
+            }
+          
+            // seach for the participants google registration id
+            // validation that each user exists in the users collection before adding it to the session
+            db.model('users').find(
+            { email : { $in : newParticipants } },
+            { regId : true, _id : false },
+            function (err, result)
+            {
+                logger.debug("addMembers:Result id is: " + result);
+
+                //check if failure occurred during the search
+                if (err)
+                {
+                    logger.error("addMembers:failure occurred during the search, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred during the search.";
+                    res.json(r);
+                    return;
+                }
+
+                //check that al least one registration id was found
+                if ( result.length == 0 )
+                {
+                    logger.error("addMembers:no registration ids were found.");
+                    r.status = 0;
+                    r.desc = "no registration ids were found.";
+                    res.json(r);
+                    return;
+                }
+                else
+                {
+                    //populate message details
+                    message.addData('message', 'join session');
+                    message.addData('status', '1');
+                    message.addData('sessionId', sessionId);
+                    message.addData('ownerId', sessionOnwer);
+                    message.delay_while_idle = 1;
+
+                    //send GCM message to all the participants
+                    (result).forEach (function (currRes)
+                    {
+                        logger.debug("addMembers:participant's registration id: " + currRes.regId);
+
+                         var registrationIds = [];
+                        registrationIds.push(currRes.regId);
+                
+                        //send the message
+                        sender.sendNoRetry(message, registrationIds, function(err, sentResult)
+                        {
+                            if(err)
+                            {
+                                logger.error("addMembers:error is: " + err);
+                            }
+                            else
+                            {
+                                logger.debug("addMembers:message sending to: " + currRes.regId + " resulted with:" + sentResult);
+                            }
+                        });
+                    });
+  
+                    logger.info("addMembers:messages were sent.");
+                    r.status = 1;
+                    r.desc = "messages were sent.";
+                    res.json(r);
+                    return;
+                }
+            });
+        });
+    }
+};
+
+/*
+ * This function will receive an array and delete all duplicate entries.
+ */
+function arrayUnique( array ) 
+{
+    var a = array.concat();
+
+    for(var i = 0; i &lt; a.length; ++i)
+    {
+        for(var j = i + 1; j &lt; a.length; ++j)
+        {
+            //if duplicate object found, erase it
+            if(a[i] === a[j])
+                a.splice(j--, 1);
+        }
+    }
+
+    return a;
+};
+
+/**
+ * @inner
+ * @memberof session
+ * @function updateViews
+ * @desc This function will update session views counter. The session must be completed.
+ * @param {json} data - The object with the data
+ * @param {string} data.userId - name@gmail.com
+ * @param {string} data.sessionId - text
+ * @returns {json} status: 1/0
+ */
+exports.updateViews = function(req,res,next)
+{
+    //create new empty variables
+    var r = { };
+    var sessionId, userId;
+
+    //try to parse the received data
+    try
+    {
+        sessionId = req.body.sessionId;
+        userId = req.body.userId;
+    }
+    catch( err )
+    {
+        logger.error("updateViews:failure occurred while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof userId === 'undefined' || userId == null || userId == "" )
+    {
+        logger.error("updateViews:request must contain sessionId and userId properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and userId properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection and update it's views
+     db.model('sessions').findOne(
+         { $and : [
+             { sessionId : sessionId },
+             { stopTime : { $gt : 0 } } ]
+         },
+        //{ participants : true, owner : true, _id : false }, - does not work with this
+        function (err, result)
+        {
+            //check if failure occurred during the search
+            if (err)
+            {
+                logger.error("updateViews:failure occurred during session search, the error: ", err);
+                r.status = 0;
+                r.desc = "failure occurred during session search";
+                res.json(r);
+                return;
+            }
+
+            //check if the session exists in the database
+            if ( !result )
+            {
+                logger.error("updateViews:session: " + sessionId + " was not found.");
+                r.status = 0;
+                r.desc = "session: " + sessionId + " was not found";
+                res.json(r);
+                return;
+            }
+            else
+            {
+                //increase sessions views
+                ++result.views;
+
+                //save the update
+                result.save(function(err, obj)
+                {
+                    logger.debug("updateViews:save the updated session.");
+                    if (err)
+                    {
+                        logger.error("updateViews:failure occurred during session save, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure occurred during session save.";
+                        res.json(r);
+                        return;
+                    }
+
+                    logger.info("updateViews:session: " + sessionId + " views counter was updated.");
+                    r.desc = "session: " + sessionId + " views counter was updated.";
+                });
+
+                //search for user document in the users collection and update it's last views array
+                db.model('users').findOne(
+                { email : userId },
+                function (err, userResult)
+                {
+                    //check if failure occurred during the search
+                    if (err)
+                    {
+                        logger.error("updateViews:failure during the search, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure during the search.";
+                        res.json(r);
+                        return;
+                    }
+
+                    //check if the session exists in the database
+                    if ( !userResult )
+                    {
+                        logger.error("updateViews:user: " + userId + " was not found.");
+                        r.status = 0;
+                        r.desc = "user: " + userId + " was not found";
+                        res.json(r);
+                        return;
+                    }
+                    else
+                    {
+                        //check if the session were already viewed by user
+                        alreadyViewed = userResult.lastViews.indexOf(sessionId);
+
+                        //if the session were already viewed by user, remove the session from user last views array
+                        if (alreadyViewed != -1)
+                        {
+                            userResult.lastViews.splice(alreadyViewed,1);
+                        }
+
+                        //add the session to user last views array
+                        userResult.lastViews.unshift(sessionId);
+
+                        //save the update in users collection
+                        userResult.save(function(err, obj)
+                        {
+                            if (err)
+                            {
+                                logger.error("updateViews:failure occurred during user save, the error: ", err);
+                                r.status = 0;
+                                r.desc = "failure occurred during user save.";
+                                res.json(r);
+                                return;
+                            }
+
+                            logger.info("updateViews:session: " + sessionId + " views counter was updated.");
+                            r.status = 1;
+                            r.desc = r.desc + ". session: " + sessionId + " views counter was updated";
+                            res.json(r);
+                            return;
+                        });
+                    }
+               });
+            }
+        });
+}
+
+/**
+ * @inner
+ * @memberof session
+ * @function getSessionById
+ * @desc This function will find 'session' document in the 'sessions' collection, accordint to the sessionId received in the request. 
+ *  This function will increase session view counter only if edit property, received in the request, is true.
+ * @param {string} userId - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {string} org - shenkar
+ * @param {boolean} edit - true/false
+ * @returns {json} status: 1/0, 
+ * info: the session data
+ */
+exports.getSessionById = function(req,res,next)
+{
+    //create new empty variables
+    var r = { };
+    var sessionId, org, userId,edit;
+
+    //try to parse the received data
+    try
+    {
+        sessionId = req.body.sessionId;
+        org = req.body.org;
+        userId = req.body.userId;               //TODO handel get video only if the user from the same org
+        edit = req.body.edit || "false";      //TODO handel plus minus views counter
+    }
+    catch(err)
+    {
+        logger.error("getSessionById:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { $and : [
+        { sessionId : sessionId },
+        { stopTime : { $gt: 0  } },
+        { org : org } ] },
+    { _id : false },
+    { _id : false }).lean().exec(function( err, doc )
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("getSessionById:failure occurred while searching for the sessions, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred while searching for the sessions.";
+            res.json(r);
+            return;
+        }
+        else if (doc)
+        {
+            if (edit == "true")
+            {
+                logger.info("getSessionById:the session: " + sessionId + " was found.");
+                r.status = 1;
+                r.info = doc;
+                r.desc = "the session: " + sessionId + " was found.";
+                res.json(r);
+                return;
+            }
+
+            getUsersData(doc, userId, function(result)
+            {
+                doc.users = result;
+                logger.info("getSessionById:the session: " + sessionId + " was found.");
+                r.status = 1;
+                r.info = doc;
+                r.desc = "the session: " + sessionId + " was found.";
+                res.json(r);
+                return;
+            });
+        }
+        else
+        {
+            logger.error("getSessionById:the session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.info = [];
+            r.desc = "the session: " + sessionId + " was not found.";
+            res.json(r); 
+            return;  
+        }
+    });
+}
+
+/*
+ *
+ */
+createUsersJson = function(docs, callback)
+{
+    var usersList = [];
+
+    docs.forEach(function(doc)
+    {
+        usersList.push(doc.owner);
+        usersList.push(doc.participants.filter( function(v)
+        {
+            return v;
+        }));
+    });
+
+    var merged = [ ];
+    var merged = merged.concat.apply(merged, usersList);
+    var uniqueArray = merged.filter(function(item, pos)
+    {
+        return merged.indexOf(item) == pos;
+    });
+
+    //console.log(uniqueArray);
+
+    db.model('users').find(
+    { email : { $in : uniqueArray } },
+    { _id : false, name : true, lastName : true, image : true, email : true},
+    function (err, result)
+    {
+        // failure during user search
+        if (err)
+        {
+            callback(0);
+        }
+        else
+        {
+            var users = { };
+            for (var val in result)
+            {
+                users[result[val].email] = {
+                name : result[val].name,
+                      lastName : result[val].lastName,
+                      image : result[val].image,
+                      email : result[val].email
+                  };
+            }
+
+            callback(users);
+        }
+    });
+}
+
+getUsersData = function (doc, userid, callback) {
+    var tmpEmails = [userid];
+    tmpEmails.push(doc.participants.map(function(email) 
+    {
+        return email;
+    }));
+    
+    if (doc.elements)
+    for (var elem in doc.elements)
+    {
+        if (doc.elements[elem].hasOwnProperty('tags'))
+          tmpEmails.push(doc.elements[elem]['tags'].map(function(tag) 
+          {
+        tag.rating.positive.users =  (tag.rating.positive.users.indexOf(userid)!= -1)?true:false;
+              tag.rating.negative.users =  (tag.rating.negative.users.indexOf(userid)!= -1)?true:false;
+              return tag.email;
+          }));
+    }
+    
+    var merged = [ ];
+    var merged = merged.concat.apply(merged, tmpEmails);
+    var uniqueArray = merged.filter(function(item, pos) 
+    {
+        return merged.indexOf(item) == pos;
+    });
+
+    db.model('users').find( { email : { $in : uniqueArray } },
+    { _id : false, name : true, lastName : true, image : true, email : true, follow : true, favorites : true },
+    function (err, result)
+    {
+        // failure during user search
+        if (err) 
+        {
+            callback(0);    
+        }
+        else
+        {
+            var users = { };
+            for (var val in result)
+            {   
+                if (result[val].email == userid)
+                {
+                    doc.follow = (result[val].follow.indexOf(doc.owner)!= -1)?true:false;
+                    doc.favorite = (result[val].favorites.indexOf(doc.sessionId)!= -1)?true:false;
+                    doc.rating.positive.users =  (doc.rating.positive.users.indexOf(userid)!= -1)?true:false;
+                    doc.rating.negative.users =  (doc.rating.negative.users.indexOf(userid)!= -1)?true:false; 
+                }
+                users[result[val].email] = {
+                    name : result[val].name,
+                    lastName : result[val].lastName,
+                    image : result[val].image,
+                    email : result[val].email
+                };
+            }
+
+            callback(users);
+        }   
+    });   
+}
+
+/**
+ * @inner
+ * @memberof session
+ * @function getAllVideos
+ * @desc This function will find 'user' document in the 'users' collection, accordint to the email received in the request. 
+ *  This function will return all sessions by the user organization. 
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @param {number} data.from - {0-9}*
+ * @param {number} data.to - {0-9}*
+ * @returns {json} status: 1/0, 
+ * res: the result, 
+ * length: the result length
+ */
+exports.getAllVideos = function(req,res,next)
+{
+    //create new empty variables
+    var r = { };
+    var email, to, from;
+
+    //try to parse the received data
+    try
+    {
+        email = req.query.email;
+        from = req.query.from || 0;
+        to = req.query.to || 10;
+    }
+    catch(err)
+    {
+        logger.error("getAllVideos:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if ( typeof email === 'undefined' || email == null || email == "" )
+    {
+        logger.error("getAllVideos:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the user document in the users collection
+    db.model('users').findOne(
+    { email : email },
+    { org : true, _id : false },
+    function(err, docs)
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("getAllVideos:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+        
+        else if (docs)
+        {
+            //search for the session documents in the sessions collection
+            db.model('sessions').find(
+            { org : docs.org }, sessionPreview).sort({'views': -1}).skip(from).limit(to)
+            .exec(function(err, result)
+            {
+                //check if failure occurred during the search
+                if (err)
+                {
+                    logger.error("updateSession:failure occurred during the search, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred during the search.";
+                    res.json(r);
+                    return;
+                }
+                
+                else if (result)
+                {
+                    db.model('sessions').find(
+                    {org : docs.org }).count().exec(function(err, result){ console.log(result)});
+                    //console.log("videos found "+ result);
+                    r.status = 1;  
+                    r.length=result.length;
+                    r.res = result;
+                    r.desc = "get videos.";
+                    res.json(r); 
+                    return;                         
+                }
+            });                        
+        }
+    });
+}
+
+/**
+ * @inner
+ * @memberof session
+ * @function getMembers
+ * @desc This function will find the 'session' document in the 'sessions' collection by sessionId that will be received in the request.
+ *  This function will extract all the emails from 'participants' property in the 'session' document.
+ * @param {json} data - The object with the data
+ * @param {string} data.email - name@gmail.com
+ * @param {string} data.sessionId - text
+ * @returns {json} status: 1/0, 
+ * participants: [those users agreed to participate in the current session], 
+ */
+exports.getMembers = function(req, res, next)
+{
+    //create new empty variables
+    var participants = Array();
+    var participantsEmails = Array();
+    var r = { };  //response object
+    var data;
+
+    //try to parse the received data
+    try
+    {
+        data = req.body;
+    }
+    catch(err)
+    {
+        logger.error("getMembers:failure occurred while parsing the request, the error is:", err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if (typeof data.sessionId === 'undefined' || data.sessionId == null || data.sessionId == "")
+    {
+        logger.error("getMembers:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { sessionId : data.sessionId },
+    function (err, sessionObj)
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("getMembers:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+
+        //check that the session exists
+        if ( !sessionObj )
+        {
+            logger.error("getMembers:session: " + data.sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + data.sessionId + " was not found.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            participants = sessionObj.participants;
+
+            logger.debug("getMembers:participants: " + participants);
+
+            (participants).forEach (function (participant)
+            {
+                logger.debug("getMembers:session participants: " + participant.user);
+                // we get an array of existing participants
+                participantsEmails.push( participant.user );
+            });
+
+            //exclude email received in the request from the result
+            var index = participantsEmails.indexOf(data.email);
+            if (index > -1) 
+            {
+              console.log("getMembers:email belongs to one of the participants.");
+              participantsEmails.splice(index, 1);
+            }
+
+            //newParticipants = arrayUnique(oldParticipants.concat(newParticipants));
+
+            logger.info("getMembers:session participants were found.");
+            r.status = 1;
+            r.participants = participantsEmails;
+            r.desc = "session participants were found.";
+            res.json(r);                      
+        }
+    });
+}
+</pre>
+	</article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	DocStrap Copyright © 2012-2014 The contributors to the JSDoc3 and DocStrap projects.
+	</span>
+	<br />
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a>
+	on Thu Jul 2nd 2015 using the <a
+	href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<!--<script src="scripts/sunlight.js"></script>-->
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/bootstrap-dropdown.js"></script>
+<script src="scripts/toc.js"></script>
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "h1,h2,h3,h4",
+		showAndHide : false,
+		scrollTo    : "100px"
+	} );
+
+	$( "#toc>ul" ).addClass( "nav nav-pills nav-stacked" );
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+	//			$( ".tutorial-section pre, .readme-section pre" ).addClass( "sunlight-highlight-javascript" ).addClass( "linenums" );
+
+	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			lang = "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+</body>
+</html>

@@ -1,3 +1,3 @@
 shenkar lecturus project
 
-avishay and max
+this project maked for shenkar collage as a demo

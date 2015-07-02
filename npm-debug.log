@@ -1,23 +1,1320 @@
 0 info it worked if it ends with ok
 1 verbose cli [ 'C:\\Program Files (x86)\\nodejs\\\\node.exe',
 1 verbose cli   'C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
-1 verbose cli   'test' ]
+1 verbose cli   'install' ]
 2 info using npm@1.4.28
 3 info using node@v0.10.32
 4 verbose node symlink C:\Program Files (x86)\nodejs\\node.exe
-5 error Failed to parse json
-5 error Unexpected token /
-6 error File: D:\Documents\Documents\GitHub\lecturus\package.json
-7 error Failed to parse package.json data.
-7 error package.json must be actual JSON, not just JavaScript.
-7 error
-7 error This is not a bug in npm.
-7 error Tell the package author to fix their package.json file. JSON.parse
-8 error System Windows_NT 6.1.7601
-9 error command "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "test"
-10 error cwd D:\Documents\Documents\GitHub\lecturus
-11 error node -v v0.10.32
-12 error npm -v 1.4.28
-13 error file D:\Documents\Documents\GitHub\lecturus\package.json
-14 error code EJSONPARSE
-15 verbose exit [ 1, true ]
+5 verbose readDependencies using package.json deps
+6 verbose install where, deps [ 'D:\\Documents\\Documents\\GitHub\\lecturus',
+6 verbose install   [ 'body-parser',
+6 verbose install     'cloudinary',
+6 verbose install     'connect',
+6 verbose install     'connect-multiparty',
+6 verbose install     'daemon',
+6 verbose install     'docco',
+6 verbose install     'ejs',
+6 verbose install     'express',
+6 verbose install     'fluent-ffmpeg',
+6 verbose install     'formidable',
+6 verbose install     'fs-extra',
+6 verbose install     'gcm',
+6 verbose install     'grunt-cli',
+6 verbose install     'jsdoc',
+6 verbose install     'log',
+6 verbose install     'mongodb',
+6 verbose install     'mongoose',
+6 verbose install     'mongoose-text-search',
+6 verbose install     'multiparty',
+6 verbose install     'mysql',
+6 verbose install     'node-gcm',
+6 verbose install     'nodemon',
+6 verbose install     'path',
+6 verbose install     'pg',
+6 verbose install     'q',
+6 verbose install     'router',
+6 verbose install     'winston',
+6 verbose install     'wrappy',
+6 verbose install     'grunt',
+6 verbose install     'grunt-jsdoc',
+6 verbose install     'gulp',
+6 verbose install     'gulp-shell' ] ]
+7 info preinstall lecturus@0.1.2
+8 warn package.json path@0.11.14 path is also the name of a node core module.
+9 warn package.json querystring@0.2.0 querystring is also the name of a node core module.
+10 warn package.json url@0.10.3 url is also the name of a node core module.
+11 warn package.json log@1.4.0 No repository field.
+12 verbose readDependencies using package.json deps
+13 verbose already installed skipping body-parser@^1.12.3 D:\Documents\Documents\GitHub\lecturus
+14 verbose already installed skipping cloudinary@^1.2.1 D:\Documents\Documents\GitHub\lecturus
+15 verbose already installed skipping connect@^3.3.5 D:\Documents\Documents\GitHub\lecturus
+16 verbose already installed skipping connect-multiparty@^1.2.5 D:\Documents\Documents\GitHub\lecturus
+17 verbose already installed skipping daemon@^1.1.0 D:\Documents\Documents\GitHub\lecturus
+18 verbose already installed skipping docco@^0.7.0 D:\Documents\Documents\GitHub\lecturus
+19 verbose already installed skipping ejs@^2.3.1 D:\Documents\Documents\GitHub\lecturus
+20 verbose already installed skipping express@^4.12.3 D:\Documents\Documents\GitHub\lecturus
+21 verbose already installed skipping fluent-ffmpeg@^2.0.1 D:\Documents\Documents\GitHub\lecturus
+22 verbose already installed skipping formidable@^1.0.17 D:\Documents\Documents\GitHub\lecturus
+23 verbose already installed skipping fs-extra@^0.18.2 D:\Documents\Documents\GitHub\lecturus
+24 verbose already installed skipping gcm@^1.0.1 D:\Documents\Documents\GitHub\lecturus
+25 verbose already installed skipping grunt-cli@^0.1.13 D:\Documents\Documents\GitHub\lecturus
+26 verbose already installed skipping jsdoc@^3.3.1 D:\Documents\Documents\GitHub\lecturus
+27 verbose already installed skipping log@^1.4.0 D:\Documents\Documents\GitHub\lecturus
+28 verbose already installed skipping mongodb@^2.0.25 D:\Documents\Documents\GitHub\lecturus
+29 verbose already installed skipping mongoose@^4.0.1 D:\Documents\Documents\GitHub\lecturus
+30 verbose already installed skipping mongoose-text-search@0.0.2 D:\Documents\Documents\GitHub\lecturus
+31 verbose already installed skipping multiparty@^4.1.1 D:\Documents\Documents\GitHub\lecturus
+32 verbose already installed skipping mysql@^2.6.1 D:\Documents\Documents\GitHub\lecturus
+33 verbose already installed skipping node-gcm@^0.9.15 D:\Documents\Documents\GitHub\lecturus
+34 verbose already installed skipping nodemon@^1.3.7 D:\Documents\Documents\GitHub\lecturus
+35 verbose already installed skipping path@^0.11.14 D:\Documents\Documents\GitHub\lecturus
+36 verbose already installed skipping pg@4.x D:\Documents\Documents\GitHub\lecturus
+37 verbose already installed skipping q@^1.2.0 D:\Documents\Documents\GitHub\lecturus
+38 verbose already installed skipping router@^1.0.0 D:\Documents\Documents\GitHub\lecturus
+39 verbose already installed skipping winston@^1.0.0 D:\Documents\Documents\GitHub\lecturus
+40 verbose already installed skipping wrappy@^1.0.1 D:\Documents\Documents\GitHub\lecturus
+41 verbose already installed skipping grunt@^0.4.3 D:\Documents\Documents\GitHub\lecturus
+42 verbose already installed skipping grunt-jsdoc@^0.6.7 D:\Documents\Documents\GitHub\lecturus
+43 verbose already installed skipping gulp@^3.9.0 D:\Documents\Documents\GitHub\lecturus
+44 verbose already installed skipping gulp-shell@^0.4.2 D:\Documents\Documents\GitHub\lecturus
+45 silly resolved []
+46 info build D:\Documents\Documents\GitHub\lecturus
+47 verbose linkStuff [ false, false, false, 'D:\\Documents\\Documents\\GitHub' ]
+48 info linkStuff lecturus@0.1.2
+49 verbose linkBins lecturus@0.1.2
+50 verbose linkMans lecturus@0.1.2
+51 verbose rebuildBundles lecturus@0.1.2
+52 verbose rebuildBundles [ '.bin',
+52 verbose rebuildBundles   'body-parser',
+52 verbose rebuildBundles   'cloudinary',
+52 verbose rebuildBundles   'connect',
+52 verbose rebuildBundles   'connect-multiparty',
+52 verbose rebuildBundles   'content-type',
+52 verbose rebuildBundles   'daemon',
+52 verbose rebuildBundles   'docco',
+52 verbose rebuildBundles   'ejs',
+52 verbose rebuildBundles   'express',
+52 verbose rebuildBundles   'fluent-ffmpeg',
+52 verbose rebuildBundles   'formidable',
+52 verbose rebuildBundles   'fs-extra',
+52 verbose rebuildBundles   'gcm',
+52 verbose rebuildBundles   'grunt',
+52 verbose rebuildBundles   'grunt-cli',
+52 verbose rebuildBundles   'grunt-contrib-clean',
+52 verbose rebuildBundles   'grunt-contrib-jshint',
+52 verbose rebuildBundles   'grunt-contrib-nodeunit',
+52 verbose rebuildBundles   'grunt-jsdoc',
+52 verbose rebuildBundles   'gulp',
+52 verbose rebuildBundles   'gulp-shell',
+52 verbose rebuildBundles   'install',
+52 verbose rebuildBundles   'jsdoc',
+52 verbose rebuildBundles   'load-grunt-tasks',
+52 verbose rebuildBundles   'log',
+52 verbose rebuildBundles   'mongodb',
+52 verbose rebuildBundles   'mongoose',
+52 verbose rebuildBundles   'mongoose-text-search',
+52 verbose rebuildBundles   'multiparty',
+52 verbose rebuildBundles   'mysql',
+52 verbose rebuildBundles   'node-gcm',
+52 verbose rebuildBundles   'nodemon',
+52 verbose rebuildBundles   'npm',
+52 verbose rebuildBundles   'path',
+52 verbose rebuildBundles   'pg',
+52 verbose rebuildBundles   'q',
+52 verbose rebuildBundles   'querystring',
+52 verbose rebuildBundles   'router',
+52 verbose rebuildBundles   'url',
+52 verbose rebuildBundles   'winston',
+52 verbose rebuildBundles   'wrappy' ]
+53 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\content-type
+54 info build D:\Documents\Documents\GitHub\lecturus\node_modules\content-type
+55 info preinstall content-type@1.0.1
+56 verbose linkStuff [ false,
+56 verbose linkStuff   false,
+56 verbose linkStuff   false,
+56 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+57 info linkStuff content-type@1.0.1
+58 verbose linkBins content-type@1.0.1
+59 verbose linkMans content-type@1.0.1
+60 verbose rebuildBundles content-type@1.0.1
+61 info install content-type@1.0.1
+62 info postinstall content-type@1.0.1
+63 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-clean
+64 info build D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-clean
+65 info preinstall grunt-contrib-clean@0.5.0
+66 verbose linkStuff [ false,
+66 verbose linkStuff   false,
+66 verbose linkStuff   false,
+66 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+67 info linkStuff grunt-contrib-clean@0.5.0
+68 verbose linkBins grunt-contrib-clean@0.5.0
+69 verbose linkMans grunt-contrib-clean@0.5.0
+70 verbose rebuildBundles grunt-contrib-clean@0.5.0
+71 verbose rebuildBundles [ '.bin', 'rimraf' ]
+72 info install grunt-contrib-clean@0.5.0
+73 info postinstall grunt-contrib-clean@0.5.0
+74 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-jshint
+75 info build D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-jshint
+76 info preinstall grunt-contrib-jshint@0.10.0
+77 verbose linkStuff [ false,
+77 verbose linkStuff   false,
+77 verbose linkStuff   false,
+77 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+78 info linkStuff grunt-contrib-jshint@0.10.0
+79 verbose linkBins grunt-contrib-jshint@0.10.0
+80 verbose linkMans grunt-contrib-jshint@0.10.0
+81 verbose rebuildBundles grunt-contrib-jshint@0.10.0
+82 verbose rebuildBundles [ '.bin', 'hooker', 'jshint' ]
+83 info install grunt-contrib-jshint@0.10.0
+84 info postinstall grunt-contrib-jshint@0.10.0
+85 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-nodeunit
+86 info build D:\Documents\Documents\GitHub\lecturus\node_modules\grunt-contrib-nodeunit
+87 info preinstall grunt-contrib-nodeunit@0.4.1
+88 verbose linkStuff [ false,
+88 verbose linkStuff   false,
+88 verbose linkStuff   false,
+88 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+89 info linkStuff grunt-contrib-nodeunit@0.4.1
+90 verbose linkBins grunt-contrib-nodeunit@0.4.1
+91 verbose linkMans grunt-contrib-nodeunit@0.4.1
+92 verbose rebuildBundles grunt-contrib-nodeunit@0.4.1
+93 verbose rebuildBundles [ '.bin', 'hooker', 'nodeunit' ]
+94 info install grunt-contrib-nodeunit@0.4.1
+95 info postinstall grunt-contrib-nodeunit@0.4.1
+96 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\install
+97 info build D:\Documents\Documents\GitHub\lecturus\node_modules\install
+98 info preinstall install@0.1.8
+99 verbose linkStuff [ false,
+99 verbose linkStuff   false,
+99 verbose linkStuff   false,
+99 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+100 info linkStuff install@0.1.8
+101 verbose linkBins install@0.1.8
+102 verbose linkMans install@0.1.8
+103 verbose rebuildBundles install@0.1.8
+104 info install install@0.1.8
+105 info postinstall install@0.1.8
+106 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\load-grunt-tasks
+107 info build D:\Documents\Documents\GitHub\lecturus\node_modules\load-grunt-tasks
+108 info preinstall load-grunt-tasks@3.2.0
+109 verbose linkStuff [ false,
+109 verbose linkStuff   false,
+109 verbose linkStuff   false,
+109 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+110 info linkStuff load-grunt-tasks@3.2.0
+111 verbose linkBins load-grunt-tasks@3.2.0
+112 verbose linkMans load-grunt-tasks@3.2.0
+113 verbose rebuildBundles load-grunt-tasks@3.2.0
+114 verbose rebuildBundles [ 'findup-sync', 'multimatch' ]
+115 info install load-grunt-tasks@3.2.0
+116 info postinstall load-grunt-tasks@3.2.0
+117 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm
+118 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm
+119 info preinstall npm@2.12.0
+120 verbose linkStuff [ false,
+120 verbose linkStuff   false,
+120 verbose linkStuff   false,
+120 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+121 info linkStuff npm@2.12.0
+122 warn prefer global npm@2.12.0 should be installed with -g
+123 verbose linkBins npm@2.12.0
+124 verbose link bins [ { npm: './bin/npm-cli.js' },
+124 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\.bin',
+124 verbose link bins   false ]
+125 verbose linkMans npm@2.12.0
+126 verbose rebuildBundles npm@2.12.0
+127 verbose rebuildBundles [ '.bin',
+127 verbose rebuildBundles   'abbrev',
+127 verbose rebuildBundles   'ansi',
+127 verbose rebuildBundles   'ansi-regex',
+127 verbose rebuildBundles   'ansicolors',
+127 verbose rebuildBundles   'ansistyles',
+127 verbose rebuildBundles   'archy',
+127 verbose rebuildBundles   'async-some',
+127 verbose rebuildBundles   'block-stream',
+127 verbose rebuildBundles   'char-spinner',
+127 verbose rebuildBundles   'chmodr',
+127 verbose rebuildBundles   'chownr',
+127 verbose rebuildBundles   'cmd-shim',
+127 verbose rebuildBundles   'columnify',
+127 verbose rebuildBundles   'config-chain',
+127 verbose rebuildBundles   'dezalgo',
+127 verbose rebuildBundles   'editor',
+127 verbose rebuildBundles   'fs-vacuum',
+127 verbose rebuildBundles   'fs-write-stream-atomic',
+127 verbose rebuildBundles   'fstream',
+127 verbose rebuildBundles   'fstream-npm',
+127 verbose rebuildBundles   'github-url-from-git',
+127 verbose rebuildBundles   'github-url-from-username-repo',
+127 verbose rebuildBundles   'glob',
+127 verbose rebuildBundles   'graceful-fs',
+127 verbose rebuildBundles   'hosted-git-info',
+127 verbose rebuildBundles   'inflight',
+127 verbose rebuildBundles   'inherits',
+127 verbose rebuildBundles   'ini',
+127 verbose rebuildBundles   'init-package-json',
+127 verbose rebuildBundles   'lockfile',
+127 verbose rebuildBundles   'lru-cache',
+127 verbose rebuildBundles   'minimatch',
+127 verbose rebuildBundles   'mkdirp',
+127 verbose rebuildBundles   'node-gyp',
+127 verbose rebuildBundles   'nopt',
+127 verbose rebuildBundles   'normalize-git-url',
+127 verbose rebuildBundles   'normalize-package-data',
+127 verbose rebuildBundles   'npm-cache-filename',
+127 verbose rebuildBundles   'npm-install-checks',
+127 verbose rebuildBundles   'npm-package-arg',
+127 verbose rebuildBundles   'npm-registry-client',
+127 verbose rebuildBundles   'npm-user-validate',
+127 verbose rebuildBundles   'npmlog',
+127 verbose rebuildBundles   'once',
+127 verbose rebuildBundles   'opener',
+127 verbose rebuildBundles   'osenv',
+127 verbose rebuildBundles   'path-is-inside',
+127 verbose rebuildBundles   'read',
+127 verbose rebuildBundles   'read-installed',
+127 verbose rebuildBundles   'read-package-json',
+127 verbose rebuildBundles   'readable-stream',
+127 verbose rebuildBundles   'realize-package-specifier',
+127 verbose rebuildBundles   'request',
+127 verbose rebuildBundles   'retry',
+127 verbose rebuildBundles   'rimraf',
+127 verbose rebuildBundles   'semver',
+127 verbose rebuildBundles   'sha',
+127 verbose rebuildBundles   'slide',
+127 verbose rebuildBundles   'sorted-object',
+127 verbose rebuildBundles   'spdx',
+127 verbose rebuildBundles   'strip-ansi',
+127 verbose rebuildBundles   'tar',
+127 verbose rebuildBundles   'text-table',
+127 verbose rebuildBundles   'uid-number',
+127 verbose rebuildBundles   'umask',
+127 verbose rebuildBundles   'validate-npm-package-license',
+127 verbose rebuildBundles   'validate-npm-package-name',
+127 verbose rebuildBundles   'which',
+127 verbose rebuildBundles   'wrappy',
+127 verbose rebuildBundles   'write-file-atomic' ]
+128 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\abbrev
+129 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\abbrev
+130 info preinstall abbrev@1.0.7
+131 verbose linkStuff [ false,
+131 verbose linkStuff   false,
+131 verbose linkStuff   false,
+131 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+132 info linkStuff abbrev@1.0.7
+133 verbose linkBins abbrev@1.0.7
+134 verbose linkMans abbrev@1.0.7
+135 verbose rebuildBundles abbrev@1.0.7
+136 info install abbrev@1.0.7
+137 info postinstall abbrev@1.0.7
+138 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansi
+139 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansi
+140 info preinstall ansi@0.3.0
+141 verbose linkStuff [ false,
+141 verbose linkStuff   false,
+141 verbose linkStuff   false,
+141 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+142 info linkStuff ansi@0.3.0
+143 verbose linkBins ansi@0.3.0
+144 verbose linkMans ansi@0.3.0
+145 verbose rebuildBundles ansi@0.3.0
+146 info install ansi@0.3.0
+147 info postinstall ansi@0.3.0
+148 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansi-regex
+149 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansi-regex
+150 info preinstall ansi-regex@1.1.1
+151 verbose linkStuff [ false,
+151 verbose linkStuff   false,
+151 verbose linkStuff   false,
+151 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+152 info linkStuff ansi-regex@1.1.1
+153 verbose linkBins ansi-regex@1.1.1
+154 verbose linkMans ansi-regex@1.1.1
+155 verbose rebuildBundles ansi-regex@1.1.1
+156 info install ansi-regex@1.1.1
+157 info postinstall ansi-regex@1.1.1
+158 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansicolors
+159 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansicolors
+160 info preinstall ansicolors@0.3.2
+161 verbose linkStuff [ false,
+161 verbose linkStuff   false,
+161 verbose linkStuff   false,
+161 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+162 info linkStuff ansicolors@0.3.2
+163 verbose linkBins ansicolors@0.3.2
+164 verbose linkMans ansicolors@0.3.2
+165 verbose rebuildBundles ansicolors@0.3.2
+166 info install ansicolors@0.3.2
+167 info postinstall ansicolors@0.3.2
+168 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansistyles
+169 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ansistyles
+170 info preinstall ansistyles@0.1.3
+171 verbose linkStuff [ false,
+171 verbose linkStuff   false,
+171 verbose linkStuff   false,
+171 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+172 info linkStuff ansistyles@0.1.3
+173 verbose linkBins ansistyles@0.1.3
+174 verbose linkMans ansistyles@0.1.3
+175 verbose rebuildBundles ansistyles@0.1.3
+176 info install ansistyles@0.1.3
+177 info postinstall ansistyles@0.1.3
+178 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\archy
+179 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\archy
+180 info preinstall archy@1.0.0
+181 verbose linkStuff [ false,
+181 verbose linkStuff   false,
+181 verbose linkStuff   false,
+181 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+182 info linkStuff archy@1.0.0
+183 verbose linkBins archy@1.0.0
+184 verbose linkMans archy@1.0.0
+185 verbose rebuildBundles archy@1.0.0
+186 info install archy@1.0.0
+187 info postinstall archy@1.0.0
+188 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\async-some
+189 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\async-some
+190 info preinstall async-some@1.0.2
+191 verbose linkStuff [ false,
+191 verbose linkStuff   false,
+191 verbose linkStuff   false,
+191 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+192 info linkStuff async-some@1.0.2
+193 verbose linkBins async-some@1.0.2
+194 verbose linkMans async-some@1.0.2
+195 verbose rebuildBundles async-some@1.0.2
+196 info install async-some@1.0.2
+197 info postinstall async-some@1.0.2
+198 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\block-stream
+199 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\block-stream
+200 info preinstall block-stream@0.0.8
+201 verbose linkStuff [ false,
+201 verbose linkStuff   false,
+201 verbose linkStuff   false,
+201 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+202 info linkStuff block-stream@0.0.8
+203 verbose linkBins block-stream@0.0.8
+204 verbose linkMans block-stream@0.0.8
+205 verbose rebuildBundles block-stream@0.0.8
+206 info install block-stream@0.0.8
+207 info postinstall block-stream@0.0.8
+208 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\char-spinner
+209 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\char-spinner
+210 info preinstall char-spinner@1.0.1
+211 verbose linkStuff [ false,
+211 verbose linkStuff   false,
+211 verbose linkStuff   false,
+211 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+212 info linkStuff char-spinner@1.0.1
+213 verbose linkBins char-spinner@1.0.1
+214 verbose linkMans char-spinner@1.0.1
+215 verbose rebuildBundles char-spinner@1.0.1
+216 info install char-spinner@1.0.1
+217 info postinstall char-spinner@1.0.1
+218 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\chmodr
+219 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\chmodr
+220 info preinstall chmodr@0.1.1
+221 verbose linkStuff [ false,
+221 verbose linkStuff   false,
+221 verbose linkStuff   false,
+221 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+222 info linkStuff chmodr@0.1.1
+223 verbose linkBins chmodr@0.1.1
+224 verbose linkMans chmodr@0.1.1
+225 verbose rebuildBundles chmodr@0.1.1
+226 info install chmodr@0.1.1
+227 info postinstall chmodr@0.1.1
+228 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\chownr
+229 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\chownr
+230 info preinstall chownr@0.0.2
+231 verbose linkStuff [ false,
+231 verbose linkStuff   false,
+231 verbose linkStuff   false,
+231 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+232 info linkStuff chownr@0.0.2
+233 verbose linkBins chownr@0.0.2
+234 verbose linkMans chownr@0.0.2
+235 verbose rebuildBundles chownr@0.0.2
+236 info install chownr@0.0.2
+237 info postinstall chownr@0.0.2
+238 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\cmd-shim
+239 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\cmd-shim
+240 info preinstall cmd-shim@2.0.1
+241 verbose linkStuff [ false,
+241 verbose linkStuff   false,
+241 verbose linkStuff   false,
+241 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+242 info linkStuff cmd-shim@2.0.1
+243 verbose linkBins cmd-shim@2.0.1
+244 verbose linkMans cmd-shim@2.0.1
+245 verbose rebuildBundles cmd-shim@2.0.1
+246 info install cmd-shim@2.0.1
+247 info postinstall cmd-shim@2.0.1
+248 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\columnify
+249 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\columnify
+250 info preinstall columnify@1.5.1
+251 verbose linkStuff [ false,
+251 verbose linkStuff   false,
+251 verbose linkStuff   false,
+251 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+252 info linkStuff columnify@1.5.1
+253 verbose linkBins columnify@1.5.1
+254 verbose linkMans columnify@1.5.1
+255 verbose rebuildBundles columnify@1.5.1
+256 verbose rebuildBundles [ 'wcwidth' ]
+257 info install columnify@1.5.1
+258 info postinstall columnify@1.5.1
+259 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\config-chain
+260 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\config-chain
+261 info preinstall config-chain@1.1.9
+262 verbose linkStuff [ false,
+262 verbose linkStuff   false,
+262 verbose linkStuff   false,
+262 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+263 info linkStuff config-chain@1.1.9
+264 verbose linkBins config-chain@1.1.9
+265 verbose linkMans config-chain@1.1.9
+266 verbose rebuildBundles config-chain@1.1.9
+267 verbose rebuildBundles [ 'proto-list' ]
+268 info install config-chain@1.1.9
+269 info postinstall config-chain@1.1.9
+270 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\dezalgo
+271 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\dezalgo
+272 info preinstall dezalgo@1.0.3
+273 verbose linkStuff [ false,
+273 verbose linkStuff   false,
+273 verbose linkStuff   false,
+273 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+274 info linkStuff dezalgo@1.0.3
+275 verbose linkBins dezalgo@1.0.3
+276 verbose linkMans dezalgo@1.0.3
+277 verbose rebuildBundles dezalgo@1.0.3
+278 verbose rebuildBundles [ 'asap' ]
+279 info install dezalgo@1.0.3
+280 info postinstall dezalgo@1.0.3
+281 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\editor
+282 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\editor
+283 info preinstall editor@1.0.0
+284 verbose linkStuff [ false,
+284 verbose linkStuff   false,
+284 verbose linkStuff   false,
+284 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+285 info linkStuff editor@1.0.0
+286 verbose linkBins editor@1.0.0
+287 verbose linkMans editor@1.0.0
+288 verbose rebuildBundles editor@1.0.0
+289 info install editor@1.0.0
+290 info postinstall editor@1.0.0
+291 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fs-vacuum
+292 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fs-vacuum
+293 info preinstall fs-vacuum@1.2.6
+294 verbose linkStuff [ false,
+294 verbose linkStuff   false,
+294 verbose linkStuff   false,
+294 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+295 info linkStuff fs-vacuum@1.2.6
+296 verbose linkBins fs-vacuum@1.2.6
+297 verbose linkMans fs-vacuum@1.2.6
+298 verbose rebuildBundles fs-vacuum@1.2.6
+299 info install fs-vacuum@1.2.6
+300 info postinstall fs-vacuum@1.2.6
+301 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fs-write-stream-atomic
+302 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fs-write-stream-atomic
+303 info preinstall fs-write-stream-atomic@1.0.3
+304 verbose linkStuff [ false,
+304 verbose linkStuff   false,
+304 verbose linkStuff   false,
+304 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+305 info linkStuff fs-write-stream-atomic@1.0.3
+306 verbose linkBins fs-write-stream-atomic@1.0.3
+307 verbose linkMans fs-write-stream-atomic@1.0.3
+308 verbose rebuildBundles fs-write-stream-atomic@1.0.3
+309 info install fs-write-stream-atomic@1.0.3
+310 info postinstall fs-write-stream-atomic@1.0.3
+311 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fstream
+312 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fstream
+313 info preinstall fstream@1.0.7
+314 verbose linkStuff [ false,
+314 verbose linkStuff   false,
+314 verbose linkStuff   false,
+314 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+315 info linkStuff fstream@1.0.7
+316 verbose linkBins fstream@1.0.7
+317 verbose linkMans fstream@1.0.7
+318 verbose rebuildBundles fstream@1.0.7
+319 info install fstream@1.0.7
+320 info postinstall fstream@1.0.7
+321 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fstream-npm
+322 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\fstream-npm
+323 info preinstall fstream-npm@1.0.3
+324 verbose linkStuff [ false,
+324 verbose linkStuff   false,
+324 verbose linkStuff   false,
+324 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+325 info linkStuff fstream-npm@1.0.3
+326 verbose linkBins fstream-npm@1.0.3
+327 verbose linkMans fstream-npm@1.0.3
+328 verbose rebuildBundles fstream-npm@1.0.3
+329 verbose rebuildBundles [ 'fstream-ignore' ]
+330 info install fstream-npm@1.0.3
+331 info postinstall fstream-npm@1.0.3
+332 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\github-url-from-git
+333 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\github-url-from-git
+334 info preinstall github-url-from-git@1.4.0
+335 verbose linkStuff [ false,
+335 verbose linkStuff   false,
+335 verbose linkStuff   false,
+335 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+336 info linkStuff github-url-from-git@1.4.0
+337 verbose linkBins github-url-from-git@1.4.0
+338 verbose linkMans github-url-from-git@1.4.0
+339 verbose rebuildBundles github-url-from-git@1.4.0
+340 info install github-url-from-git@1.4.0
+341 info postinstall github-url-from-git@1.4.0
+342 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\github-url-from-username-repo
+343 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\github-url-from-username-repo
+344 info preinstall github-url-from-username-repo@1.0.2
+345 verbose linkStuff [ false,
+345 verbose linkStuff   false,
+345 verbose linkStuff   false,
+345 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+346 info linkStuff github-url-from-username-repo@1.0.2
+347 verbose linkBins github-url-from-username-repo@1.0.2
+348 verbose linkMans github-url-from-username-repo@1.0.2
+349 verbose rebuildBundles github-url-from-username-repo@1.0.2
+350 info install github-url-from-username-repo@1.0.2
+351 info postinstall github-url-from-username-repo@1.0.2
+352 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\glob
+353 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\glob
+354 info preinstall glob@5.0.10
+355 verbose linkStuff [ false,
+355 verbose linkStuff   false,
+355 verbose linkStuff   false,
+355 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+356 info linkStuff glob@5.0.10
+357 verbose linkBins glob@5.0.10
+358 verbose linkMans glob@5.0.10
+359 verbose rebuildBundles glob@5.0.10
+360 verbose rebuildBundles [ 'path-is-absolute' ]
+361 info install glob@5.0.10
+362 info postinstall glob@5.0.10
+363 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\graceful-fs
+364 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\graceful-fs
+365 info preinstall graceful-fs@3.0.8
+366 verbose linkStuff [ false,
+366 verbose linkStuff   false,
+366 verbose linkStuff   false,
+366 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+367 info linkStuff graceful-fs@3.0.8
+368 verbose linkBins graceful-fs@3.0.8
+369 verbose linkMans graceful-fs@3.0.8
+370 verbose rebuildBundles graceful-fs@3.0.8
+371 info install graceful-fs@3.0.8
+372 info postinstall graceful-fs@3.0.8
+373 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\hosted-git-info
+374 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\hosted-git-info
+375 info preinstall hosted-git-info@2.1.4
+376 verbose linkStuff [ false,
+376 verbose linkStuff   false,
+376 verbose linkStuff   false,
+376 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+377 info linkStuff hosted-git-info@2.1.4
+378 verbose linkBins hosted-git-info@2.1.4
+379 verbose linkMans hosted-git-info@2.1.4
+380 verbose rebuildBundles hosted-git-info@2.1.4
+381 info install hosted-git-info@2.1.4
+382 info postinstall hosted-git-info@2.1.4
+383 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\inflight
+384 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\inflight
+385 info preinstall inflight@1.0.4
+386 verbose linkStuff [ false,
+386 verbose linkStuff   false,
+386 verbose linkStuff   false,
+386 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+387 info linkStuff inflight@1.0.4
+388 verbose linkBins inflight@1.0.4
+389 verbose linkMans inflight@1.0.4
+390 verbose rebuildBundles inflight@1.0.4
+391 info install inflight@1.0.4
+392 info postinstall inflight@1.0.4
+393 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\inherits
+394 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\inherits
+395 info preinstall inherits@2.0.1
+396 verbose linkStuff [ false,
+396 verbose linkStuff   false,
+396 verbose linkStuff   false,
+396 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+397 info linkStuff inherits@2.0.1
+398 verbose linkBins inherits@2.0.1
+399 verbose linkMans inherits@2.0.1
+400 verbose rebuildBundles inherits@2.0.1
+401 info install inherits@2.0.1
+402 info postinstall inherits@2.0.1
+403 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ini
+404 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\ini
+405 info preinstall ini@1.3.4
+406 verbose linkStuff [ false,
+406 verbose linkStuff   false,
+406 verbose linkStuff   false,
+406 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+407 info linkStuff ini@1.3.4
+408 verbose linkBins ini@1.3.4
+409 verbose linkMans ini@1.3.4
+410 verbose rebuildBundles ini@1.3.4
+411 info install ini@1.3.4
+412 info postinstall ini@1.3.4
+413 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\init-package-json
+414 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\init-package-json
+415 info preinstall init-package-json@1.7.0
+416 verbose linkStuff [ false,
+416 verbose linkStuff   false,
+416 verbose linkStuff   false,
+416 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+417 info linkStuff init-package-json@1.7.0
+418 verbose linkBins init-package-json@1.7.0
+419 verbose linkMans init-package-json@1.7.0
+420 verbose rebuildBundles init-package-json@1.7.0
+421 verbose rebuildBundles [ 'promzard' ]
+422 info install init-package-json@1.7.0
+423 info postinstall init-package-json@1.7.0
+424 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\lockfile
+425 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\lockfile
+426 info preinstall lockfile@1.0.1
+427 verbose linkStuff [ false,
+427 verbose linkStuff   false,
+427 verbose linkStuff   false,
+427 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+428 info linkStuff lockfile@1.0.1
+429 verbose linkBins lockfile@1.0.1
+430 verbose linkMans lockfile@1.0.1
+431 verbose rebuildBundles lockfile@1.0.1
+432 info install lockfile@1.0.1
+433 info postinstall lockfile@1.0.1
+434 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\lru-cache
+435 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\lru-cache
+436 info preinstall lru-cache@2.6.4
+437 verbose linkStuff [ false,
+437 verbose linkStuff   false,
+437 verbose linkStuff   false,
+437 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+438 info linkStuff lru-cache@2.6.4
+439 verbose linkBins lru-cache@2.6.4
+440 verbose linkMans lru-cache@2.6.4
+441 verbose rebuildBundles lru-cache@2.6.4
+442 info install lru-cache@2.6.4
+443 info postinstall lru-cache@2.6.4
+444 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\minimatch
+445 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\minimatch
+446 info preinstall minimatch@2.0.8
+447 verbose linkStuff [ false,
+447 verbose linkStuff   false,
+447 verbose linkStuff   false,
+447 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+448 info linkStuff minimatch@2.0.8
+449 verbose linkBins minimatch@2.0.8
+450 verbose linkMans minimatch@2.0.8
+451 verbose rebuildBundles minimatch@2.0.8
+452 verbose rebuildBundles [ 'brace-expansion' ]
+453 info install minimatch@2.0.8
+454 info postinstall minimatch@2.0.8
+455 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\mkdirp
+456 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\mkdirp
+457 info preinstall mkdirp@0.5.1
+458 verbose linkStuff [ false,
+458 verbose linkStuff   false,
+458 verbose linkStuff   false,
+458 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+459 info linkStuff mkdirp@0.5.1
+460 verbose linkBins mkdirp@0.5.1
+461 verbose link bins [ { mkdirp: 'bin/cmd.js' },
+461 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+461 verbose link bins   false ]
+462 verbose linkMans mkdirp@0.5.1
+463 verbose rebuildBundles mkdirp@0.5.1
+464 verbose rebuildBundles [ 'minimist' ]
+465 info install mkdirp@0.5.1
+466 info postinstall mkdirp@0.5.1
+467 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\node-gyp
+468 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\node-gyp
+469 info preinstall node-gyp@2.0.1
+470 verbose linkStuff [ false,
+470 verbose linkStuff   false,
+470 verbose linkStuff   false,
+470 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+471 info linkStuff node-gyp@2.0.1
+472 verbose linkBins node-gyp@2.0.1
+473 verbose link bins [ { 'node-gyp': './bin/node-gyp.js' },
+473 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+473 verbose link bins   false ]
+474 verbose linkMans node-gyp@2.0.1
+475 verbose rebuildBundles node-gyp@2.0.1
+476 verbose rebuildBundles [ 'glob', 'minimatch', 'path-array', 'tar' ]
+477 info install node-gyp@2.0.1
+478 info postinstall node-gyp@2.0.1
+479 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\nopt
+480 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\nopt
+481 info preinstall nopt@3.0.2
+482 verbose linkStuff [ false,
+482 verbose linkStuff   false,
+482 verbose linkStuff   false,
+482 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+483 info linkStuff nopt@3.0.2
+484 verbose linkBins nopt@3.0.2
+485 verbose link bins [ { nopt: './bin/nopt.js' },
+485 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+485 verbose link bins   false ]
+486 verbose linkMans nopt@3.0.2
+487 verbose rebuildBundles nopt@3.0.2
+488 info install nopt@3.0.2
+489 info postinstall nopt@3.0.2
+490 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\normalize-git-url
+491 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\normalize-git-url
+492 info preinstall normalize-git-url@1.0.1
+493 verbose linkStuff [ false,
+493 verbose linkStuff   false,
+493 verbose linkStuff   false,
+493 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+494 info linkStuff normalize-git-url@1.0.1
+495 verbose linkBins normalize-git-url@1.0.1
+496 verbose linkMans normalize-git-url@1.0.1
+497 verbose rebuildBundles normalize-git-url@1.0.1
+498 info install normalize-git-url@1.0.1
+499 info postinstall normalize-git-url@1.0.1
+500 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\normalize-package-data
+501 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\normalize-package-data
+502 info preinstall normalize-package-data@2.3.0
+503 verbose linkStuff [ false,
+503 verbose linkStuff   false,
+503 verbose linkStuff   false,
+503 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+504 info linkStuff normalize-package-data@2.3.0
+505 verbose linkBins normalize-package-data@2.3.0
+506 verbose linkMans normalize-package-data@2.3.0
+507 verbose rebuildBundles normalize-package-data@2.3.0
+508 info install normalize-package-data@2.3.0
+509 info postinstall normalize-package-data@2.3.0
+510 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-cache-filename
+511 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-cache-filename
+512 info preinstall npm-cache-filename@1.0.1
+513 verbose linkStuff [ false,
+513 verbose linkStuff   false,
+513 verbose linkStuff   false,
+513 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+514 info linkStuff npm-cache-filename@1.0.1
+515 verbose linkBins npm-cache-filename@1.0.1
+516 verbose linkMans npm-cache-filename@1.0.1
+517 verbose rebuildBundles npm-cache-filename@1.0.1
+518 info install npm-cache-filename@1.0.1
+519 info postinstall npm-cache-filename@1.0.1
+520 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-install-checks
+521 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-install-checks
+522 info preinstall npm-install-checks@1.0.5
+523 verbose linkStuff [ false,
+523 verbose linkStuff   false,
+523 verbose linkStuff   false,
+523 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+524 info linkStuff npm-install-checks@1.0.5
+525 verbose linkBins npm-install-checks@1.0.5
+526 verbose linkMans npm-install-checks@1.0.5
+527 verbose rebuildBundles npm-install-checks@1.0.5
+528 info install npm-install-checks@1.0.5
+529 info postinstall npm-install-checks@1.0.5
+530 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-package-arg
+531 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-package-arg
+532 info preinstall npm-package-arg@4.0.1
+533 verbose linkStuff [ false,
+533 verbose linkStuff   false,
+533 verbose linkStuff   false,
+533 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+534 info linkStuff npm-package-arg@4.0.1
+535 verbose linkBins npm-package-arg@4.0.1
+536 verbose linkMans npm-package-arg@4.0.1
+537 verbose rebuildBundles npm-package-arg@4.0.1
+538 info install npm-package-arg@4.0.1
+539 info postinstall npm-package-arg@4.0.1
+540 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-registry-client
+541 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-registry-client
+542 info preinstall npm-registry-client@6.4.0
+543 verbose linkStuff [ false,
+543 verbose linkStuff   false,
+543 verbose linkStuff   false,
+543 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+544 info linkStuff npm-registry-client@6.4.0
+545 verbose linkBins npm-registry-client@6.4.0
+546 verbose linkMans npm-registry-client@6.4.0
+547 verbose rebuildBundles npm-registry-client@6.4.0
+548 verbose rebuildBundles [ 'concat-stream' ]
+549 info install npm-registry-client@6.4.0
+550 info postinstall npm-registry-client@6.4.0
+551 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-user-validate
+552 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npm-user-validate
+553 info preinstall npm-user-validate@0.1.2
+554 verbose linkStuff [ false,
+554 verbose linkStuff   false,
+554 verbose linkStuff   false,
+554 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+555 info linkStuff npm-user-validate@0.1.2
+556 verbose linkBins npm-user-validate@0.1.2
+557 verbose linkMans npm-user-validate@0.1.2
+558 verbose rebuildBundles npm-user-validate@0.1.2
+559 info install npm-user-validate@0.1.2
+560 info postinstall npm-user-validate@0.1.2
+561 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npmlog
+562 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\npmlog
+563 info preinstall npmlog@1.2.1
+564 verbose linkStuff [ false,
+564 verbose linkStuff   false,
+564 verbose linkStuff   false,
+564 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+565 info linkStuff npmlog@1.2.1
+566 verbose linkBins npmlog@1.2.1
+567 verbose linkMans npmlog@1.2.1
+568 verbose rebuildBundles npmlog@1.2.1
+569 verbose rebuildBundles [ 'are-we-there-yet', 'gauge' ]
+570 info install npmlog@1.2.1
+571 info postinstall npmlog@1.2.1
+572 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\once
+573 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\once
+574 info preinstall once@1.3.2
+575 verbose linkStuff [ false,
+575 verbose linkStuff   false,
+575 verbose linkStuff   false,
+575 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+576 info linkStuff once@1.3.2
+577 verbose linkBins once@1.3.2
+578 verbose linkMans once@1.3.2
+579 verbose rebuildBundles once@1.3.2
+580 info install once@1.3.2
+581 info postinstall once@1.3.2
+582 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\opener
+583 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\opener
+584 info preinstall opener@1.4.1
+585 verbose linkStuff [ false,
+585 verbose linkStuff   false,
+585 verbose linkStuff   false,
+585 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+586 info linkStuff opener@1.4.1
+587 verbose linkBins opener@1.4.1
+588 verbose link bins [ { opener: 'opener.js' },
+588 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+588 verbose link bins   false ]
+589 verbose linkMans opener@1.4.1
+590 verbose rebuildBundles opener@1.4.1
+591 info install opener@1.4.1
+592 info postinstall opener@1.4.1
+593 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\osenv
+594 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\osenv
+595 info preinstall osenv@0.1.2
+596 verbose linkStuff [ false,
+596 verbose linkStuff   false,
+596 verbose linkStuff   false,
+596 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+597 info linkStuff osenv@0.1.2
+598 verbose linkBins osenv@0.1.2
+599 verbose linkMans osenv@0.1.2
+600 verbose rebuildBundles osenv@0.1.2
+601 verbose rebuildBundles [ 'os-tmpdir' ]
+602 info install osenv@0.1.2
+603 info postinstall osenv@0.1.2
+604 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\path-is-inside
+605 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\path-is-inside
+606 info preinstall path-is-inside@1.0.1
+607 verbose linkStuff [ false,
+607 verbose linkStuff   false,
+607 verbose linkStuff   false,
+607 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+608 info linkStuff path-is-inside@1.0.1
+609 verbose linkBins path-is-inside@1.0.1
+610 verbose linkMans path-is-inside@1.0.1
+611 verbose rebuildBundles path-is-inside@1.0.1
+612 info install path-is-inside@1.0.1
+613 info postinstall path-is-inside@1.0.1
+614 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read
+615 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read
+616 info preinstall read@1.0.6
+617 verbose linkStuff [ false,
+617 verbose linkStuff   false,
+617 verbose linkStuff   false,
+617 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+618 info linkStuff read@1.0.6
+619 verbose linkBins read@1.0.6
+620 verbose linkMans read@1.0.6
+621 verbose rebuildBundles read@1.0.6
+622 verbose rebuildBundles [ 'mute-stream' ]
+623 info install read@1.0.6
+624 info postinstall read@1.0.6
+625 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read-installed
+626 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read-installed
+627 info preinstall read-installed@4.0.0
+628 verbose linkStuff [ false,
+628 verbose linkStuff   false,
+628 verbose linkStuff   false,
+628 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+629 info linkStuff read-installed@4.0.0
+630 verbose linkBins read-installed@4.0.0
+631 verbose linkMans read-installed@4.0.0
+632 verbose rebuildBundles read-installed@4.0.0
+633 verbose rebuildBundles [ 'debuglog', 'readdir-scoped-modules', 'util-extend' ]
+634 info install read-installed@4.0.0
+635 info postinstall read-installed@4.0.0
+636 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read-package-json
+637 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\read-package-json
+638 info preinstall read-package-json@2.0.0
+639 verbose linkStuff [ false,
+639 verbose linkStuff   false,
+639 verbose linkStuff   false,
+639 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+640 info linkStuff read-package-json@2.0.0
+641 verbose linkBins read-package-json@2.0.0
+642 verbose linkMans read-package-json@2.0.0
+643 verbose rebuildBundles read-package-json@2.0.0
+644 verbose rebuildBundles [ 'json-parse-helpfulerror' ]
+645 info install read-package-json@2.0.0
+646 info postinstall read-package-json@2.0.0
+647 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\readable-stream
+648 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\readable-stream
+649 info preinstall readable-stream@1.1.13
+650 verbose linkStuff [ false,
+650 verbose linkStuff   false,
+650 verbose linkStuff   false,
+650 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+651 info linkStuff readable-stream@1.1.13
+652 verbose linkBins readable-stream@1.1.13
+653 verbose linkMans readable-stream@1.1.13
+654 verbose rebuildBundles readable-stream@1.1.13
+655 verbose rebuildBundles [ 'core-util-is', 'isarray', 'string_decoder' ]
+656 info install readable-stream@1.1.13
+657 info postinstall readable-stream@1.1.13
+658 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\realize-package-specifier
+659 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\realize-package-specifier
+660 info preinstall realize-package-specifier@3.0.1
+661 verbose linkStuff [ false,
+661 verbose linkStuff   false,
+661 verbose linkStuff   false,
+661 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+662 info linkStuff realize-package-specifier@3.0.1
+663 verbose linkBins realize-package-specifier@3.0.1
+664 verbose linkMans realize-package-specifier@3.0.1
+665 verbose rebuildBundles realize-package-specifier@3.0.1
+666 info install realize-package-specifier@3.0.1
+667 info postinstall realize-package-specifier@3.0.1
+668 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\request
+669 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\request
+670 info preinstall request@2.58.0
+671 verbose linkStuff [ false,
+671 verbose linkStuff   false,
+671 verbose linkStuff   false,
+671 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+672 info linkStuff request@2.58.0
+673 verbose linkBins request@2.58.0
+674 verbose linkMans request@2.58.0
+675 verbose rebuildBundles request@2.58.0
+676 verbose rebuildBundles [ 'aws-sign2',
+676 verbose rebuildBundles   'bl',
+676 verbose rebuildBundles   'caseless',
+676 verbose rebuildBundles   'combined-stream',
+676 verbose rebuildBundles   'extend',
+676 verbose rebuildBundles   'forever-agent',
+676 verbose rebuildBundles   'form-data',
+676 verbose rebuildBundles   'har-validator',
+676 verbose rebuildBundles   'hawk',
+676 verbose rebuildBundles   'http-signature',
+676 verbose rebuildBundles   'isstream',
+676 verbose rebuildBundles   'json-stringify-safe',
+676 verbose rebuildBundles   'mime-types',
+676 verbose rebuildBundles   'node-uuid',
+676 verbose rebuildBundles   'oauth-sign',
+676 verbose rebuildBundles   'qs',
+676 verbose rebuildBundles   'stringstream',
+676 verbose rebuildBundles   'tough-cookie',
+676 verbose rebuildBundles   'tunnel-agent' ]
+677 info install request@2.58.0
+678 info postinstall request@2.58.0
+679 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\retry
+680 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\retry
+681 info preinstall retry@0.6.1
+682 verbose linkStuff [ false,
+682 verbose linkStuff   false,
+682 verbose linkStuff   false,
+682 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+683 info linkStuff retry@0.6.1
+684 verbose linkBins retry@0.6.1
+685 verbose linkMans retry@0.6.1
+686 verbose rebuildBundles retry@0.6.1
+687 info install retry@0.6.1
+688 info postinstall retry@0.6.1
+689 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\rimraf
+690 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\rimraf
+691 info preinstall rimraf@2.4.0
+692 verbose linkStuff [ false,
+692 verbose linkStuff   false,
+692 verbose linkStuff   false,
+692 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+693 info linkStuff rimraf@2.4.0
+694 verbose linkBins rimraf@2.4.0
+695 verbose link bins [ { rimraf: './bin.js' },
+695 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+695 verbose link bins   false ]
+696 verbose linkMans rimraf@2.4.0
+697 verbose rebuildBundles rimraf@2.4.0
+698 verbose rebuildBundles [ 'glob' ]
+699 info install rimraf@2.4.0
+700 info postinstall rimraf@2.4.0
+701 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\semver
+702 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\semver
+703 info preinstall semver@4.3.6
+704 verbose linkStuff [ false,
+704 verbose linkStuff   false,
+704 verbose linkStuff   false,
+704 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+705 info linkStuff semver@4.3.6
+706 verbose linkBins semver@4.3.6
+707 verbose link bins [ { semver: './bin/semver' },
+707 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+707 verbose link bins   false ]
+708 verbose linkMans semver@4.3.6
+709 verbose rebuildBundles semver@4.3.6
+710 info install semver@4.3.6
+711 info postinstall semver@4.3.6
+712 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\sha
+713 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\sha
+714 info preinstall sha@1.3.0
+715 verbose linkStuff [ false,
+715 verbose linkStuff   false,
+715 verbose linkStuff   false,
+715 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+716 info linkStuff sha@1.3.0
+717 verbose linkBins sha@1.3.0
+718 verbose linkMans sha@1.3.0
+719 verbose rebuildBundles sha@1.3.0
+720 info install sha@1.3.0
+721 info postinstall sha@1.3.0
+722 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\slide
+723 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\slide
+724 info preinstall slide@1.1.6
+725 verbose linkStuff [ false,
+725 verbose linkStuff   false,
+725 verbose linkStuff   false,
+725 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+726 info linkStuff slide@1.1.6
+727 verbose linkBins slide@1.1.6
+728 verbose linkMans slide@1.1.6
+729 verbose rebuildBundles slide@1.1.6
+730 info install slide@1.1.6
+731 info postinstall slide@1.1.6
+732 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\sorted-object
+733 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\sorted-object
+734 info preinstall sorted-object@1.0.0
+735 verbose linkStuff [ false,
+735 verbose linkStuff   false,
+735 verbose linkStuff   false,
+735 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+736 info linkStuff sorted-object@1.0.0
+737 verbose linkBins sorted-object@1.0.0
+738 verbose linkMans sorted-object@1.0.0
+739 verbose rebuildBundles sorted-object@1.0.0
+740 info install sorted-object@1.0.0
+741 info postinstall sorted-object@1.0.0
+742 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\spdx
+743 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\spdx
+744 info preinstall spdx@0.4.1
+745 verbose linkStuff [ false,
+745 verbose linkStuff   false,
+745 verbose linkStuff   false,
+745 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+746 info linkStuff spdx@0.4.1
+747 verbose linkBins spdx@0.4.1
+748 verbose linkMans spdx@0.4.1
+749 verbose rebuildBundles spdx@0.4.1
+750 verbose rebuildBundles [ 'spdx-license-ids' ]
+751 info install spdx@0.4.1
+752 info postinstall spdx@0.4.1
+753 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\strip-ansi
+754 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\strip-ansi
+755 info preinstall strip-ansi@2.0.1
+756 verbose linkStuff [ false,
+756 verbose linkStuff   false,
+756 verbose linkStuff   false,
+756 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+757 info linkStuff strip-ansi@2.0.1
+758 verbose linkBins strip-ansi@2.0.1
+759 verbose link bins [ { 'strip-ansi': 'cli.js' },
+759 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+759 verbose link bins   false ]
+760 verbose linkMans strip-ansi@2.0.1
+761 verbose rebuildBundles strip-ansi@2.0.1
+762 info install strip-ansi@2.0.1
+763 info postinstall strip-ansi@2.0.1
+764 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\tar
+765 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\tar
+766 info preinstall tar@2.1.1
+767 verbose linkStuff [ false,
+767 verbose linkStuff   false,
+767 verbose linkStuff   false,
+767 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+768 info linkStuff tar@2.1.1
+769 verbose linkBins tar@2.1.1
+770 verbose linkMans tar@2.1.1
+771 verbose rebuildBundles tar@2.1.1
+772 info install tar@2.1.1
+773 info postinstall tar@2.1.1
+774 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\text-table
+775 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\text-table
+776 info preinstall text-table@0.2.0
+777 verbose linkStuff [ false,
+777 verbose linkStuff   false,
+777 verbose linkStuff   false,
+777 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+778 info linkStuff text-table@0.2.0
+779 verbose linkBins text-table@0.2.0
+780 verbose linkMans text-table@0.2.0
+781 verbose rebuildBundles text-table@0.2.0
+782 info install text-table@0.2.0
+783 info postinstall text-table@0.2.0
+784 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\uid-number
+785 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\uid-number
+786 info preinstall uid-number@0.0.6
+787 verbose linkStuff [ false,
+787 verbose linkStuff   false,
+787 verbose linkStuff   false,
+787 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+788 info linkStuff uid-number@0.0.6
+789 verbose linkBins uid-number@0.0.6
+790 verbose linkMans uid-number@0.0.6
+791 verbose rebuildBundles uid-number@0.0.6
+792 info install uid-number@0.0.6
+793 info postinstall uid-number@0.0.6
+794 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\umask
+795 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\umask
+796 info preinstall umask@1.1.0
+797 verbose linkStuff [ false,
+797 verbose linkStuff   false,
+797 verbose linkStuff   false,
+797 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+798 info linkStuff umask@1.1.0
+799 verbose linkBins umask@1.1.0
+800 verbose linkMans umask@1.1.0
+801 verbose rebuildBundles umask@1.1.0
+802 info install umask@1.1.0
+803 info postinstall umask@1.1.0
+804 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\validate-npm-package-license
+805 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\validate-npm-package-license
+806 info preinstall validate-npm-package-license@2.0.0
+807 verbose linkStuff [ false,
+807 verbose linkStuff   false,
+807 verbose linkStuff   false,
+807 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+808 info linkStuff validate-npm-package-license@2.0.0
+809 verbose linkBins validate-npm-package-license@2.0.0
+810 verbose linkMans validate-npm-package-license@2.0.0
+811 verbose rebuildBundles validate-npm-package-license@2.0.0
+812 verbose rebuildBundles [ 'spdx-correct' ]
+813 info install validate-npm-package-license@2.0.0
+814 info postinstall validate-npm-package-license@2.0.0
+815 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\validate-npm-package-name
+816 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\validate-npm-package-name
+817 info preinstall validate-npm-package-name@2.2.0
+818 verbose linkStuff [ false,
+818 verbose linkStuff   false,
+818 verbose linkStuff   false,
+818 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+819 info linkStuff validate-npm-package-name@2.2.0
+820 verbose linkBins validate-npm-package-name@2.2.0
+821 verbose linkMans validate-npm-package-name@2.2.0
+822 verbose rebuildBundles validate-npm-package-name@2.2.0
+823 verbose rebuildBundles [ 'builtins' ]
+824 info install validate-npm-package-name@2.2.0
+825 info postinstall validate-npm-package-name@2.2.0
+826 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\which
+827 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\which
+828 info preinstall which@1.1.1
+829 verbose linkStuff [ false,
+829 verbose linkStuff   false,
+829 verbose linkStuff   false,
+829 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+830 info linkStuff which@1.1.1
+831 verbose linkBins which@1.1.1
+832 verbose link bins [ { which: './bin/which' },
+832 verbose link bins   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules\\.bin',
+832 verbose link bins   false ]
+833 verbose linkMans which@1.1.1
+834 verbose rebuildBundles which@1.1.1
+835 verbose rebuildBundles [ 'is-absolute' ]
+836 info install which@1.1.1
+837 info postinstall which@1.1.1
+838 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\wrappy
+839 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\wrappy
+840 info preinstall wrappy@1.0.1
+841 verbose linkStuff [ false,
+841 verbose linkStuff   false,
+841 verbose linkStuff   false,
+841 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+842 info linkStuff wrappy@1.0.1
+843 verbose linkBins wrappy@1.0.1
+844 verbose linkMans wrappy@1.0.1
+845 verbose rebuildBundles wrappy@1.0.1
+846 info install wrappy@1.0.1
+847 info postinstall wrappy@1.0.1
+848 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\write-file-atomic
+849 info build D:\Documents\Documents\GitHub\lecturus\node_modules\npm\node_modules\write-file-atomic
+850 info preinstall write-file-atomic@1.1.2
+851 verbose linkStuff [ false,
+851 verbose linkStuff   false,
+851 verbose linkStuff   false,
+851 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules\\npm\\node_modules' ]
+852 info linkStuff write-file-atomic@1.1.2
+853 verbose linkBins write-file-atomic@1.1.2
+854 verbose linkMans write-file-atomic@1.1.2
+855 verbose rebuildBundles write-file-atomic@1.1.2
+856 info install write-file-atomic@1.1.2
+857 info postinstall write-file-atomic@1.1.2
+858 info install npm@2.12.0
+859 info postinstall npm@2.12.0
+860 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\querystring
+861 info build D:\Documents\Documents\GitHub\lecturus\node_modules\querystring
+862 info preinstall querystring@0.2.0
+863 verbose linkStuff [ false,
+863 verbose linkStuff   false,
+863 verbose linkStuff   false,
+863 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+864 info linkStuff querystring@0.2.0
+865 verbose linkBins querystring@0.2.0
+866 verbose linkMans querystring@0.2.0
+867 verbose rebuildBundles querystring@0.2.0
+868 info install querystring@0.2.0
+869 info postinstall querystring@0.2.0
+870 verbose rebuild bundle D:\Documents\Documents\GitHub\lecturus\node_modules\url
+871 info build D:\Documents\Documents\GitHub\lecturus\node_modules\url
+872 info preinstall url@0.10.3
+873 verbose linkStuff [ false,
+873 verbose linkStuff   false,
+873 verbose linkStuff   false,
+873 verbose linkStuff   'D:\\Documents\\Documents\\GitHub\\lecturus\\node_modules' ]
+874 info linkStuff url@0.10.3
+875 verbose linkBins url@0.10.3
+876 verbose linkMans url@0.10.3
+877 verbose rebuildBundles url@0.10.3
+878 verbose rebuildBundles [ 'punycode', 'querystring' ]
+879 info install url@0.10.3
+880 info postinstall url@0.10.3
+881 info install lecturus@0.1.2
+882 info postinstall lecturus@0.1.2
+883 verbose unsafe-perm in lifecycle true
+884 info lecturus@0.1.2 Failed to exec postinstall script
+885 error lecturus@0.1.2 postinstall: `gulp js-doc`
+885 error Exit status 1
+886 error Failed at the lecturus@0.1.2 postinstall script.
+886 error This is most likely a problem with the lecturus package,
+886 error not with npm itself.
+886 error Tell the author that this fails on your system:
+886 error     gulp js-doc
+886 error You can get their info via:
+886 error     npm owner ls lecturus
+886 error There is likely additional logging output above.
+887 error System Windows_NT 6.1.7601
+888 error command "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "install"
+889 error cwd D:\Documents\Documents\GitHub\lecturus
+890 error node -v v0.10.32
+891 error npm -v 1.4.28
+892 error code ELIFECYCLE
+893 verbose exit [ 1, true ]
