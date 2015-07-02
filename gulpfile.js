@@ -1,4 +1,4 @@
-// "test": "gulp js-doc"
+// "docs": "gulp js-doc" // npm run docs
 var gulp = require( './node_modules/gulp' );
 var shell = require( './node_modules/gulp-shell' );
  
