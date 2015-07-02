@@ -1,3 +1,4 @@
+// "test": "grunt Gruntfile.js"
 require('./node_modules/jsdoc/jsdoc')
 module.exports = function(grunt) {
 	// 'use-strict'
@@ -20,4 +21,3 @@ module.exports = function(grunt) {
 
     grunt.registerTask('default', ['lint','test','jsdoc']);
 };
-

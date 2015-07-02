@@ -1,21 +1,23 @@
 0 info it worked if it ends with ok
 1 verbose cli [ 'C:\\Program Files (x86)\\nodejs\\\\node.exe',
 1 verbose cli   'C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
-1 verbose cli   'test',
-1 verbose cli   '.\\Gruntfile.js' ]
+1 verbose cli   'test' ]
 2 info using npm@1.4.28
 3 info using node@v0.10.32
 4 verbose node symlink C:\Program Files (x86)\nodejs\\node.exe
-5 error Error: ENOENT, open 'D:\Documents\Documents\GitHub\lecturus\node_modules\Gruntfile.js\package.json'
-6 error If you need help, you may report this *entire* log,
-6 error including the npm and node versions, at:
-6 error     <http://github.com/npm/npm/issues>
-7 error System Windows_NT 6.1.7601
-8 error command "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "test" ".\\Gruntfile.js"
-9 error cwd D:\Documents\Documents\GitHub\lecturus
-10 error node -v v0.10.32
-11 error npm -v 1.4.28
-12 error path D:\Documents\Documents\GitHub\lecturus\node_modules\Gruntfile.js\package.json
-13 error code ENOENT
-14 error errno 34
-15 verbose exit [ 34, true ]
+5 error Failed to parse json
+5 error Unexpected token /
+6 error File: D:\Documents\Documents\GitHub\lecturus\package.json
+7 error Failed to parse package.json data.
+7 error package.json must be actual JSON, not just JavaScript.
+7 error
+7 error This is not a bug in npm.
+7 error Tell the package author to fix their package.json file. JSON.parse
+8 error System Windows_NT 6.1.7601
+9 error command "C:\\Program Files (x86)\\nodejs\\\\node.exe" "C:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "test"
+10 error cwd D:\Documents\Documents\GitHub\lecturus
+11 error node -v v0.10.32
+12 error npm -v 1.4.28
+13 error file D:\Documents\Documents\GitHub\lecturus\package.json
+14 error code EJSONPARSE
+15 verbose exit [ 1, true ]
