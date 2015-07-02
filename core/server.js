@@ -2,11 +2,10 @@ var express = require('express');
 var path = require('path');
 var bodyParser  = require('body-parser');
 var fs = require("fs-extra");
-require( process.cwd() + '/log/init.js');
+require( process.cwd() + '/logs/init.js');
 
 app = express();
 app.use(express.static(process.cwd() + '/docs'));
-app.use(express.static(process.cwd() + '/log'));
 app.use(bodyParser()); 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
