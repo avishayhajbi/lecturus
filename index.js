@@ -1,4 +1,5 @@
 /**
+ * @module LECTURUS
  * @project lecturus
  * @author avishay and max
  * @license shenkar collage.
