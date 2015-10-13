@@ -7,7 +7,7 @@ winston.loggers.add('debug', {
     label: 'debug'
   },
   file: {
-    filename:  process.cwd() + '/logs/debug.log',
+    filename:  process.cwd() + '/tmp/debug.log',
     level: 'debug'
   }
 })
@@ -18,7 +18,7 @@ winston.loggers.add('info',{
     label: 'info'
   },
   file: {
-    filename:  process.cwd() + '/logs/info.log'
+    filename:  process.cwd() + '/tmp/info.log'
   }
 })
 winston.loggers.add('error',{
@@ -28,7 +28,7 @@ winston.loggers.add('error',{
     label: 'error'
   },
   file: {
-    filename:  process.cwd() + '/logs/error.log'
+    filename:  process.cwd() + '/tmp/error.log'
   }
 });
 logger = {

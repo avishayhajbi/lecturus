@@ -16,79 +16,105 @@ var gcm = require('node-gcm');
  * @function updateSession
  * @desc update the session in mongo collection 
  * @param {json} data - The object with the data
+ * @param {string} data.sessionId - 143380575567310169223123
  * @returns {json} status: 1/0
  */
+exports.updateSession = function (req, res, next)
+{
+    //create new empty variables
+    var data, sessionId, userId;
+    var r = {};
 
-exports.updateSession=function (req,res,next){
-  var data = req.body;
-   console.log("data.sessionId ",data.sessionId)
-
-  MongoClient.connect(config.mongoUrl, { native_parser:true }, function(err, db) // TODO. REMOVE *
-  {
-    console.log("Trying to connect to the db.");
-    var r ={};              
-      // if connection failed
-      if (err) 
-      {
-        console.log("MongoLab connection error: ", err);
-        r.uid = 0;
+    //try to parse the received data
+    try
+    {
+        data = req.body;
+        sessionId = req.body.sessionId;
+        userId = req.body.owner;
+        logger.debug("data.sessionId ", sessionId)
+    }
+    catch(err)
+    {
+        logger.error("updateSession:failure occurred while parsing the request, the error is:", err);
         r.status = 0;
-        r.desc = "failed to connect to MongoLab.";
-        res.send((JSON.stringify(r)));
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
         return;
-      }
-      //console.log(JSON.stringify(sessionId))
-      // get sessions collection 
-      var collection = db.collection('sessions');
-      //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.                    
-      collection.find( {$and:[{ sessionId:data.sessionId },{owner : data.owner}] }).toArray(function (err, docs)
-      { 
-          // failure while connecting to sessions collection
-          if (err) 
-          {
-            console.log("failure while trying close session, the error: ", err);
+    }
+
+    //check that all needed properties were received in the request
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof userId === 'undefined' || userId == null || userId == "")
+    {
+        logger.error("updateSession:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
+        return;
+    }
+
+    //TODO. check that 'recordStarts' value differs from expected, else return status '0' - failure.
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    {$and:[{ sessionId : sessionId} , { stopTime : { $gt: 0  }}]},
+    function(err, sessionObj)
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("updateSession:failure occurred during the search, the error: ", err);
             r.status = 0;
-            r.desc = "failure while trying update session.";
-            res.send((JSON.stringify(r)));
+            r.desc = "failure occurred during the search.";
+            res.json(r);
             return;
-          }
-          
-          else if (docs.length)
-          {
-            collection.update({sessionId:data.sessionId},{ $set : data }, {upsert:false ,safe:true , fsync: true}, 
-              function(err, result) { 
+        }
+
+        //check that the session exists
+        if ( !sessionObj )
+        {
+            logger.error("updateSession:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            //check that the uploader is the session owner
+            if (sessionObj.owner != userId )
+            {
+                logger.error("updateSession:user: " + userId + " does not own the session: " + sessionId);
+                r.status = 0;
+                r.desc = "user: " + userId + " does not own the session: " + sessionId;
+                res.json(r);
+                return;
+            }
+
+            //update the session document
+            db.model('sessions').findOneAndUpdate(
+            { sessionId : sessionId },
+            { $set : data },
+            function(err, result)
+            {
                 if (err)
                 {
-                  console.log("session not updated "+err);
-                  r.status=0;
-                  r.desc="session not updated";
-                    db.close(); // TODO REMOVE 
-                    res.send((JSON.stringify(r)))
+                    logger.error("updateSession:failure occurred while saving the session, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred while saving the session.";
+                    res.json(r);
                     return;
-                  } 
-                  else 
-                  {
-                    console.log("session updated");
-                    r.status=1;
-                    r.desc="session updated";
-                    db.close(); // TODO REMOVE 
-                    res.send((JSON.stringify(r)));
-                    return;
-                  }
-                });
-          }
-          else
-          {
-           console.log("session not found or you are not the owner");
-           r.status=0;
-           r.desc="not found or you are not the owner";
-           db.close(); // TODO REMOVE 
-           res.send((JSON.stringify(r)))
-         }
-       });         
-  });
-}
+                }
 
+                logger.info("updateSession:session: " + sessionId + " was updated.");
+                r.status = 1;
+                r.desc = "session: " + sessionId + " was updated.";
+                res.json(r);
+                return;
+            });
+        }
+    });
+}
 
 /**
  * @inner
@@ -96,184 +122,194 @@ exports.updateSession=function (req,res,next){
  * @function updateSessionRating
  * @desc This function will find the needed session and check if the user participates in it.
  *  It will update the rating and the voters list according to the rating property, received in the request.
- *  If the user already voted oposite to his current vote, the function will remove him from the oposite list and reduce the oposite rating by 1.
- *  If his has voted similarmy to his current vote, nothing will be changed in the rating.
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
- * @param {string} data.rating - 0/1 decrease/increase
+ *  If the user already voted opposite to his current vote, the function will remove him from the opposite list and reduce the opposite rating by 1.
+ *  If his has voted similarly to his current vote, nothing will be changed in the rating.
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
+ * @param {string} rating - 0/1 decrease/increase
  * @returns {json} status: 1/0, 
  * res: json with positive and negative each one of them has users:true/false value:number
  */
-
-exports.updateSessionRating=function (req,res,next){
-  var r = { };
+exports.updateSessionRating = function (req, res, next)
+{
+    var r = { };
     var votedBefore = -1;
+    var email, rating, sessionId;
 
+    //try to parse the received data
     try
     {
-     var sessionId = req.body.sessionId;
-     var rating = req.body.rating;
-     var email = req.body.email;
-   }  
-   catch( err )
-   {
-     console.log("UPDATESESSIONRATING: failure while parsing the request, the error:" + err);
-     r.status = 0;
-     r.desc = "failure while parsing the request";
-     res.json(r);
-     return;
-   }
-
-    //TODO. Remove
-    console.log("session id: " + sessionId);
-    console.log("user email: " + email);
-    console.log("session rating: " + rating);
-    
-    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-     typeof rating === 'undefined' || rating == null || rating == "" ||   
-      typeof email === 'undefined' || email == null || email == ""  )   // if one of the properties do not exists in the request or it is empty
+        sessionId = req.body.sessionId;
+        rating = req.body.rating;
+        email = req.body.email;
+    }
+    catch( err )
     {
-      console.log("UPDATESESSIONRATING:request must contain sessionId, email and rating properties.");
-      r.status = 0; 
-     r.desc = "request must contain sessionId, email and rating properties.";
-     res.json(r); 
-     return;
-   }
+        logger.error("updateSessionRating:failure occurred while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
+    }
 
-   db.model('sessions').findOne( {$and:[{ sessionId : sessionId }, { stopTime : { $gt : 0 }} ]},
+    logger.debug("session id: " + sessionId);
+    logger.debug("user email: " + email);
+    logger.debug("session rating: " + rating);
+
+    //check that all needed properties were received in the request
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof rating === 'undefined' || rating == null || rating == "" ||
+            typeof email === 'undefined' || email == null || email == ""  )
+    {
+        logger.error("updateSessionRating:request must contain sessionId, email and rating properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId, email and rating properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { $and : [
+        { sessionId : sessionId },
+        { stopTime : { $gt : 0 } } ] },
     //{ participants : true, owner : true, _id : false }, - does not wotk with this
     function (err, result)
     {
-     if (err) 
-     {
-       console.log("UPDATESESSIONRATING:failure during session search, the error: ", err);
-       r.status = 0;
-       r.desc = "failure during session search";
-       res.json(r); 
-       return;
-     }
-     if ( !result )
-     {
-       console.log("UPDATESESSIONRATING:session: " + sessionId + " was not found.");
-       r.status = 0;
-       r.desc = "session: " + sessionId + " was not found";
-       res.json(r);
-       return;
-     }
-     else
-     {
-
-        //check if this user woted before
-        if ( result.rating.positive.users.indexOf(email) != -1)   //voted positive
+        if (err)
         {
-          votedBefore = 1;
+            logger.error("updateSessionRating:failure during session search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure during session search";
+            res.json(r);
+            return;
         }
-        if ( result.rating.negative.users.indexOf(email) != -1)   //voted negative
-        {
-          votedBefore = 0;
-       }
 
-      if (rating == 0)  //negative case
-      {
-        if ( votedBefore == 0 )       //voted negative before -  remove the user from negative voters list and update the rating value
+        //check that the session exists
+        if ( !result )
         {
-          //decrease the negative rating of the session by 1
-          --result.rating.negative.value; 
-          
-          //remove from negative voters list
-          result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1); 
-          
-          console.log("UPDATESESSIONRATING:user: " + email + " DOWN vote for session: " + sessionId + " was successfully removed.");
-          r.desc = "user: " + email + " DOWN vote for session: " + sessionId + " was successfully removed.";
+            logger.error("updateSessionRating:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found";
+            res.json(r);
+            return;
         }
         else
-        { 
-                if ( votedBefore == 1 )     //voted positive before - remove the user from positive voters list and update the positive rating value 
-                {
-                  //decrease the positive rating of the session by 1
-                  --result.rating.positive.value;
-
-            //remove from positive voters list
-            result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);            
-          }
-          
-          //increase the negative rating of the session by 1
-          ++result.rating.negative.value;
-          
-          //add to the negative votes list
-          result.rating.negative.users.push(email);
-          
-          console.log("UPDATESESSIONRATING:user: " + email + " DOWN vote for session: " + sessionId + " was successfully received.");
-          r.desc = "user: " + email + " DOWN vote for session: " + sessionId + " was successfully received.";
-        }
-      }
-
-      if (rating == 1)  //positive case
-      {
-        if ( votedBefore == 1 )       //voted positive before - remove the user from positive voters list and update the positive rating value
         {
-                //decrease the positive rating of the session by 1
-               --result.rating.positive.value;
-
-          //remove from positive voters list
-          result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);
-          
-          console.log("UPDATESESSIONRATING:user: " + email + " UP vote for session: " + sessionId + " was successfully removed.");
-          r.desc = "user: " + email + " UP vote for session: " + sessionId + " was successfully removed.";              
-        }
-        else 
-        {
-                if ( votedBefore == 0 )     //voted negative before -  remove the user from negative voters list and update the rating value
-                {
-            //decrease the negative rating of the session by 1
-            --result.rating.negative.value; 
-            
-            //remove from negative voters list
-            result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1);            
-         }
-
-          //increase the positive rating of the session by 1
-          ++result.rating.positive.value; 
-          
-          //add the user to the positive voters lists
-          result.rating.positive.users.push(email);
-
-          console.log("UPDATESESSIONRATING:user: " + email + " UP vote for session: " + sessionId + " was successfully received.");
-          r.desc = "user: " + email + " UP vote for session: " + sessionId + " was successfully received."; 
-        } 
-      }
-
-        //result.markModified('participants');
-        result.save(function(err, obj) 
-        { 
-          if (err)
-          {
-           console.log("UPDATESESSIONRATING:failure session save, the error: ", err);
-           r.status = 0;
-           r.desc = "failure session save";
-           res.json(r); 
-           return;          
-         }
-
-        //obj.rating.positive.users =  (obj.rating.positive.users.indexOf(email)!= -1)?true:false;
-        //obj.rating.negative.users =  (obj.rating.negative.users.indexOf(email)!= -1)?true:false; 
-
-         r.status = 1;
-         r.res = {
-            positive:{
-                users: (obj.rating.positive.users.indexOf(email) != -1) ? true : false,
-                value:obj.rating.positive.value 
-            },
-            negative:{
-                users: (obj.rating.negative.users.indexOf(email) != -1) ? true : false,
-                value:obj.rating.negative.value 
+            //check if this user has voted before
+            if ( result.rating.positive.users.indexOf(email) != -1)   //yes, voted positive
+            {
+                votedBefore = 1;
             }
-         };
-         res.json(r);
-         return; 
-       });
-      }    
+            if ( result.rating.negative.users.indexOf(email) != -1)   //yes, voted negative
+            {
+                votedBefore = 0;
+            }
+
+            //perform the action according to the current choice
+            if (rating == 0)  //negative case
+            {
+                if ( votedBefore == 0 )       //voted negative before -  remove the user from negative voters list and update the rating value
+                {
+                    //decrease the negative rating of the session by 1
+                    --result.rating.negative.value;
+
+                    //remove from negative voters list
+                    result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1);
+
+                    logger.info("updateSessionRating:user: " + email + " DOWN vote for session: " + sessionId + " was successfully removed.");
+                    r.desc = "user: " + email + " DOWN vote for session: " + sessionId + " was successfully removed.";
+                }
+                else
+                {
+                    if ( votedBefore == 1 )     //voted positive before - remove the user from positive voters list and update the positive rating value
+                    {
+                        //decrease the positive rating of the session by 1
+                        --result.rating.positive.value;
+
+                        //remove from positive voters list
+                        result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);
+                    }
+
+                    //increase the negative rating of the session by 1
+                    ++result.rating.negative.value;
+
+                    //add to the negative votes list
+                    result.rating.negative.users.push(email);
+
+                    logger.info("updateSessionRating:user: " + email + " DOWN vote for session: " + sessionId + " was successfully received.");
+                    r.desc = "user: " + email + " DOWN vote for session: " + sessionId + " was successfully received.";
+                }
+            }
+
+            if (rating == 1)  //positive case
+            {
+                if ( votedBefore == 1 )       //voted positive before - remove the user from positive voters list and update the positive rating value
+                {
+                    //decrease the positive rating of the session by 1
+                    --result.rating.positive.value;
+
+                    //remove from positive voters list
+                    result.rating.positive.users.splice(result.rating.negative.users.indexOf(email), 1);
+
+                    logger.info("updateSessionRating:user: " + email + " UP vote for session: " + sessionId + " was successfully removed.");
+                    r.desc = "user: " + email + " UP vote for session: " + sessionId + " was successfully removed.";
+                }
+                else
+                {
+                    if ( votedBefore == 0 )     //voted negative before -  remove the user from negative voters list and update the rating value
+                    {
+                        //decrease the negative rating of the session by 1
+                        --result.rating.negative.value;
+
+                        //remove from negative voters list
+                        result.rating.negative.users.splice(result.rating.negative.users.indexOf(email), 1);
+                    }
+
+                    //increase the positive rating of the session by 1
+                    ++result.rating.positive.value;
+
+                    //add the user to the positive voters lists
+                    result.rating.positive.users.push(email);
+
+                    logger.info("updateSessionRating:user: " + email + " UP vote for session: " + sessionId + " was successfully received.");
+                    r.desc = "user: " + email + " UP vote for session: " + sessionId + " was successfully received.";
+                }
+            }
+
+            //save the result - update the document in the database
+            //result.markModified('participants');
+            result.save(function(err, obj)
+            {
+                //check if an error occurred during the save
+                if (err)
+                {
+                    logger.error("updateSessionRating:failure occurred during the save, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure occurred during the save.";
+                    res.json(r);
+                    return;
+                }
+
+                //obj.rating.positive.users =  (obj.rating.positive.users.indexOf(email)!= -1)?true:false;
+                //obj.rating.negative.users =  (obj.rating.negative.users.indexOf(email)!= -1)?true:false;
+
+                r.status = 1;
+                //send back the result of current number of positive\negative voters and this user's choice
+                r.res = {
+                    positive : {
+                        users: (obj.rating.positive.users.indexOf(email) != -1) ? true : false,
+                        value: obj.rating.positive.value
+                    },
+                    negative : {
+                        users: (obj.rating.negative.users.indexOf(email) != -1) ? true : false,
+                        value : obj.rating.negative.value
+                    }
+                };
+                res.json(r);
+                return;
+            });
+        }
     }); 
 }
 
@@ -284,106 +320,108 @@ exports.updateSessionRating=function (req,res,next){
  * @desc This function will find the 'session' document in the 'sessions' collection by sessionId 
  * that will be received in the request. This function will insert the email of the user to 
  * 'participants' property in the 'session' document.
- * @param {json} data - The object with the data
- * @param {string} data.email - name@gmail.com
- * @param {string} data.sessionId - text
+ * @param {string} email - name@gmail.com
+ * @param {string} sessionId - text
  * @returns {json} status: 1/0
  */
 
-exports.joinSession=function (req,res,next){
-  var r = { };  //response object 
-  var allParticipants = new Array();
+exports.joinSession = function (req, res, next)
+{
+    //create new empty variables
+    var r = { };                        //response object
+    var allParticipants = new Array();
+    var email, sessionId;
 
-  try     //try to parse json data
-  {
-      var email = req.body.email;
-      var sessionId = req.body.sessionId;
-  }
-  catch( err )
-  {
-      console.log("JOINSESSION: failure while parsing the request, the error:" + err);
-      r.status = 0;
-      r.desc = "failure while parsing the request";
-      res.json(r);
-      return;
-  }
-  
-    if (  typeof email === 'undefined' || email == null || email == "" ||
-        typeof sessionId === 'undefined' || sessionId == null || sessionId == ""  ) // if email and sessionId properties do not exist in the request and empty
+    //try to parse the received data
+    try
     {
-      console.log("JOINSESSION: request must contain a property email, sessionId.");
-      r.status = 0; 
-        r.desc = "request must contain a property email, sessionId.";
+        email = req.body.email;
+        sessionId = req.body.sessionId;
+    }
+    catch( err )
+    {
+        logger.error("joinSession:failure occurred while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request";
+        res.json(r);
+        return;
+    }
+
+    //check that all needed properties were received in the request
+    if (    typeof email === 'undefined' || email == null || email == "" ||
+            typeof sessionId === 'undefined' || sessionId == null || sessionId == ""  )
+    {
+        logger.error("joinSession:the request must contain email and sessionId properties.");
+        r.status = 0;
+        r.desc = "the request must contain email and sessionId properties.";
         res.json(r); 
         return;
     }
     
-    console.log("JOINSESSION:email: " + email + ", sessionId: " + sessionId);
-    
-    db.model('sessions').findOne( { sessionId : sessionId },
-    //{ participants : true, owner : true, _id : false }, - does not wotk with this
-    function (err, result)
-    {
-        if (err) 
-      {
-        console.log("JOINSESSION:failure during session search, the error: ", err);
-      r.status = 0;
-      r.desc = "failure during session search";
-        res.json(r);  
-        return;
-      }
-        if ( !result )
-        {
-          console.log("JOINSESSION:session: " + sessionId + " was not found");
-          r.status = 0;
-          r.desc = "session: " + sessionId + " was not found";
-          res.json(r);
-          return;
-      }
-      else
-      {
-        //TODO. REMOVE. validation for Rami...
-        if ( result.participants.indexOf(email) == -1 ) 
-        { 
-          console.log("JOINSESSION:participant");
-        }
-        if ( result.owner != email ) 
-        { 
-          console.log("JOINSESSION:owner");
-        }
-        
-          if (result.participants.indexOf(email) == -1 && result.owner != email )
-          {
-            result.participants.push(email);
-            //result.markModified('participants');
-            result.save(function(err, obj) 
-            { 
-              if (err)
-              {
-                    console.log("JOINSESSION:failure session save, the error: ", err);
-                    r.status = 0;
-                    r.desc = "failure session save";
-                    res.json(r);  
-                    return;           
-                }
+    logger.debug("joinSession:email: " + email + ", sessionId: " + sessionId);
 
-              //console.log("obj is: " + obj); object after the update
-                  console.log("JOINSESSION:user: " + email + " was joined to the session.");
-                  r.status = 1;
-                  r.desc = "user: " + email + " was joined to the session.";
-                  res.json(r);
-                  return; 
-              });
-          }
-          else
-          {
-              console.log("JOINSESSION:user: " + email + " already exists in the session");
-              r.status = 1;
-              r.desc = "user: " + email + " already exists in the session";
-              res.json(r);
-              return;
-          }
-          //console.log("JOINSESSION:result: " + result);
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { sessionId : sessionId },
+    //{ participants : true, owner : true, _id : false }, - does not work with this
+    function (err, sessionObj)
+    {
+        //check if failure occurred during the search
+        if (err)
+        {
+            logger.error("joinSession:failure occurred during the search, the error: ", err);
+            r.status = 0;
+            r.desc = "failure occurred during the search.";
+            res.json(r);
+            return;
+        }
+
+        //check if the current session exists in the database
+        if ( !sessionObj )
+        {
+            logger.error("joinSession:session: " + sessionId + " was not found.");
+            r.status = 0;
+            r.desc = "session: " + sessionId + " was not found.";
+            res.json(r);
+            return;
+        }
+        else
+        {
+            //check if the current user was already joined to the session
+            if (sessionObj.participants.indexOf(email) == -1 && sessionObj.owner != email )
+            {
+                //add current user to the list of participants
+                sessionObj.participants.push(email);
+
+                //save the result - update the document in the database
+                //result.markModified('participants');
+                sessionObj.save(function(err, obj)
+                {
+                    //check if an error occurred during the save
+                    if (err)
+                    {
+                        logger.error("joinSession:failure session save, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure session save";
+                        res.json(r);
+                        return;
+                    }
+
+                    logger.info("joinSession:user: " + email + " was joined to the session.");
+                    r.status = 1;
+                    r.desc = "user: " + email + " was joined to the session.";
+                    res.json(r);
+                    return;
+                });
+            }
+            else
+            {
+                logger.error("joinSession:user: " + email + " already exists in the session");
+                r.status = 1;
+                r.desc = "user: " + email + " already exists in the session";
+                res.json(r);
+                return;
+            }
         }
       });
 }
@@ -392,61 +430,66 @@ exports.joinSession=function (req,res,next){
 /**
  * @inner
  * @memberof session
- * @function joinSession
- * @desc remove the image from the cloud
- * @param {json} data - The object with the data
- * @param {string} data.imageurl - http://
- * @param {string} data.sessionId - text
+ * @function deleteImage
+ * @desc remove an image from the cloud
+ * @param {string} imageurl - http://
+ * @param {string} sessionId - text //TODO. remove?
  * @returns {json} status: 1/0
  */
-
-exports.deleteImage=function (req,res,next){
-  var imageUrl;
+exports.deleteImage = function (req,res,next)
+{
+    //create new empty variables
+    var imageUrl;
     var r = { };
-    
+
+    //try to parse the received data
     try
     {
-      imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
+        imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
     }
     catch( err )
     {
-      console.log("DELETEIMAGE:failure while parsing the request, the error:" + err);
-      r.status = 0;
-      r.desc = "failure while parsing the request.";
-      res.json(r);
-      return;
-    }
-    
-    if ( !imageUrl || imageUrl == '' ) 
-    {
-      console.log("DELETEIMAGE:request must contain an image URL.");
-      r.status = 0;
-      r.desc = "request must contain an image URL.";
-      res.json(r);
-      return;
-    }
-     var temp = imageUrl.split('/');
-
-    cloudinary.api.delete_resources([temp[temp.length-1].split(".")[0]],
-
-    function(result){
-      console.log("DELETEIMAGE:result is: " + result);
-      if (result.result == "not found")
-      {
-        console.log("DELETEIMAGE:image was not found.");
+        logger.error("deleteImage:failure occurred while parsing the request, the error:" + err);
         r.status = 0;
-        r.desc = "image was not found.";
+        r.desc = "failure occurred while parsing the request.";
         res.json(r);
         return;
-      }
-      
-      console.log("DELETEIMAGE:image was deleted.");
-      r.status = 1;
-      r.desc = "image was deleted.";
-      res.json(r);
-      return;
-    });
+    }
 
+    //check that all needed properties were received in the request
+    if ( typeof imageUrl === 'undefined' || imageUrl == null || imageUrl == "" )
+    {
+        logger.error("deleteImage:the request must contain imageUrl property.");
+        r.status = 0;
+        r.desc = "the request must contain imageUrl property.";
+        res.json(r);
+        return;
+    }
+
+    var temp = imageUrl.split('/');
+
+    //delete an image using cloudinary API and image id
+    cloudinary.api.delete_resources([temp[temp.length-1].split(".")[0]],
+    function(result)
+    {
+        logger.debug("deleteImage:the result is: " + result);
+
+        //check if an image was found in the cloudinary
+        if (result.result == "not found")
+        {
+            logger.error("deleteImage:image was not found.");
+            r.status = 0;
+            r.desc = "image was not found.";
+            res.json(r);
+            return;
+        }
+      
+        logger.info("deleteImage:image: " + imageUrl + " was deleted.");
+        r.status = 1;
+        r.desc = "image: " + imageUrl + " was deleted.";
+        res.json(r);
+        return;
+    });
 }
 
 /**
@@ -455,68 +498,76 @@ exports.deleteImage=function (req,res,next){
  * @memberof session
  * @function rotateImage
  * @desc remove the image from the cloud
- * @param {json} data - The object with the data
- * @param {string} data.imageurl - http://
- * @param {string} data.sessionId - text
- * @param {number} data.angle - {0-9}*
+ * @param {string} imageurl - http://
+ * @param {string} sessionId - text
+ * @param {number} angle - {0-9}*
  * @returns {json} status: 1/0
  */
-
-exports.rotateImage=function (req,res,next){
-  var imageUrl, angle, sessionId;
+exports.rotateImage = function (req, res, next)
+{
+    //create new empty variables
+    var imageUrl, angle, sessionId;
     var r = { };
-    
+
+    //try to parse the received data
     try
     {
-      imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
-      angle = req.body.angle||'exif';
-      sessionId = req.body.sessionId;
+        imageUrl = req.body.imageurl; //TODO. should be imageUrl = camel case
+        angle = req.body.angle || 'exif';
+        sessionId = req.body.sessionId;
     }
     catch( err )
     {
-      console.log("rotateImage:failure while parsing the request, the error:" + err);
-      r.status = 0;
-      r.desc = "failure while parsing the request.";
-      res.json(r);
-      return;
-    }
-    
-    if ( !sessionId || sessionId == '' || !imageUrl || imageUrl == '' ) 
-    {
-      console.log("rotateImage:request must contain an image URL.");
-      r.status = 0;
-      r.desc = "request must contain an image URL.";
-      res.json(r);
-      return;
-    }
-     var temp = imageUrl.split('/');
-     var imageid = temp[temp.length-1].split(".")[0];
-
-     cloudinary.uploader.upload(imageUrl,
-    function(result){
-      //console.log("rotateImage:result is: " , result);
-      if (result.result == "not found" || result.error)
-      {
-        console.log("rotateImage:image was not found or error occured.");
+        logger.error("rotateImage:failure occurred while parsing the request, the error:" + err);
         r.status = 0;
-        r.desc = "image was not found or error occured.";
+        r.desc = "failure occurred while parsing the request.";
         res.json(r);
         return;
-      }
+    }
+
+    //check that all needed properties were received in the request
+    if (    typeof imageUrl === 'undefined' || imageUrl == null || imageUrl == "" ||
+            typeof sessionId === 'undefined' || sessionId == null || sessionId == "" )
+    {
+        logger.error("rotateImage:request must contain imageUrl and sessionId properties.");
+        r.status = 0;
+        r.desc = "request must contain imageUrl and sessionId properties.";
+        res.json(r);
+        return;
+    }
+
+    //extract image id from the URL received in the request
+    var temp = imageUrl.split('/');
+    var imageid = temp[temp.length-1].split(".")[0];
+
+    //rotate the picture using clouddinary API
+    cloudinary.uploader.upload(imageUrl,
+    function(result)
+    {
+        //console.log("rotateImage:result is: " , result);
+        //check if the image was found in the cloudinary
+        if (result.result == "not found" || result.error)
+        {
+            logger.error("rotateImage:image: " + imageUrl + " was not found or error occured.");
+            r.status = 0;
+            r.desc = "image: " + imageUrl + " was not found or error occured.";
+            res.json(r);
+            return;
+        }
       
-      console.log("rotateImage:image was rotated.");
-      r.status = 1;
-      r.desc = "image was rotated.";
-      res.json(r);
-      return;
+        logger.info("rotateImage:image: " + imageUrl + " was rotated.");
+        r.status = 1;
+        r.desc = "image: " + imageUrl + "  was rotated.";
+        res.json(r);
+        return;
     },
     {
-      public_id: imageid, 
-      crop: 'limit',
-      width: 640,
-      height: 360,
-      angle: angle,                                   
-      tags: [sessionId,'lecturus']
+        public_id: imageid,
+        crop: 'limit',
+        width: 640,
+        height: 360,
+        angle: angle,
+        tags: [sessionId,'lecturus']
     });
 }
 
@@ -524,104 +575,113 @@ exports.rotateImage=function (req,res,next){
  * @inner
  * @memberof session
  * @function deleteSession
- * @desc delete the session with his data
- * @param {json} data - The object with the data
- * @param {string} data.userId - name@gmail.com
- * @param {string} data.sessionId - text
+ * @desc delete the session with it's data
+ * @param {string} userId - name@gmail.com
+ * @param {string} sessionId - text
  * @returns {json} status: 1/0
  */
+exports.deleteSession = function (req, res, next)
+{
+    //create new empty variables
+    var sessionId, email;
+    var r = { };
 
-exports.deleteSession=function (req,res,next){
-  var sessionId, email;
-    var r = {};
-    
+    //try to parse the received data
     try
     {
-      sessionId = req.body.sessionId;
-      email = req.body.userId;
+        sessionId = req.body.sessionId;
+        email = req.body.userId;
     }
     catch(err)
     {
-    console.log("DELETESESSION:failure while parsing the request, the error:", err);
-    r.status = 0;
-    r.desc = "failure while parsing the request";
-    res.json(r);
-    return;     
-    }
-    
-    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-        typeof email === 'undefined' || email == null || email == "" ) 
-    {
-      console.log("DELETESESSION:request must contain sessionId and owner properties.");
-      r.status = 0;
-      r.desc = "request must contain sessionId and owner properties.";
-      res.json(r);
-      return;
+        logger.error("deleteSession:failure while parsing the request, the error:", err);
+        r.status = 0;
+        r.desc = "failure while parsing the request";
+        res.json(r);
+        return;
     }
 
-  db.model('sessions').findOne(
-  { sessionId : sessionId }, 
+    //check that all needed properties were received in the request
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof email === 'undefined' || email == null || email == "" )
+    {
+        logger.error("deleteSession:request must contain sessionId and owner properties.");
+        r.status = 0;
+        r.desc = "request must contain sessionId and owner properties.";
+        res.json(r);
+        return;
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { sessionId : sessionId },
     function(err, sessionObj)
     {    
-      console.log(sessionObj)
-        // failure while connecting to sessions collection
+        logger.debug("session object is: " + sessionObj);
+
+        //check if failure occurred during the search
         if (err) 
         {
-            console.log("DELETESESSION:failure during session search, the error: ", err);
+            logger.error("deleteSession:failure occurred during session search, the error: ", err);
             r.status = 0;
-            r.desc = "failure during session search.";
+            r.desc = "failure occurred  during session search.";
             res.json(r);
             return;
         }
         
-    // if the session do not exist
+        //check if the session exists in the database
         if (sessionObj == null)
         {
-          console.log("DELETESESSION:session: " + sessionId + " was not found.");
+            logger.error("deleteSession:session: " + sessionId + " was not found.");
             r.status = 0;
             r.desc = "session: " + sessionId + " was not found.";
-          res.json(r);  
+             res.json(r);
             return;
         }
-        
+
+        //check if the current user is the session owner
         if (sessionObj.owner != email)
         {
-          console.log("DELETESESSION:email: " + email + " do not belong to session owner. "+sessionObj.owner);
+            logger.error("deleteSession:email: " + email + " does not belong to session owner. " + sessionObj.owner);
             r.status = 0;
-            r.desc = "email: " + email + " do not belong to session owner.";
-          res.json(r);  
+            r.desc = "email: " + email + " does not belong to session owner.";
+            res.json(r);
             return;
         }
         else
         {
+            //delete all the items (images and audios) which belong to the session from the cloudinary using the API
             cloudinary.api.delete_resources_by_tag(sessionId,
             function(result)
             { 
-              console.log("DELETESESSION:result is: " + result);
+                logger.debug("deleteSession:result is: " + result);
             
-              if (result.result == "not found")
-              {
-                  console.log("DELETESESSION:session was not found in the cloud.");
-                  r.status = 0;
-                r.desc = "session was not found in the cloud.";
-                  res.json(r);
-                  return;
-              }
-              
-              sessionObj.remove(function (err){
-                if (err)
+                if (result.result == "not found")
                 {
-                  console.log("DELETESESSION:session could not be deleted from the cloud.");
-                  r.status = 0;
-                  r.desc = "session could not be was deleted from the cloud.";
-                  res.json(r);
-                  return;
+                    logger.error("deleteSession:session was not found in the cloudinary.");
+                    r.status = 0;
+                    r.desc = "session was not found in the cloudinary.";
+                    res.json(r);
+                    return;
                 }
-                console.log("DELETESESSION:session was deleted from the cloud.");
-                r.status = 1;
-                r.desc = "session was deleted from the cloud.";
-                res.json(r);
-                return;
+              
+                sessionObj.remove(function (err)
+                {
+                    //check if an error occurred during the delete
+                    if (err)
+                    {
+                        logger.error("deleteSession:an error occurred during session: " + sessionId + " deleted, error is: " + err);
+                        r.status = 0;
+                        r.desc = "an error occurred during session: " + sessionId + " deleted.";
+                        res.json(r);
+                        return;
+                    }
+
+                    logger.info("deleteSession:session: " + sessionId + " was deleted successfully.");
+                    r.status = 1;
+                    r.desc = "session: " + sessionId + " was deleted successfully.";
+                    res.json(r);
+                    return;
               });
               
             },
@@ -629,7 +689,6 @@ exports.deleteSession=function (req,res,next){
         }
   });
 }
-
 
 /**
  * @inner
@@ -645,186 +704,195 @@ exports.deleteSession=function (req,res,next){
  * @param {string} data.sessionId - text
  * @returns {json} status: 1/0
  */
-exports.switchSessionOwner=function (req,res,next){
-  var sessionId, currOwner, futureOwner;
-  var r = { };
-  var message = new gcm.Message();  //create new gcm message
-  var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
-  var users = new Array();
-  
+exports.switchSessionOwner = function(req, res, next)
+{
+    //create new empty variables
+    var sessionId, currOwner, futureOwner;
+    var r = { };
+    var message = new gcm.Message();  //create new gcm message
+    var sender = new gcm.Sender('AIzaSyAjgyOeoxz6TC8vXLydERm47ZSIy6tO_6I'); //create new gcm object
+    var users = new Array();
+
+    //try to parse the received data
     try
     {
-      sessionId = req.body.sessionId;
-      currOwner = req.body.currOwner;
-      futureOwner = req.body.futureOwner;
+        sessionId = req.body.sessionId;
+        currOwner = req.body.currOwner;
+        futureOwner = req.body.futureOwner;
     }
     catch( err )
     {
-      console.log("SWITCHSESSIONOWNER:failure while parsing the request, the error:" + err);
-      r.status = 0;
-      r.desc = "failure while parsing the request.";
-      res.json(r);
-      return;
+        logger.error("switchSessionOwner:failure occurred while parsing the request, the error:" + err);
+        r.status = 0;
+        r.desc = "failure occurred while parsing the request.";
+        res.json(r);
+        return;
     }
-    
-    if (  typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
-        typeof currOwner === 'undefined' || currOwner == null || currOwner == "" ||
-        typeof futureOwner === 'undefined' || futureOwner == null || futureOwner == "" )  //check if sessionId, currOwner and futureOwner properties exist in the request and not empty
+
+    //check that all needed properties were received in the request
+    if (    typeof sessionId === 'undefined' || sessionId == null || sessionId == "" ||
+            typeof currOwner === 'undefined' || currOwner == null || currOwner == "" ||
+            typeof futureOwner === 'undefined' || futureOwner == null || futureOwner == "" )
     {
-      console.log("SWITCHSESSIONOWNER:request must contain sessionId, currOwner and futureOwner properties.");
-      r.status = 0; 
+        logger.error("switchSessionOwner:request must contain sessionId, currOwner and futureOwner properties.");
+        r.status = 0;
         r.desc = "request must contain sessionId, currOwner and futureOwner properties.";
         res.json(r); 
         return;
-    } 
-    
-    db.model('sessions').findOne( { sessionId : sessionId },
-  //{ _id : false },
+    }
+
+    //search for the session document in the sessions collection
+    db.model('sessions').findOne(
+    { sessionId : sessionId },
     function( err, sessionObj )
     {
-      console.log("SWITCHSESSIONOWNER:session is: " + sessionObj);
+        logger.debug("switchSessionOwner:session is: " + sessionObj);
       
-      // failure during session search
+        //check if failure occurred during the search
         if (err) 
         {
-          console.log("SWITCHSESSIONOWNER:failure during session search, the error: ", err);
+            logger.error("switchSessionOwner:failure occurred during the search, the error: ", err);
             r.status = 0;
-            r.desc = "failure during session search.";
-          res.json(r);  
+            r.desc = "failure occurred during the search.";
+            res.json(r);
             return;
         }
         
-    // if the sessions do not exist
+        //check if the session exists in the database
         if (sessionObj == null)
         {
-          console.log("SWITCHSESSIONOWNER:session was not found.");
+            logger.error("switchSessionOwner:session: " + sessionId + " was not found.");
             r.status = 0;
-            r.desc = "session was not found.";
-          res.json(r);  
+            r.desc = "session: " + sessionId + " was not found.";
+            res.json(r);
             return;
         }
         
-        //email received as currOwner do not belong to the session owner
+        //check email received as currOwner belongs to the session owner
         if (sessionObj.owner != currOwner)
         {
-          console.log("SWITCHSESSIONOWNER:user: " + currOwner + " is not a session owner.");
+            logger.error("switchSessionOwner:user: " + currOwner + " is not a session owner.");
             r.status = 0;
             r.desc = "user: " + currOwner + " is not a session owner.";
-          res.json(r);  
+            res.json(r);
             return;
         }
         else
-    {
-          //switch places: participant goes to be a session owner, owner goes to be participant
-          sessionObj.owner = futureOwner;
-          sessionObj.participants.push(currOwner);
-          
-          //remove new session owner from session participant list
-          sessionObj.participants.splice(sessionObj.participants.indexOf(futureOwner), 1);
-
-      //create an array of switching users
-      users.push(currOwner);
-      users.push(futureOwner);
-      
-      sessionObj.save(function(err, obj) 
-        { 
-          console.log("SWITCHSESSIONOWNER:save");
-          if (err)
-          {
-            console.log("SWITCHSESSIONOWNER:failure during session save, the error: ", err);
-            r.status = 0;
-            r.desc = "failure during session save";
-            res.json(r); 
-            return;          
-          }
-          
-            // seach for the google registration id of the users that going to make a switch
-            db.model('users').find( 
-        { email : { $in : users } }, 
-          { regId : true, _id : false },
-        function (err, arrUsers)
         {
-          console.log("SWITCHSESSIONOWNER:Array of users: " + arrUsers);
+            //switch places: participant goes to be a session owner, owner goes to be participant
+            sessionObj.owner = futureOwner;
+            sessionObj.participants.push(currOwner);
           
-          // failure during user search
-            if (err) 
+            //remove new session owner from session participant list
+            sessionObj.participants.splice(sessionObj.participants.indexOf(futureOwner), 1);
+
+            //populate an array of switching users (participant and the owner)
+            users.push(currOwner);
+            users.push(futureOwner);
+      
+            sessionObj.save(function(err, obj)
             {
-              console.log("SWITCHSESSIONOWNER:failure during users search, the error: ", err);
-                  r.status = 0;
-                  r.desc = "failure during users search, the error: ", err;
-                res.json(r);  
-                return;
-            }
-            if ( arrUsers.length != 2 )
-            {
-              console.log("SWITCHSESSIONOWNER:one of the participans was not found.");
-                  r.status = 0;
-                  r.desc = "one of the participans was not found.";
-                res.json(r);  
-                return;
-            }
-            else
-            {
-            message.addData('sessionId', sessionId);
-            message.delay_while_idle = 1;
-            
-              (arrUsers).forEach (function (user) 
-              {
-                  console.log("SWITCHSESSIONOWNER:participant's registration id: " + user.regId);
-                  
-                  if (user.email == futureOwner)
-                  {
-                    var newOwnerRegId = [];
-                    newOwnerRegId.push(user.regId);
-                  
-                    message.addData('message', 'owner');
-                    message.addData('status', '5');     //TODO. check for the right number
-                    
-                    //send a gcm message to the current session owner
-                    sender.sendNoRetry(message, newOwnerRegId, function(err, sentResult) 
+                //check if an error occurred during the save
+                if (err)
                 {
-                    if(err) 
-                    {
-                      console.error("SWITCHSESSIONOWNER:error is: " + err);
-                    }
-                    else 
-                    {
-                       console.log("SWITCHSESSIONOWNER:message sending to: " + user.regId + " resulted with:" + sentResult);
-                      }
-                });
-                  } 
-              else
-              {
-                var oldOwnerRegId = [];
-                    oldOwnerRegId.push(user.regId);
-                    
-                    message.addData('message', 'participant');
-                message.addData('status', '6');     //TODO. check for the right number            
-                        
-                    //send a gcm message to the previos session owner
-                    sender.sendNoRetry(message, oldOwnerRegId, function(err, sentResult) 
+                    logger.error("switchSessionOwner:failure occurred during session save, the error: ", err);
+                    r.status = 0;
+                    r.desc = "failure during occurred session save.";
+                    res.json(r);
+                    return;
+                }
+          
+                //search for the google registration id of the users that going to make a switch
+                db.model('users').find(
+                { email : { $in : users } },
+                { regId : true, _id : false },
+                function (err, arrUsers)
                 {
-                    if(err) 
+                    logger.info("switchSessionOwner:Array of users: " + arrUsers);
+
+                    //check if failure occurred during the search
+                    if (err)
                     {
-                      console.error("SWITCHSESSIONOWNER:error is: " + err);
+                        logger.error("switchSessionOwner:failure occurred during users search, the error: ", err);
+                        r.status = 0;
+                        r.desc = "failure occurred during users search."
+                        res.json(r);
+                        return;
                     }
-                    else 
+
+                    //check if all the user's documents were found in the db
+                    if ( arrUsers.length != 2 )
                     {
-                       console.log("SWITCHSESSIONOWNER:message sending to: " + user.regId + " resulted with:" + sentResult);
-                      }
+                        logger.error("switchSessionOwner:one of the participants was not found.");
+                        r.status = 0;
+                        r.desc = "one of the participants was not found.";
+                        res.json(r);
+                        return;
+                    }
+                    else
+                    {
+                        //populate message details
+                        message.addData('sessionId', sessionId);
+                        message.delay_while_idle = 1;
+
+                        //send a GCM message to the users
+                        (arrUsers).forEach (function (user)
+                        {
+                            logger.info("switchSessionOwner:participant's registration id: " + user.regId);
+
+                            //this user is the current session owner - he will be a participant
+                            if (user.email == futureOwner)
+                            {
+                                var newOwnerRegId = [];
+                                newOwnerRegId.push(user.regId);
+
+                                message.addData('message', 'owner');
+                                message.addData('status', '5');
+
+                                //send a gcm message to the current session owner
+                                sender.sendNoRetry(message, newOwnerRegId, function(err, sentResult)
+                                {
+                                    if(err)
+                                    {
+                                        logger.error("switchSessionOwner:error is: " + err);
+                                    }
+                                    else
+                                    {
+                                        logger.info("switchSessionOwner:message sending to: " + user.regId + " resulted with:" + sentResult);
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                var oldOwnerRegId = [];
+                                oldOwnerRegId.push(user.regId);
+
+                                message.addData('message', 'participant');
+                                message.addData('status', '6');
+
+                                //send a gcm message to the previos session owner
+                                sender.sendNoRetry(message, oldOwnerRegId, function(err, sentResult)
+                                {
+                                    if(err)
+                                    {
+                                        logger.error("switchSessionOwner:error is: " + err);
+                                    }
+                                    else
+                                    {
+                                        logger.info("switchSessionOwner:message sending to: " + user.regId + " resulted with:" + sentResult);
+                                    }
+                                });
+                            }
+                        });
+
+                        logger.info("switchSessionOwner:all messages were sent.");
+                        r.status = 1;
+                        r.desc = "all messages were sent";
+                        res.json(r);
+                        return;
+                    }
                 });
-              }
-              });
-              
-              console.log("SWITCHSESSIONOWNER:all messages were sent.");
-                  r.status = 1;
-                  r.desc = "all messages were sent";
-                res.json(r);  
-                return; 
-            }
-          });           
-      });
-    }
-  });
-        
+            });
+        }
+    });
 }

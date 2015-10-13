@@ -7,7 +7,6 @@ mongoDb = require('mongodb').Db,
     GridStore = require('mongodb').GridStore,
     Grid = require('mongodb').Grid,
     Code = require('mongodb').Code,
-    // BSON = require('mongodb').pure().BSON,
     assert = require('assert');
 var mongoose = require('mongoose')
     , fs = require('fs')
